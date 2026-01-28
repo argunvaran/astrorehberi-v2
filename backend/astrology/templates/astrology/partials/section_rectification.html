@@ -279,6 +279,9 @@
 
                 resultsDiv.innerHTML = html;
             } else {
+                if (data.debug_error) {
+                    showAstroModal(data.debug_error, "TEKNİK HATA RAPORU", "error");
+                }
                 resultsDiv.innerHTML = `<div class="glass-card" style="text-align:center; padding:30px">Uygun bir eşleşme bulunamadı. Lütfen olay tarihlerini kontrol edip tekrar deneyin.</div>`;
             }
 

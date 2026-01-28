@@ -1022,6 +1022,19 @@ def rectify_birth_time(request):
         # Sort by score
         scores.sort(key=lambda x: x['score'], reverse=True)
         
+        if not scores:
+             # DIAGNOSTIC BLOCK
+             debug_msg = f"No match found for Date: {birth_date_str}. <br>"
+             debug_msg += f"Events Parsed: {len(event_transits)}. <br>"
+             if event_transits:
+                 debug_msg += f"First Event: {event_transits[0]['date']} ({len(event_transits[0]['planets'])} planets). <br>"
+             
+             # Test calc for 12:00
+             test_c = engine.calculate_natal(birth_date_str, "12:00", lat, lon)
+             debug_msg += f"Test 12:00 Asc: {test_c.get('ascendant', '?')} ({test_c.get('ascendant_deg', 0):.2f}). <br>"
+             
+             return JsonResponse({'candidates': [], 'debug_error': debug_msg})
+
         # Filter top 3 distinct Ascendant Signs if possible, or just top 3 times
         top_candidates = scores[:3]
         

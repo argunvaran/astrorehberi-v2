@@ -40,6 +40,7 @@ class AstroEngine:
             
             # Robust Date Parsing
             dt_naive = None
+            dt_str = f"{date_str} {time_str}" 
             formats_to_try = ["%Y-%m-%d %H:%M", "%d-%m-%Y %H:%M", "%d/%m/%Y %H:%M", "%Y/%m/%d %H:%M"]
             
             for fmt in formats_to_try:

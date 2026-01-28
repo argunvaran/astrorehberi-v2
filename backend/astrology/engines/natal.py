@@ -143,6 +143,16 @@ class NatalEngine:
              north_node = (125.04452 - 1934.136261 * T) % 360
         except:
              north_node = 0.0
+             
+        # Add North Node to Planets List (Critical for Rectification which looks for 'North Node')
+        nn_sign_idx = int(north_node / 30)
+        planets_list.append({
+            "name": "North Node",
+            "lon": north_node,
+            "sign": SIGNS[nn_sign_idx],
+            "degree": north_node % 30,
+            "retro": True # Usually true
+        })
 
         return {
             "planets": planets_list,
