@@ -874,7 +874,25 @@ def rectify_birth_time(request):
         if not birth_date:
              return JsonResponse({'error': 'Birth date is required'}, status=400)
 
-        birth_date = birth_date.replace('-', '/')
+        if not birth_date:
+             return JsonResponse({'error': 'Birth date is required'}, status=400)
+
+        # Robust Date Parsing for View Logic
+        start_date_obj = None
+        date_formats = ["%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y"]
+        
+        for fmt in date_formats:
+            try:
+                start_date_obj = datetime.strptime(birth_date, fmt)
+                break
+            except ValueError:
+                continue
+                
+        if not start_date_obj:
+             return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD or DD-MM-YYYY'}, status=400)
+
+        # Normalize to standard format for Engine calls
+        birth_date_str = start_date_obj.strftime("%Y-%m-%d")
         
         # Engine
         engine = AstroEngine()
@@ -885,15 +903,27 @@ def rectify_birth_time(request):
         event_transits = []
         
         for e in events:
-            edate = e.get('date', '').replace('-', '/')
+            edate_str = e.get('date', '')
             etype = e.get('type', 'general')
-            if not edate: continue
+            if not edate_str: continue
+            
+            # Robust parse for Event Date
+            e_dt = None
+            for fmt in date_formats:
+                try:
+                    e_dt = datetime.strptime(edate_str, fmt)
+                    break
+                except: continue
+                
+            if not e_dt: continue
+            
+            e_str_clean = e_dt.strftime("%Y-%m-%d")
             
             # calculate chart for event
             try:
-                t_chart = engine.calculate_natal(edate, "12:00", lat, lon)
+                t_chart = engine.calculate_natal(e_str_clean, "12:00", lat, lon)
                 t_planets = [p for p in t_chart['planets'] if p['name'] in heavy_planets]
-                event_transits.append({'type': etype, 'planets': t_planets, 'date': edate})
+                event_transits.append({'type': etype, 'planets': t_planets, 'date': e_str_clean})
             except:
                 continue
                 
@@ -901,7 +931,8 @@ def rectify_birth_time(request):
         # 10 min step approx 2.5 degrees of Ascendant. Acceptable for rough rectification.
         scores = []
         
-        start_time = datetime.strptime(birth_date + " 00:00", "%Y/%m/%d %H:%M")
+        # Start from midnight of the parsed date
+        start_time = datetime.combine(start_date_obj.date(), datetime.min.time())
         
         # Weights
         W_CONJ = 10
@@ -920,7 +951,7 @@ def rectify_birth_time(request):
             # Calculate Candidate Angles
             # We use engine.calculate_natal but it might be heavy to do 144 times if it calls API or deep math?
             # It uses Skyfield (local binary). Should be fast enough (< 2 sec for 144 calls).
-            candidate = engine.calculate_natal(birth_date, time_str, lat, lon)
+            candidate = engine.calculate_natal(birth_date_str, time_str, lat, lon)
             
             asc = candidate.get('ascendant_deg', 0.0)
             mc = candidate.get('midheaven_deg', 0.0)
