@@ -953,6 +953,9 @@ def rectify_birth_time(request):
             # It uses Skyfield (local binary). Should be fast enough (< 2 sec for 144 calls).
             candidate = engine.calculate_natal(birth_date_str, time_str, lat, lon)
             
+            if 'error' in candidate:
+                 return JsonResponse({'error': f"Engine Error: {candidate['error']}"}, status=500)
+
             asc = candidate.get('ascendant_deg', 0.0)
             mc = candidate.get('midheaven_deg', 0.0)
             asc_sign = candidate.get('ascendant', 'Aries')

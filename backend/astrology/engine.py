@@ -70,7 +70,7 @@ class AstroEngine:
         except Exception as e:
             print(f"Natal Calc Error: {e}")
             # Return structure to prevent View crash 'planets' key error
-            return {"planets": [], "houses": [], "ascendant": "Unknown", "north_node":0}
+            return {"planets": [], "houses": [], "ascendant": "Unknown", "north_node":0, "error": str(e)}
 
     def calculate_aspects(self, planets_data):
         # planets_data is expected to be a LIST of planets (from result['planets'])
