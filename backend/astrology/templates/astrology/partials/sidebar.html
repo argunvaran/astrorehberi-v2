@@ -133,7 +133,7 @@
     <div style="flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; min-height: 0;">
         <div class="logo" style="justify-content: center; padding: 20px;">
             <img src="{% static 'astrology/logo_dk.png' %}" alt="Derin Kozmos"
-                style="width: 100%; max-width: 180px; height: auto; border-radius: 50%; box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);">
+                style="width: 100%; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; border-radius: 50%; box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);">
         </div>
 
         <!-- GROUP 1: KOZMİK REHBER (GENERAL) -->
@@ -160,8 +160,10 @@
                 <div class="nav-item"
                     onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('celestial', this){% else %}showUpgradeModal('Göksel Olaylar takvimi Premium üyelere özeldir.'){% endif %}">
                     <i class="fas fa-moon"></i> <span data-i18n="menu_celestial">Göksel Olaylar</span>
-                    {% if not FREE_PREMIUM_MODE and user.profile.effective_membership != 'premium' and not user.is_superuser %}<i class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
-                    
+                    {% if not FREE_PREMIUM_MODE and user.profile.effective_membership != 'premium' and not
+                    user.is_superuser %}<i class="fas fa-lock"
+                        style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
+
                 </div>
                 <div class="nav-item" onclick="nav('hours', this)">
                     <i class="fas fa-hourglass-half"></i> <span data-i18n="menu_hours">Gezegen Saatleri</span>
