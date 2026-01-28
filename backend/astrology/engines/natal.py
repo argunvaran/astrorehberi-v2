@@ -93,6 +93,11 @@ class NatalEngine:
         
         asc_rad = math.atan2(numerator, denominator)
         asc_deg = math.degrees(asc_rad)
+        
+        # CORRECTIVE OFFSET: The atan2 formula above naturally points to the Descendant (DC) 
+        # in this coordinate system configuration. We must flip 180 degrees to get the Ascendant (AC).
+        asc_deg = (asc_deg + 180) % 360
+
         if asc_deg < 0: asc_deg += 360
         
         # Ascendant Sign

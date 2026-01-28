@@ -97,8 +97,8 @@
         const params = new URLSearchParams(window.location.search);
         const page = params.get('page');
         if (page) {
-            // Slight delay to ensure DOM is fully ready
-            setTimeout(() => nav(page), 100);
+            // Immediate navigation to prevent flicker
+            nav(page);
         } else {
             // Default View
             if (document.getElementById('view-home')) nav('home');

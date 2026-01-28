@@ -37,11 +37,20 @@ class AstroEngine:
             date_str = date_str.replace('/', '-')
             
             dt_str = f"{date_str} {time_str}"
-            dt = datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            # Correct Timezone Handling (Critical for Ascendant)
+            local_tz = pytz.timezone('Europe/Istanbul')
+            
+            # 1. Create Naive
+            dt_naive = datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            
+            # 2. Localize (This handles DST for Turkey history correctly)
+            dt_local = local_tz.localize(dt_naive)
+            
+            # 3. Convert to UTC
+            dt_utc = dt_local.astimezone(pytz.utc)
             
             ts = self.core.ts
-            # Use TAI/UTC properly? For simple calc, utc=dt is standard Skyfield shortcut
-            t = ts.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute)
+            t = ts.from_datetime(dt_utc)
             
             # NatalEngine now returns FULL structure: {planets:[], houses:[], ascendant:...}
             # This MATCHES what Views.py expects.
