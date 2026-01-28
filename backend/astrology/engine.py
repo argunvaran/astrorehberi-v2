@@ -35,14 +35,25 @@ class AstroEngine:
         try:
             # Handle Slash/Dash date
             date_str = date_str.replace('/', '-')
-            
-            dt_str = f"{date_str} {time_str}"
             # Correct Timezone Handling (Critical for Ascendant)
             local_tz = pytz.timezone('Europe/Istanbul')
             
-            # 1. Create Naive
-            dt_naive = datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
+            # Robust Date Parsing
+            dt_naive = None
+            formats_to_try = ["%Y-%m-%d %H:%M", "%d-%m-%Y %H:%M", "%d/%m/%Y %H:%M", "%Y/%m/%d %H:%M"]
             
+            for fmt in formats_to_try:
+                try:
+                    dt_naive = datetime.datetime.strptime(dt_str, fmt)
+                    break 
+                except ValueError:
+                    continue
+            
+            if dt_naive is None:
+                # Fatal Parse Error Fallback
+                print(f"Date Parse Failed for: {dt_str}")
+                return {"planets": [], "houses": [], "ascendant": "Unknown", "north_node":0}
+
             # 2. Localize (This handles DST for Turkey history correctly)
             dt_local = local_tz.localize(dt_naive)
             
