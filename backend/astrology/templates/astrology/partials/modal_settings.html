@@ -1,0 +1,77 @@
+<!-- SETTINGS MODAL -->
+<div id="settings-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 data-i18n="settings_title">Ayarlar</h3>
+            <span class="close-modal" onclick="closeSettings()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p data-i18n="settings_desc" style="margin-bottom: 20px; color: #ccc;">Doğum bilgilerinizi buradan
+                güncelleyebilirsiniz.</p>
+
+            <!-- DJANGO FORM POST FOR SETTINGS -->
+            <form id="settings-form" action="{% url 'apply_settings_form' %}" method="POST">
+                {% csrf_token %}
+
+                {% if settings_form.non_field_errors %}
+                <div class="alert alert-danger" style="color: #ff6b6b; margin-bottom: 10px;">
+                    {{ settings_form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label data-i18n="label_date">{{ settings_form.birth_date.label }}</label>
+                    {{ settings_form.birth_date }}
+                    {% if settings_form.birth_date.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8rem;">{{ settings_form.birth_date.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label data-i18n="label_time">{{ settings_form.birth_time.label }}</label>
+                    {{ settings_form.birth_time }}
+                    {% if settings_form.birth_time.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8rem;">{{ settings_form.birth_time.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label data-i18n="label_lat">{{ settings_form.lat.label }}</label>
+                    {{ settings_form.lat }}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label data-i18n="label_lon">{{ settings_form.lon.label }}</label>
+                    {{ settings_form.lon }}
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;"
+                    data-i18n="btn_save">Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* SETTINGS LOGIC */
+    function openSettings() {
+        document.getElementById('settings-modal').style.display = 'flex';
+    }
+
+    function closeSettings() {
+        document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    // Auto submit handler to clear session cache before submit
+    document.getElementById('settings-form').addEventListener('submit', function () {
+        sessionStorage.removeItem('astro_current_chart');
+
+        // Update local storage too just in case (for visual consistency immediately if possible? No, reload will happen)
+        // We use the new Django IDs: id_birth_time, id_birth_date (default Django widget IDs)
+        const timeVal = document.getElementById('id_birth_time')?.value;
+        const dateVal = document.getElementById('id_birth_date')?.value;
+
+        if (timeVal) localStorage.setItem('astro_saved_time', timeVal);
+        if (dateVal) localStorage.setItem('astro_saved_date', dateVal.replace(/\//g, '-'));
+    });
+</script>

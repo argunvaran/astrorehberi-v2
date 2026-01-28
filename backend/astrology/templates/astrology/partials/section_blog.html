@@ -1,0 +1,207 @@
+<section id="view-blog" class="view animate-in" style="display:none">
+    <div style="text-align:center; margin-bottom:30px; animation:fadeIn 1s">
+        <h1
+            style="font-family:'Cinzel'; font-size:2.5rem; color:var(--gold); margin-bottom:10px; text-shadow:0 0 20px rgba(255,215,0,0.3)">
+            Kozmik Yazılar</h1>
+        <p style="opacity:0.7">Gökyüzünün rehberliğinde kaleme alınan haftalık analizler ve özel içerikler.</p>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="glass-card"
+        style="border:1px solid var(--accent); padding:20px; min-height:600px; display:flex; flex-direction:column">
+
+        <!-- FILTER BAR -->
+        <div
+            style="display:flex; justify-content:flex-end; gap:10px; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:15px">
+            <span style="font-size:0.9rem; opacity:0.6; margin-right:5px">Tarih Aralığı:</span>
+            <input type="date" id="blog-start-date"
+                style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:white; padding:8px; border-radius:8px; font-family:'Outfit'">
+            <span style="opacity:0.5">-</span>
+            <input type="date" id="blog-end-date"
+                style="background:rgba(0,0,0,0.3); border:1px solid var(--border); color:white; padding:8px; border-radius:8px; font-family:'Outfit'">
+            <button onclick="window.loadBlogPage(1)"
+                style="background:var(--accent); border:none; color:white; border-radius:8px; padding:8px 15px; cursor:pointer; transition:0.2s">
+                <i class="fas fa-search"></i> Ara
+            </button>
+        </div>
+
+        <!-- POST LIST GRID -->
+        <div id="blog-list-res"
+            style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:20px; flex:1">
+            <div style="text-align:center; opacity:0.5; padding:40px; grid-column: 1/-1">Yükleniyor...</div>
+        </div>
+
+        <!-- PAGINATION CONTROLS -->
+        <div id="blog-pagination"
+            style="display:flex; justify-content:center; align-items:center; gap:20px; margin-top:30px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); opacity:0; transition:opacity 0.3s">
+            <button id="bp-prev" onclick="changeBlogPage(-1)" class="btn"
+                style="background:var(--accent); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; color:white; transition:0.2s">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <span id="bp-info" style="font-family:'Outfit'; opacity:0.8; font-variant-numeric: tabular-nums">Sayfa 1 /
+                1</span>
+
+            <button id="bp-next" onclick="changeBlogPage(1)" class="btn"
+                style="background:var(--accent); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; color:white; transition:0.2s">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- INDEPENDENT BLOG MODAL -->
+    <div id="blog-modal-standalone"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(5px)"
+        onclick="this.style.display='none'">
+        <div class="glass-card animate-in"
+            style="width:90%; max-width:800px; max-height:85vh; overflow-y:auto; position:relative; background:rgba(20,20,35,0.98); border:1px solid var(--accent); box-shadow:0 0 50px rgba(0,0,0,0.8)"
+            onclick="event.stopPropagation()">
+
+            <!-- Close Button -->
+            <button onclick="document.getElementById('blog-modal-standalone').style.display='none'"
+                style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.1); border:none; color:white; font-size:1.2rem; cursor:pointer; z-index:10; width:40px; height:40px; border-radius:50%; transition:0.3s"
+                onmouseover="this.style.background='var(--accent)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Modal Header -->
+            <div
+                style="text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); padding:40px 30px 20px 30px; margin-bottom:20px; background:linear-gradient(to bottom, rgba(233,69,96,0.15), transparent)">
+                <h2 id="blm-modal-title"
+                    style="color:var(--gold); margin:0 0 10px 0; font-family:'Cinzel'; font-size:2rem; line-height:1.3; text-shadow:0 0 15px rgba(255,215,0,0.3)">
+                </h2>
+                <div
+                    style="display:flex; justify-content:center; gap:15px; font-size:0.9rem; opacity:0.8; font-family:'Outfit'">
+                    <span id="blm-modal-date" style="color:var(--accent); font-weight:bold; letter-spacing:1px"></span>
+                    <span>|</span>
+                    <span><i class="fas fa-user-astronaut"></i> Admin</span>
+                </div>
+            </div>
+
+            <!-- Modal Content -->
+            <div id="blm-modal-content"
+                style="line-height:1.8; font-size:1.15rem; color:rgba(255,255,255,0.9); padding:0 40px 40px 40px; text-align:left; font-family:'Outfit'">
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<script>
+    window.blogLoading = false;
+    window.currentBlogPage = 1;
+
+    window.loadBlogPage = async function (page = 1) {
+        if (window.blogLoading) return;
+
+        const listDiv = document.getElementById('blog-list-res');
+        if (!listDiv) return;
+
+        window.currentBlogPage = page;
+
+        const start = document.getElementById('blog-start-date').value;
+        const end = document.getElementById('blog-end-date').value;
+
+        window.blogLoading = true;
+        listDiv.style.opacity = '0.5';
+
+        try {
+            let url = '/cms/list/?t=' + new Date().getTime() + '&page=' + page;
+            if (start) url += `&start=${start}`;
+            if (end) url += `&end=${end}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.posts && data.posts.length > 0) {
+                let html = "";
+                data.posts.forEach(p => {
+                    let preview = p.preview || "";
+
+                    html += `
+                    <div onclick="window.openBlogModal('${p.title.replace(/'/g, "\\'")}','${p.date_range}', \`${p.content.replace(/`/g, "\\`").replace(/\$/g, "")}\`)" 
+                         style="background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:transform 0.3s; overflow:hidden; display:flex; flex-direction:column; position:relative"
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='var(--accent)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+                        
+                        <div style="height:5px; background:var(--accent); width:100%"></div>
+                        <div style="padding:20px; flex:1; display:flex; flex-direction:column">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px">
+                                <span style="font-size:0.75rem; color:var(--accent); font-weight:bold; letter-spacing:1px; background:rgba(233,69,96,0.1); padding:4px 8px; border-radius:4px">${p.published_date}</span>
+                            </div>
+                            
+                            <h3 style="margin:0 0 10px 0; font-family:'Cinzel'; color:var(--text); font-size:1.3rem; line-height:1.4">${p.title}</h3>
+                            
+                            <div style="font-size:0.95rem; opacity:0.7; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; line-height:1.6; margin-bottom:15px; flex:1">
+                                ${preview.replace(/<[^>]*>/g, '')}
+                            </div>
+                            
+                            <div style="text-align:right; font-size:0.9rem; color:var(--gold); font-weight:bold">
+                                İncele <i class="fas fa-arrow-right" style="font-size:0.8rem"></i>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                listDiv.innerHTML = html;
+            } else {
+                listDiv.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.6; grid-column: 1/-1">Henüz yazı bulunmamaktadır.</div>';
+            }
+
+            // Update Pagination UI
+            if (data.pagination) {
+                updatePaginationUI(data.pagination);
+            }
+
+        } catch (e) {
+            console.error(e);
+            listDiv.innerHTML = '<div style="color:#ff6666; text-align:center; grid-column: 1/-1">Yazılar yüklenirken hata oluştu.</div>';
+            document.getElementById('blog-pagination').style.opacity = '0';
+        } finally {
+            window.blogLoading = false;
+            listDiv.style.opacity = '1';
+        }
+    }
+
+    function updatePaginationUI(meta) {
+        const pagDiv = document.getElementById('blog-pagination');
+        if (!meta || meta.total_pages <= 1) {
+            pagDiv.style.opacity = '0';
+            return;
+        }
+
+        pagDiv.style.opacity = '1';
+        document.getElementById('bp-info').innerText = `Sayfa ${meta.current} / ${meta.total_pages}`;
+
+        const prevBtn = document.getElementById('bp-prev');
+        const nextBtn = document.getElementById('bp-next');
+
+        prevBtn.disabled = !meta.has_prev;
+        prevBtn.style.opacity = meta.has_prev ? '1' : '0.3';
+        prevBtn.style.cursor = meta.has_prev ? 'pointer' : 'default';
+
+        nextBtn.disabled = !meta.has_next;
+        nextBtn.style.opacity = meta.has_next ? '1' : '0.3';
+        nextBtn.style.cursor = meta.has_next ? 'pointer' : 'default';
+    }
+
+    window.changeBlogPage = function (delta) {
+        window.loadBlogPage(window.currentBlogPage + delta);
+    }
+
+    // Independent Modal Function
+    window.openBlogModal = function (title, date, content) {
+        document.getElementById('blm-modal-title').innerText = title;
+        document.getElementById('blm-modal-date').innerText = date;
+        document.getElementById('blm-modal-content').innerHTML = content;
+        document.getElementById('blog-modal-standalone').style.display = 'flex';
+    };
+
+    // Auto-run if visible
+    setTimeout(() => {
+        const view = document.getElementById('view-blog');
+        if (view && view.style.display !== 'none') {
+            window.loadBlogPage();
+        }
+    }, 500);
+</script>

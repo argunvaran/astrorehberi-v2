@@ -1,0 +1,128 @@
+<section id="view-draconic" class="view animate-in" style="display:none">
+    <div style="text-align:center; margin-bottom:30px">
+        <h1 style="font-family:'Cinzel'; font-size:2.5rem; color:var(--gold); margin-bottom:10px"
+            data-i18n="menu_draconic">DRAKONİK RUH HARİTASI</h1>
+        <p style="opacity:0.7; font-size:1.1rem" data-i18n="draconic_subtitle">Yüksek Benliğiniz ve Ruhsal Amacınız</p>
+    </div>
+
+    <div id="draconic-res" class="glass-card" style="background:transparent; padding:0; box-shadow:none"></div>
+</section>
+
+<script>
+    // --- DRACONIC RENDER ---
+    const draconicKeywords = {
+        en: { Sun: "Core Soul Essence", Moon: "Emotional Karma", Mercury: "Spiritual Mind", Venus: "Higher Values", Mars: "Spiritual Drive", Jupiter: "Soul Wisdom", Saturn: "Karmic Responsibility", Uranus: "Soul Awakening", Neptune: "Divine Connection", Pluto: "Soul Power", 'North Node': "Destiny Path" },
+        tr: { Sun: "Ruhun Özü", Moon: "Duygusal Karma", Mercury: "Ruhsal Zihin", Venus: "Yüksek Değerler", Mars: "Ruhsal Dürtü", Jupiter: "Ruhsal Bilgelik", Saturn: "Karmik Sorumluluk", Uranus: "Ruhsal Uyanış", Neptune: "İlahi Bağlantı", Pluto: "Ruhsal Güç", 'North Node': "Kader Yolu" }
+    };
+
+    const draconicInterpretations = {
+        en: {
+            Aries: "Your soul has signed a contract to be a pioneer...",
+            Taurus: "The soul purpose here is grounded in finding peace...",
+            // ... (keeping EN for fallback, or simplifying) ...
+            Pisces: "A contract of spiritual transcendence..."
+        },
+        tr: {
+            Aries: "Ruhunuz bir öncü olmak için sözleşme imzaladı. Bu yaşamda, yüksek benliğiniz sizden cesaret, bağımsızlık ve kendini ortaya koymayı öğrenmenizi talep ediyor. Eski döngüleri kırmak ve yeni yollar başlatmak için buradasınız. Karşılaştığınız zorluklar kimliğinizi şekillendirmek ve güçlü olmanın güvenli olduğunu öğretmek içindir.",
+            Taurus: "Ruhsal amacınız huzuru ve özdeğerinizi bulmakta yatar. İstikrar, doğa ve kendi kendine yetme derslerini öğrenmeyi kabul ettiniz. Yüksek benliğiniz kalıcı bir şey inşa etmenizi ve maddi dünyaya bağlanmadan onun ruhsal değerini anlamanızı istiyor.",
+            Gemini: "Ruh sözleşmeniz bir haberci olmayı içerir. İnsanları, fikirleri ve alemleri birbirine bağlamak için buradasınız. Yüksek benliğiniz merak ve uyum yeteneği ile beslenir. Dersiniz, kaosun içinde gerçeği bulmak ve onu net bir şekilde ileterek ikilikler arasında köprü kurmaktır.",
+            Cancer: "Besleme sanatında ve duygusal zekada ustalaşmak için buradasınız. Ruh sözleşmeniz atalar, ev ve anne arketipi ile bağlantılıdır. Kendinizi kaybetmeden destek vermeyi ve aidiyet duygusunu dış yerlerde değil, kendi kalbinizde bulmayı öğrenmelisiniz.",
+            Leo: "Kendini ifade etme ve liderlik sözleşmesi. Yüksek benliğiniz parlamanızı, yaratmanızı ve kalpten yönetmenizi istiyor. Ders, egoyu sağlıklı bir şekilde geliştirmektir; kendi ilahiliğinizi tanıyarak başkalarındakini de tanıyabilirsiniz. Sıcaklık ve neşe getirmek için buradasınız.",
+            Virgo: "Ruhunuz hizmet ve arınma yolunu seçti. Bu enkarnasyonda, detaylar, şifa ve pratik yardım yoluyla ruhunuzu inceltiyorsunuz. Amaç mükemmeliyetçilik değil, niyetin saflığı ve kutsal olanın sıradan olanda bulunduğunu anlamaktır.",
+            Libra: "Uyum sözleşmesi. İlişkilerde ve dengede ustalaşmak için buradasınız. Yüksek benliğiniz zıtlıkları birleştirmeyi ve güzellik yaratmayı amaçlar. Ders, kendi gerçeğinizden ödün vermeden barışı bulmak ve gerçek uyumun içsel dengeden geldiğini öğrenmektir.",
+            Scorpio: "Güçlü bir dönüşüm sözleşmesi. Yaşam, ölüm ve yeniden doğuşun gizemlerine dalmayı kabul ettiniz. Yüksek benliğiniz özgünlük ve güç talep ediyor. Gölge benliği iyileştirmek ve başkalarının en karanlık geçişlerinde onlara rehberlik etmek için buradasınız.",
+            Sagittarius: "Ruhunuz bir hakikat arayıcısıdır. Sözleşme keşfetmeyi, öğretmeyi ve ufukları genişletmeyi içerir. Çeşitlilikte bilgeliği bulmak ve karanlıkta bile inancınızı korumak için buradasınız. Yüksek benliğiniz özgür kalmanızı ve iyimser vizyonunuzu paylaşmanızı istiyor.",
+            Capricorn: "Ustalık ve sorumluluk sözleşmesi imzaladınız. Ruhunuz toplumu destekleyen yapılar inşa etmenizi istiyor. Ders dürüstlük, disiplin ve gücü yönetmekle ilgilidir. Bir miras bırakmak ve gerçek otoritenin içeriden geldiğini öğrenmek için buradasınız.",
+            Aquarius: "Asi ve yenilikçinin ruhsal amacı. Durgun sistemleri bozmak ve gelecek bilincini şimdiki zamana taşımak için buradasınız. Yüksek benliğiniz özgürlüğe ve insanlığa değer verir. Ders, kolektife ait olurken aynı zamanda benzersiz bir şekilde kendiniz kalmaktır.",
+            Pisces: "Ruhsal aşkınlık sözleşmesi. Sınırları çözmek ve koşulsuz sevgiyi öğrenmek için buradasınız. Yüksek benliğiniz ilahi kaynakla bağlantılıdır. Zorluklar, derin ruhsal sularda gezinirken ve şefkat uygularken ayakları yere basmayı içerir."
+        }
+    };
+
+    function renderDraconic(data) {
+        const div = document.getElementById('draconic-res');
+        const lang = document.getElementById('lang').value;
+        const t = (typeof translations !== 'undefined') ? translations[lang] : {};
+        const terms = (typeof astroTerms !== 'undefined') ? astroTerms[lang] : {};
+
+        if (!data || !data.meta || !data.meta.draconic_chart || data.meta.draconic_chart.length === 0) {
+            // LOCK SCREEN FOR DRACONIC
+            div.innerHTML = `
+             <div class="glass-card" style="text-align:center; padding:50px; border:1px solid var(--gold); background:rgba(0,0,0,0.4)">
+                <i class="fas fa-lock" style="font-size:3rem; color:var(--gold); margin-bottom:20px; text-shadow:0 0 20px rgba(255,215,0,0.5)"></i>
+                <h2 style="color:white; font-family:'Cinzel'; margin-bottom:15px">Drakonik Ruh Haritası Kilitli</h2>
+                <p style="color:rgba(255,255,255,0.8); margin-bottom:25px; max-width:500px; margin-left:auto; margin-right:auto; font-size:1.1rem">
+                    Yüksek benliğinizin rotasını, ruhsal amacınızı ve karmik yolculuğunuzu keşfetmek için Premium üye olmalısınız.
+                </p>
+                <button class="btn" onclick="showUpgradeModal('Drakonik Harita için Premium üye olun.')" 
+                        style="background:linear-gradient(45deg, #FFD700, #FDB931); color:black; font-weight:bold; border-radius:30px; padding:12px 40px; border:none; box-shadow:0 5px 20px rgba(255,215,0,0.3); font-size:1rem; cursor:pointer">
+                    <i class="fas fa-crown"></i> KİLİDİ AÇ
+                </button>
+             </div>
+             `;
+            return;
+        }
+
+        // Find Draconic Sun
+        const dSun = data.meta.draconic_chart.find(p => p.name === 'Sun');
+        const rawSign = dSun ? dSun.sign : "Aries";
+        const signTranslated = terms[rawSign] || rawSign;
+        const text = draconicInterpretations[lang][rawSign] || (draconicInterpretations['tr'][rawSign] || "Interpretation not found.");
+
+        // Fix Titles using hardcoded fallback if translation is missing/undefined
+        const titleText = (t && t.drac_title) ? t.drac_title : (lang === 'tr' ? 'RUHSAL AMAÇ SÖZLEŞMESİ' : 'DRACONIC SOUL PURPOSE');
+        const sunLabel = (t && t.draconic_sun_label) ? t.draconic_sun_label : (lang === 'tr' ? 'Drakonik Güneş' : 'Draconic Sun');
+        const posTitle = (t && t.p_pos) ? `${t.p_pos} (Draconic)` : (lang === 'tr' ? 'Gezegen Konumları (Draconic)' : 'Planetary Positions (Draconic)');
+
+        let html = `
+         <div class="glass-card animate-in" style="border-left: 5px solid var(--accent); background: linear-gradient(120deg, rgba(233,69,96,0.1), rgba(0,0,0,0.4)); padding:30px; margin-bottom:30px">
+            <h2 style="color:var(--accent); font-family:'Cinzel'; font-size:2rem; margin-bottom:10px; text-transform:uppercase; letter-spacing:2px; text-shadow:0 0 10px rgba(233,69,96,0.3)">${titleText}</h2>
+            <h3 style="color:white; margin-bottom:20px; font-weight:300; font-size:1.3rem; opacity:0.9; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; display:inline-block">${sunLabel}: <span style="color:var(--gold); font-weight:700">${signTranslated}</span></h3>
+            <p style="font-size:1.15rem; line-height:1.8; color:rgba(255,255,255,0.9); text-align:justify;">${text}</p>
+         </div>
+         `;
+
+        html += `<div class="glass-card" style="padding:25px">
+            <h3 style="margin-bottom:25px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; color:var(--gold); font-family:'Cinzel'">${posTitle}</h3>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:20px">`;
+
+        data.meta.draconic_chart.forEach(p => {
+            const pName = terms[p.name] || p.name;
+            const sName = terms[p.sign] || p.sign;
+            const keyword = draconicKeywords[lang][p.name] || "";
+
+            // Icon Letter (Turkish support)
+            // e.g. Sun -> G (Güneş), Moon -> A (Ay)
+            let iconLetter = p.name[0];
+            if (lang === 'tr' && pName.length > 0) iconLetter = pName[0];
+
+            let planetText = p.interpretation || (lang === 'tr' ? 'Detay bulunamadı.' : "No details available.");
+            if (p.interpretations && p.interpretations[lang]) {
+                planetText = p.interpretations[lang];
+            }
+
+            html += `
+             <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:18px; cursor:pointer; transition:all 0.3s; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.05)" 
+                  onclick="this.querySelector('.details').style.display = this.querySelector('.details').style.display === 'block' ? 'none' : 'block'; this.style.background = this.style.background.includes('0.1') ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.12)'"
+                  onmouseover="this.style.borderColor='rgba(255,255,255,0.2)'"
+                  onmouseout="this.style.borderColor='rgba(255,255,255,0.05)'">
+                
+                <div style="display:flex; align-items:center">
+                    <div class="planet-icon" style="background:linear-gradient(135deg, var(--gradient-mid), var(--primary)); width:55px; height:55px; font-size:1.4rem; font-family:'Cinzel'; border:1px solid rgba(255,255,255,0.2); margin-right:15px; display:flex; align-items:center; justify-content:center; border-radius:50%; color:var(--gold); text-shadow:0 2px 5px rgba(0,0,0,0.5)">${iconLetter}</div>
+                    <div style="flex:1">
+                        <div style="font-size:0.8rem; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; opacity:0.9; font-weight:600">${keyword}</div>
+                        <div style="font-size:1.2rem; font-weight:700; color:var(--text); margin-bottom:2px">${pName}</div>
+                        <div style="font-size:1rem; color:var(--text-muted)">${sName}</div>
+                    </div>
+                    <div style="color:var(--text-muted); font-size:0.9rem"><i class="fas fa-chevron-down"></i></div>
+                </div>
+
+                <div class="details" style="display:none; margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1); font-size:0.95rem; line-height:1.6; color:var(--text); animation: fadeIn 0.3s; text-align:justify">
+                    ${planetText}
+                </div>
+             </div>`;
+        });
+        html += `</div></div>`;
+
+        div.innerHTML = html;
+    }
+</script>

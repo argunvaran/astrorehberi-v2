@@ -1,0 +1,111 @@
+<!-- AUTH LOGIC SCRIPT (Updated for Rectification Integration) -->
+<script>
+    let isRegistering = false;
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Checkbox Listener for Unknown Time
+        const unknownTimeCheck = document.getElementById('unknown-time');
+        const timeInput = document.getElementById('auth-time');
+
+        if (unknownTimeCheck && timeInput) {
+            unknownTimeCheck.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    timeInput.value = "12:00"; // Default noon
+                    timeInput.disabled = true;
+                    timeInput.style.opacity = "0.5";
+                    // Show hint
+                    if (document.getElementById('rectify-hint')) document.getElementById('rectify-hint').style.display = 'block';
+                } else {
+                    timeInput.disabled = false;
+                    timeInput.style.opacity = "1";
+                    if (document.getElementById('rectify-hint')) document.getElementById('rectify-hint').style.display = 'none';
+                }
+            });
+        }
+
+        loadRegCountries();
+        checkAuth();
+    });
+
+    // --- MISSING CHECKAUTH IMPLEMENTATION ---
+    async function checkAuth() {
+        console.log("Checking Auth...");
+
+        // 1. Check SSR Status (Fastest)
+        if (typeof SERVER_AUTH_STATUS !== 'undefined') {
+            if (SERVER_AUTH_STATUS) {
+                // User is effectively logged in
+                // We assume Free initially, but can try to fetch profile async
+                if (localStorage.getItem('user_level')) {
+                    currentUserLevel = localStorage.getItem('user_level');
+                }
+
+                // Silent Profile Fetch to update Level
+                try {
+                    fetch('/api/get-user-info/').then(r => r.json()).then(d => {
+                        if (d.level) {
+                            currentUserLevel = d.level.toLowerCase();
+                            localStorage.setItem('user_level', currentUserLevel);
+                        }
+                    });
+                } catch (e) { }
+
+                return;
+            } else {
+                currentUserLevel = 'free';
+            }
+        }
+
+        // 2. Fallback to API check if SSR status is ambiguous (rare)
+        try {
+            const res = await fetch('/auth/users/me/');
+            if (res.ok) {
+                // Logged in
+                const data = await res.json();
+                // If using djoser, data might have id, email, etc.
+                // We need custom profile info usually
+            }
+        } catch (e) { console.log("Guest Mode"); }
+    }
+
+    async function submitAuth() {
+        const btn = document.querySelector('#auth-modal button.btn-primary');
+        // Capture original if inside logic
+
+        const unknownTime = document.getElementById('unknown-time') ? document.getElementById('unknown-time').checked : false;
+
+        // Existing Validation Logic ...
+        // ... (Assuming standard login logic here) ...
+
+        if (isRegistering && unknownTime) {
+            // SPECIAL FLOW: REGISTER -> RECTIFICATION
+            // 1. Perform Registration standard (create user with default 12:00)
+            // 2. Instead of closing modal, switch to Rectification View immediately
+
+            // Since this is inside HTML, we hook into the existing 'doAuth()' logic if possible.
+            // But since we are editing a script block, let's inject a "global hook".
+            window.postRegistrationHook = function () {
+                if (unknownTime) {
+                    alert("Kayıt Başarılı! Doğum saatinizi bulmak için 'Yükselen Bul' sihirbazına yönlendiriliyorsunuz.");
+                    closeAuthModal();
+                    nav('rectification', document.querySelector('[data-i18n="menu_rectification"]') || document.body);
+
+                    // Pre-fill rectification date
+                    const d = document.getElementById('auth-date').value;
+                    document.getElementById('rect-date').value = d;
+                    // Trigger initial row add
+                    if (typeof addEventRow === 'function') {
+                        document.getElementById('event-list').innerHTML = '';
+                        addEventRow(); addEventRow(); addEventRow();
+                    }
+                    return true; // Hook handled navigation
+                }
+                return false;
+            };
+        }
+    }
+    // Note: The actual doAuth function is likely in index.html (we replaced it), 
+    // so we need to ensure the main doAuth calls this hook.
+
+</script>

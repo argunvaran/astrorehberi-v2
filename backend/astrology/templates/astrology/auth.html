@@ -1,0 +1,510 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş / Kayıt | Deep Cosmos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0F0C29;
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0F0C29, #302B63, #24243E);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            width: 90%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 1rem;
+            outline: none;
+            font-family: 'Outfit';
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="glass-card">
+        <div style="text-align:center; margin-bottom:20px">
+            <h1 style="font-family:'Cinzel'; color:var(--gold); margin:0">DEEP COSMOS</h1>
+            <p style="opacity:0.6; font-size:0.9rem">Kozmik Yolculuğuna Başla</p>
+        </div>
+
+        <div class="tabs">
+            <div id="tab-login" onclick="switchTab('login')" class="tab active">Giriş Yap</div>
+            <div id="tab-register" onclick="switchTab('register')" class="tab">Kayıt Ol</div>
+        </div>
+
+        <div id="error-msg"
+            style="display:none; background:rgba(255,0,0,0.2); color:#ff6666; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; border:1px solid rgba(255,0,0,0.2)">
+        </div>
+
+        <div id="form-content">
+            <label>Kullanıcı Adı</label>
+            <input type="text" id="username" placeholder="Kullanıcı adınız...">
+
+            <div id="reg-fields" style="display:none">
+                <label>E-Posta (Opsiyonel)</label>
+                <input type="email" id="email" placeholder="ornek@email.com">
+
+                <div style="display:flex; gap:10px">
+                    <div style="flex:1">
+                        <label>Doğum Tarihi</label>
+                        <input type="date" id="date" value="1990-01-01" style="text-align:center; color-scheme:dark">
+                    </div>
+                    <div style="flex:0.7">
+                        <label>Saat</label>
+                        <input type="time" id="time" value="12:00" style="text-align:center; color-scheme:dark">
+                        <div style="display:flex; align-items:center; gap:5px; margin-top:5px">
+                            <input type="checkbox" id="reg-unknown-time" onchange="toggleRegUnknownTime()"
+                                style="width:auto; margin:0">
+                            <label for="reg-unknown-time"
+                                style="font-size:0.7rem; opacity:0.8; cursor:pointer; margin:0">Bilinmiyor</label>
+                        </div>
+                    </div>
+                </div>
+
+                <label>Doğum Yeri</label>
+                <select id="reg-country" onchange="loadProvinces(this.value)">
+                    <option value="">Ülke Seçiniz...</option>
+                </select>
+                <select id="reg-province" style="display:none" onchange="loadCities(this.value)">
+                    <option value="">İl Seçiniz...</option>
+                </select>
+                <select id="reg-city" onchange="setCoords(this.value)">
+                    <option value="">Şehir/İlçe Seçiniz...</option>
+                </select>
+
+                <input type="hidden" id="lat"><input type="hidden" id="lon"><input type="hidden" id="placename">
+            </div>
+
+            <label>Şifre</label>
+            <input type="password" id="password" placeholder="••••••••">
+
+            <button onclick="submitAuth()" id="btn-submit" class="btn">Giriş Yap</button>
+        </div>
+
+        <!-- RECTIFICATION PANEL (Hidden) -->
+        <div id="rectification-panel" style="display:none; animation: fadeIn 0.5s">
+            <h2 style="color:var(--gold); text-align:center; margin-bottom:10px">Doğum Saati Bul</h2>
+            <p style="text-align:center; font-size:0.9rem; opacity:0.8; margin-bottom:20px">
+                Doğum tarihinizi ve saatinizi etkileyen 3 önemli hayat olayını girerek saatinizi hesaplayabiliriz.
+            </p>
+
+            <div id="auth-event-list"></div>
+
+            <button onclick="addAuthEventRow()"
+                style="background:rgba(255,255,255,0.1); border:1px solid var(--border); color:white; width:100%; padding:8px; border-radius:8px; cursor:pointer; margin-bottom:15px">+
+                Olay Ekle</button>
+
+            <div id="auth-rect-results" style="display:none; margin-bottom:15px"></div>
+
+            <button onclick="startAuthRectification()" id="btn-auth-rectify" class="btn">Hesapla</button>
+            <button onclick="cancelRectification()"
+                style="background:transparent; border:none; color:rgba(255,255,255,0.5); width:100%; margin-top:10px; cursor:pointer">Vazgeç</button>
+
+            <!-- Loader -->
+            <div id="auth-rect-loader" style="display:none; text-align:center; margin-top:10px; color:var(--gold)">
+                <i class="fas fa-circle-notch fa-spin"></i> Analiz ediliyor...
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top:20px">
+            <a href="/" style="color:white; opacity:0.5; text-decoration:none; font-size:0.9rem"><i
+                    class="fas fa-arrow-left"></i> Ana Sayfaya Dön</a>
+        </div>
+    </div>
+
+    <script>
+        let isRegistering = false;
+
+        // Init Data
+        async function loadCountries() {
+            try {
+                const res = await fetch('/api/countries/');
+                const data = await res.json();
+                if (data.countries) {
+                    const sel = document.getElementById('reg-country');
+                    data.countries.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.code;
+                        opt.innerText = c.name;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error("Country load failed", e); }
+        }
+        loadCountries();
+
+        async function loadProvinces(countryCode) {
+            const pSel = document.getElementById('reg-province');
+            const cSel = document.getElementById('reg-city');
+
+            pSel.style.display = 'none';
+            cSel.innerHTML = '<option value="">Şehir/İlçe Seçiniz</option>';
+
+            if (!countryCode) return;
+
+            try {
+                const res = await fetch(`/api/provinces/?code=${countryCode}`);
+                const data = await res.json();
+                if (data.provinces && data.provinces.length > 0) {
+                    let html = '<option value="">İl Seçiniz</option>';
+                    data.provinces.forEach(p => {
+                        html += `<option value="${p.code}">${p.name}</option>`;
+                    });
+                    pSel.innerHTML = html;
+                    pSel.style.display = 'block';
+                } else {
+                    // No provinces or error, try loading cities directly for country
+                    loadCities(countryCode);
+                }
+            } catch (e) { loadCities(countryCode); }
+        }
+
+        async function loadCities(adminCode) {
+            const countryCode = document.getElementById('reg-country').value;
+            const sel = document.getElementById('reg-city');
+            sel.innerHTML = '<option>Yükleniyor...</option>';
+
+            let url = `/api/cities/?code=${countryCode}`;
+            // If adminCode is provided and it's not the country code itself (logic check)
+            if (adminCode && adminCode !== countryCode) url += `&admin_code=${adminCode}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                sel.innerHTML = '<option value="">Şehir/İlçe Seçiniz</option>';
+                if (data.cities) {
+                    data.cities.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = `${c.lat},${c.lon},${c.name}`;
+                        opt.innerText = c.name;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch (e) { sel.innerHTML = '<option>Hata</option>'; }
+        }
+
+        function setCoords(val) {
+            if (!val) return;
+            const parts = val.split(',');
+            document.getElementById('lat').value = parts[0];
+            document.getElementById('lon').value = parts[1];
+
+            let cityName = parts[2];
+            // Format: Province / District if applicable
+            const pSel = document.getElementById('reg-province');
+            if (pSel && pSel.style.display !== 'none' && pSel.selectedIndex > 0) {
+                const prov = pSel.options[pSel.selectedIndex].text;
+                // Optional: Keep it simple or revert fully. User asked to revert.
+                // Reverting to logic that relies on user selection order but user specifically said "sadece ilçe yazsın".
+                // So I will just use parts[2] mostly. But existing logic was:
+                // cityName = `${prov} / ${cityName}`;
+
+                // USER REQUEST: "sadece ilçe yazsın"
+                // So I will NOT prepend province.
+            }
+            // Explicitly set only district name as requested
+            document.getElementById('placename').value = parts[2] || "";
+        }
+
+        function toggleRegUnknownTime() {
+            const chk = document.getElementById('reg-unknown-time');
+            if (chk.checked) {
+                // Hide Form, Show Rectification
+                document.getElementById('form-content').style.display = 'none';
+                document.getElementById('rectification-panel').style.display = 'block';
+                document.querySelector('.tabs').style.display = 'none'; // Hide tabs to prevent switching
+
+                // Initialize events if empty
+                const list = document.getElementById('auth-event-list');
+                if (list.children.length === 0) {
+                    addAuthEventRow(); addAuthEventRow(); addAuthEventRow();
+                }
+            }
+        }
+
+        function cancelRectification() {
+            document.getElementById('reg-unknown-time').checked = false;
+            document.getElementById('form-content').style.display = 'block';
+            document.getElementById('rectification-panel').style.display = 'none';
+            document.querySelector('.tabs').style.display = 'flex';
+
+            // Re-enable time input just in case (though it was never disabled in this flow logic anymore)
+            const timeInput = document.getElementById('time');
+            timeInput.disabled = false;
+            timeInput.style.opacity = '1';
+        }
+
+        function addAuthEventRow() {
+            const div = document.createElement('div');
+            div.className = 'event-row';
+            div.style = 'display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap';
+            div.innerHTML = `
+                <select class="event-type" style="flex:1; min-width:120px; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; color:white; padding:10px">
+                    <option value="marriage">Evlilik</option>
+                    <option value="child_birth">Çocuk Doğumu</option>
+                    <option value="career_change">Kariyer Sıçraması</option>
+                    <option value="relocation">Taşınma</option>
+                    <option value="accident">Kaza/Ameliyat</option>
+                    <option value="loss">Kayıp/Vefat</option>
+                </select>
+                <input type="date" class="event-date" style="flex:1; min-width:120px; margin-bottom:0; color-scheme:dark">
+            `;
+            document.getElementById('auth-event-list').appendChild(div);
+        }
+
+        async function startAuthRectification() {
+            const date = document.getElementById('date').value;
+            const lat = document.getElementById('lat').value || 41.0;
+            const lon = document.getElementById('lon').value || 29.0;
+            const loader = document.getElementById('auth-rect-loader');
+            const resDiv = document.getElementById('auth-rect-results');
+
+            // Gather events
+            const events = [];
+            document.querySelectorAll('#auth-event-list .event-row').forEach(row => {
+                const type = row.querySelector('.event-type').value;
+                const d = row.querySelector('.event-date').value;
+                if (d && d.length > 5) events.push({ type, date: d });
+            });
+
+            if (events.length === 0) {
+                alert("Lütfen en az bir olay tarihi girin.");
+                return;
+            }
+
+            loader.style.display = 'block';
+            resDiv.style.display = 'none';
+            document.getElementById('btn-auth-rectify').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/rectify-time/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, lat, lon, events, lang: 'tr' }) // Force Turkish
+                });
+                const data = await response.json();
+
+                loader.style.display = 'none';
+                resDiv.style.display = 'block';
+                document.getElementById('btn-auth-rectify').style.display = 'block';
+
+                if (data.candidates && data.candidates.length > 0) {
+                    let html = `
+                        <div style="background:rgba(255,215,0,0.1); border-left:3px solid var(--gold); padding:10px; margin-bottom:15px; font-size:0.8rem; line-height:1.4">
+                            <strong style="color:var(--gold)">Nasıl Seçim Yapmalısınız?</strong><br>
+                            Bu saatler, yaşadığınız olaylardaki gezegen konumlarının haritanızla yaptığı açılara göre puanlanmıştır.<br><br>
+                            En yüksek puanlı sonuç matematiksel olarak en olasıdır. Ancak, <strong>Yükselen Burcunuzun</strong> fiziksel özelliklerinize ve karakterinize uyup uymadığını kontrol ederek seçim yapınız.
+                        </div>
+                    `;
+                    data.candidates.slice(0, 3).forEach(c => {
+                        html += `
+                        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:10px">
+                                    <div style="font-size:1.2rem; font-weight:bold; color:var(--text)">${c.time}</div>
+                                    <div style="background:var(--accent); color:white; padding:2px 8px; border-radius:10px; font-size:0.7rem; font-weight:bold">${c.score} Puan</div>
+                                </div>
+                                <div style="font-size:0.8rem; opacity:0.7">${c.asc_sign} Yükselen</div>
+                            </div>
+                            <button onclick="applyAuthTime('${c.time}')" style="background:var(--accent); border:none; color:white; padding:5px 15px; border-radius:20px; cursor:pointer; font-size:0.9rem">Seç</button>
+                        </div>`;
+                    });
+                    resDiv.innerHTML = html;
+                } else {
+                    resDiv.innerHTML = '<div style="text-align:center; padding:10px">Eşleşme bulunamadı.</div>';
+                }
+
+            } catch (e) {
+                loader.style.display = 'none';
+                resDiv.style.display = 'block';
+                resDiv.innerHTML = 'Hata oluştu.';
+                document.getElementById('btn-auth-rectify').style.display = 'block';
+            }
+        }
+
+        function applyAuthTime(time) {
+            document.getElementById('time').value = time;
+            // Finish
+            cancelRectification();
+            // Highlight
+            const tInput = document.getElementById('time');
+            tInput.style.border = '2px solid var(--gold)';
+            setTimeout(() => tInput.style.border = '1px solid var(--border)', 2000);
+        }
+
+        function switchTab(mode) {
+            isRegistering = (mode === 'register');
+            const loginTab = document.getElementById('tab-login');
+            const regTab = document.getElementById('tab-register');
+            const regFields = document.getElementById('reg-fields');
+            const btn = document.getElementById('btn-submit');
+            const msg = document.getElementById('error-msg');
+
+            msg.style.display = 'none';
+
+            if (isRegistering) {
+                regTab.classList.add('active');
+                loginTab.classList.remove('active');
+                regFields.style.display = 'block';
+                btn.innerText = 'Kayıt Ol';
+            } else {
+                loginTab.classList.add('active');
+                regTab.classList.remove('active');
+                regFields.style.display = 'none';
+                btn.innerText = 'Giriş Yap';
+            }
+        }
+
+        async function submitAuth() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const msg = document.getElementById('error-msg');
+            const btn = document.getElementById('btn-submit');
+
+            if (!user || !pass) {
+                msg.innerText = "Lütfen kullanıcı adı ve şifre giriniz.";
+                msg.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerText = 'İşleniyor...';
+
+            const url = isRegistering ? '/api/register/' : '/api/login/';
+            const body = { username: user, password: pass };
+
+            if (isRegistering) {
+                body.email = document.getElementById('email').value;
+                body.date = document.getElementById('date').value;
+                body.time = document.getElementById('time').value;
+                body.lat = document.getElementById('lat').value || 41.0; // Default
+                body.lon = document.getElementById('lon').value || 29.0;
+                body.place = document.getElementById('placename').value || "Bilinmiyor";
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    msg.innerText = data.error;
+                    msg.style.display = 'block';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.innerText = isRegistering ? 'Kayıt Ol' : 'Giriş Yap';
+                } else {
+                    // Success
+                    window.location.href = '/';
+                }
+            } catch (e) {
+                msg.innerText = "Sunucu hatası oluştu.";
+                msg.style.display = 'block';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerText = isRegistering ? 'Kayıt Ol' : 'Giriş Yap';
+            }
+        }
+    </script>
+</body>
+
+</html>

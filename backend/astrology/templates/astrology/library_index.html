@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kütüphane | Deep Cosmos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* DARK THEME (DEFAULT) */
+            --primary: #0F0C29;
+            --gradient-start: #0F0C29;
+            --gradient-mid: #302B63;
+            --gradient-end: #24243E;
+            --sidebar-bg: rgba(15, 12, 41, 0.95);
+            --sidebar-footer-bg: rgba(15, 12, 41, 0.98);
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="light"] {
+            /* LIGHT THEME */
+            --primary: #ffffff;
+            --gradient-start: #fdfbfb;
+            --gradient-mid: #ebedee;
+            --gradient-end: #dce2e6;
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --sidebar-footer-bg: rgba(245, 245, 245, 0.98);
+            --accent: #D63447;
+            --gold: #B8860B;
+            --text: #1a1a1a;
+            --text-muted: rgba(0, 0, 0, 0.6);
+            --glass: rgba(0, 0, 0, 0.05);
+            --glass-card-bg: rgba(255, 255, 255, 0.6);
+            --border: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Cinzel', serif;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR STYLES REMOVED - Now handled by sidebar.html partial */
+
+        .main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 3rem;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: var(--glass-card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .page-link {
+            background: var(--glass);
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: var(--text);
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .page-link:hover,
+        .page-link.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        input {
+            font-family: 'Outfit';
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        {% include 'astrology/partials/sidebar.html' %}
+
+        <main class="main" style="position:relative">
+            <!-- AUTH WIDGET -->
+            <div id="auth-widget"
+                style="position:absolute; top:20px; right:20px; z-index:900; display:flex; gap:10px; align-items:center">
+                {% if user.is_authenticated %}
+                <button onclick="toggleTheme()" class="btn"
+                    style="padding:0; width:40px; height:40px; border-radius:50%; background:var(--glass-card-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); margin-right:10px">
+                    <i id="theme-icon" class="fas fa-moon" style="font-size:1.2rem"></i>
+                </button>
+                <div id="user-display" style="font-weight:bold; color:var(--gold); display:block"><i
+                        class="fas fa-user-circle"></i> {{ user.username }}</div>
+
+                <button id="btn-logout-trig" onclick="localStorage.clear(); window.location.href='/api/logout/';"
+                    class="btn" style="padding:10px 20px; font-size:0.9rem">
+                    <i class="fas fa-sign-out-alt"></i> <span>Çıkış</span>
+                </button>
+                {% else %}
+                <button onclick="toggleTheme()" class="btn"
+                    style="padding:0; width:40px; height:40px; border-radius:50%; background:var(--glass-card-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); margin-right:10px">
+                    <i id="theme-icon" class="fas fa-moon" style="font-size:1.2rem"></i>
+                </button>
+                <a href="/?login=true" class="btn">Giriş Yap</a>
+                {% endif %}
+            </div>
+
+            <button onclick="toggleSidebar()" class="btn"
+                style="position:fixed; top:20px; left:20px; z-index:100; display:none;" id="mob-toggle"><i
+                    class="fas fa-bars"></i></button>
+            <style>
+                @media(max-width:768px) {
+                    #mob-toggle {
+                        display: block !important;
+                    }
+                }
+            </style>
+
+            <section class="animate-in">
+                <h1
+                    style="font-size:2.5rem; margin-bottom:0.5rem; text-align:center; color:var(--gold); font-family:'Cinzel'">
+                    KOZMİK KÜTÜPHANE</h1>
+                <p style="text-align:center; color:rgba(255,255,255,0.6); margin-bottom:3rem">Burçlar, Tarot ve
+                    Astroloji Rehberi</p>
+
+                <!-- Search Form -->
+                <form method="GET" action="." style="max-width: 500px; margin: 0 auto 30px auto; position: relative;">
+                    <button type="submit"
+                        style="position: absolute; left: 15px; top: 12px; color: var(--text-muted); background:none; border:none; cursor:pointer"><i
+                            class="fas fa-search"></i></button>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Burç veya Tarot kartı ara..."
+                        style="width: 100%; padding: 10px 10px 10px 40px; border-radius: 25px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+                    {% if current_cat != 'all' %}<input type="hidden" name="category" value="{{ current_cat }}">{% endif %}
+
+                </form>
+
+                <!-- Categories Nav (Server Side Links) -->
+                <div style="display:flex; justify-content:center; gap:10px; margin-bottom:30px; flex-wrap:wrap">
+                    <a href="?category=all&q={{ search_query }}" class="btn"
+                        style="{% if current_cat == 'all' %}background:var(--accent); color:white{% else %}background:var(--glass); color:var(--text){% endif %}">
+                        Tümü
+                    </a>
+                    {% for cat in categories %}
+                    <a href="?category={{ cat.id }}&q={{ search_query }}" class="btn"
+                        style="{% if current_cat|stringformat:'s' == cat.id|stringformat:'s' %}background:var(--accent); color:white{% else %}background:var(--glass); color:var(--text){% endif %}">
+                        <i class="{{ cat.icon }}"></i> {{ cat.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <!-- Content Grid (Flat List) -->
+                <div id="lib-grid"
+                    style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:20px; padding:10px">
+                    {% for item in items %}
+                    <div class="glass-card" onclick="openLibItem('{{ item.slug }}')"
+                        style="cursor:pointer; transition:transform 0.3s; padding:0; overflow:hidden; border:1px solid rgba(255,215,0,0.1); position:relative; margin-bottom:0">
+
+                        {% if item.image_url %}
+                        <div style="height:140px; background:url('{{ item.image_url }}') center/cover;"></div>
+                        {% else %}
+                        <div
+                            style="height:140px; background:linear-gradient(45deg, #1a0b2e, #4a1c40); display:flex; align-items:center; justify-content:center">
+                            <i class="{{ item.category.icon }}"
+                                style="font-size:3rem; opacity:0.3; color:var(--gold)"></i>
+                        </div>
+                        {% endif %}
+
+                        <div style="padding:15px">
+                            <div
+                                style="font-size:0.7rem; color:var(--accent); text-transform:uppercase; margin-bottom:5px; font-weight:bold">
+                                {{ item.category.name }} </div>
+
+                            <h3 style="font-size:1.1rem; margin-bottom:10px; color:var(--text)">{{ item.title }}</h3>
+                            {% if item.short_desc %}
+                            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4">
+                                {% autoescape off %}{{ item.short_desc|striptags|truncatechars:80 }}{% endautoescape %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="grid-column: 1/-1; text-align:center; padding:50px; color:rgba(255,255,255,0.5)">
+                        Aradığınız kriterlere uygun içerik bulunamadı.
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if items.has_other_pages %}
+                <div class="pagination">
+                    {% if items.has_previous %}
+                    <a href="?page={{ items.previous_page_number }}&category={{ current_cat }}&q={{ search_query }}"
+                        class="page-link">&laquo; Önceki</a>
+                    {% endif %}
+
+                    <span class="page-link active" style="cursor:default">
+                        Sayfa {{ items.number }} / {{ items.paginator.num_pages }}
+                    </span>
+
+                    {% if items.has_next %}
+                    <a href="?page={{ items.next_page_number }}&category={{ current_cat }}&q={{ search_query }}"
+                        class="page-link">Sonraki &raquo;</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </section>
+        </main>
+    </div>
+
+    <!-- DETAIL MODAL OVERLAY -->
+    <div id="lib-detail-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; backdrop-filter:blur(5px)">
+        <div id="lib-detail-content" class="glass-card"
+            style="width:90%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; padding:0"></div>
+    </div>
+
+    <!-- GLOBAL SCRIPTS -->
+    {% include 'astrology/partials/script_globals.html' %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // FIX: Correct Sidebar Active State for Library Page causing "Home is active" visual bug
+            const allNavs = document.querySelectorAll('.nav-item');
+
+            // 1. Clear Default Active (Home)
+            allNavs.forEach(nav => nav.classList.remove('active'));
+
+            // 2. Set Library Active
+            allNavs.forEach(nav => {
+                if (nav.innerText.includes('Kütüphane')) {
+                    nav.classList.add('active');
+
+                    // 3. Ensure "Kozmik Rehber" Group is Open
+                    const group = document.getElementById('group-general');
+                    if (group && !group.classList.contains('show')) {
+                        group.classList.add('show');
+                        // Rotate arrow
+                        const header = group.previousElementSibling;
+                        if (header) {
+                            const icon = header.querySelector('.fa-chevron-down');
+                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        }
+                    }
+                }
+            });
+        });
+
+        function nav(page) {
+            if (page === 'library') window.location.href = '/library/';
+            else if (page === 'editor-library') window.location.href = '/library/admin-editor/';
+            else window.location.href = '/?page=' + page;
+        }
+
+        async function openLibItem(slug) {
+            const modal = document.getElementById('lib-detail-modal');
+            const content = document.getElementById('lib-detail-content');
+            modal.style.display = 'flex';
+            content.innerHTML = '<div style="padding:40px; text-align:center"><div class="spinner" style="border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 4px solid #E94560; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div></div>';
+            try {
+                const res = await fetch(`/library/item/${slug}/`);
+                if (res.ok) {
+                    const html = await res.text();
+                    content.innerHTML = html;
+                } else { content.innerHTML = '<div style="padding:20px">İçerik yüklenemedi.</div>'; }
+            } catch (e) { content.innerHTML = '<div style="padding:20px">Bağlantı hatası.</div>'; }
+        }
+
+        function closeLibModal() { document.getElementById('lib-detail-modal').style.display = 'none'; }
+    </script>
+    <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</body>
+
+</html>

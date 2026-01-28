@@ -1,0 +1,389 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli | Deep Cosmos</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0F0C29;
+            --gradient-start: #0F0C29;
+            --gradient-mid: #302B63;
+            --gradient-end: #24243E;
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+        }
+
+        /* Sidebar override for full page */
+        .app-container {
+            display: flex;
+            width: 100%;
+        }
+
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            /* Sidebar Width */
+            padding: 3rem;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--gold);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .btn-action {
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.2);
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            /* Sidebar logic from partial handles hiding */
+        }
+
+        /* SCROLLBAR STYLES (Global) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff5e79;
+        }
+
+        /* OVERRIDE SIDEBAR SCROLL (Force Visible with High Specificity) */
+        body .app-container .sidebar {
+            scrollbar-width: thin !important;
+            overflow-y: auto !important;
+        }
+
+        body .app-container .sidebar::-webkit-scrollbar {
+            display: block !important;
+            width: 6px !important;
+        }
+
+        body .app-container .sidebar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body .app-container .sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent) !important;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        {% include 'astrology/partials/sidebar.html' %}
+
+        <main class="main">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
+                <h1 style="font-family:'Cinzel'; font-size:2rem; color:var(--accent)"><i
+                        class="fas fa-satellite-dish"></i> Yönetim Paneli</h1>
+                <div>
+                    <a href="/" style="color:white; text-decoration:none; margin-right:20px; font-size:0.9rem"><i
+                            class="fas fa-arrow-left"></i> Siteye Dön</a>
+                    <span style="opacity:0.6; font-size:0.9rem">Toplam Üye: <b>{{ total_users_count }}</b></span>
+                </div>
+            </div>
+
+            <!-- STATS -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="stat-value">{{ unique_visitors }}</div>
+                    <div class="stat-label">Tekil Ziyaretçi (Bugün)</div>
+                </div>
+                <div class="card">
+                    <div class="stat-value">{{ total_requests }}</div>
+                    <div class="stat-label">Toplam İstek</div>
+                </div>
+                <div class="card">
+                    <div class="stat-label" style="margin-bottom:10px; font-weight:bold">Aktif Kullanıcılar (24s)</div>
+                    <div>
+                        {% for u in active_users %}
+                        <span class="badge" style="background:rgba(50,200,50,0.2); color:#4eff4e; margin-right:5px">{{ u
+                            }}</span>
+
+                        {% empty %}
+                        <span style="opacity:0.5">- Yok -</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- USER MANAGEMENT -->
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                    <h3 style="color:var(--gold); margin:0"><i class="fas fa-users-cog"></i> Üye Yönetimi (Server-Side)
+                    </h3>
+                    <form method="GET" style="display:flex; gap:10px; align-items:center">
+                        <input type="text" name="user_search" value="{{ user_search }}"
+                            placeholder="Kullanıcı adı veya e-posta..."
+                            style="background:#222; border:1px solid #444; color:white; padding:5px 10px; border-radius:4px; font-size:0.9rem">
+                        <input type="hidden" name="page" value="{{ page_obj.number }}">
+                        <button type="submit" class="btn-action"
+                            style="background:var(--accent); color:white">Ara</button>
+                        {% if user_search %}
+                        <a href="/custom-admin/" class="btn-action"
+                            style="background:#444; color:white; text-decoration:none; display:flex; align-items:center; height:100%">Temizle</a>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div style="max-height:500px; overflow-y:auto; border:1px solid var(--border); border-radius:8px">
+                    <table>
+                        <thead style="position:sticky; top:0; background:#0F0C29; z-index:10">
+                            <tr>
+                                <th>Kullanıcı</th>
+                                <th>Email</th>
+                                <th>Katılma</th>
+                                <th>Paket</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in all_users %}
+                            <tr>
+                                <td>
+                                    <b>{{ u.username }}</b><br>
+                                    <span style="font-size:0.75rem; opacity:0.5">ID: {{ u.id }}</span>
+                                </td>
+                                <td style="opacity:0.8">{{ u.email }}</td>
+                                <td style="font-size:0.85rem">{{ u.date_joined|date:"d M Y" }}</td>
+                                <td>
+                                    {% if u.profile.membership_level == 'premium' %}
+                                    <span class="badge"
+                                        style="background:linear-gradient(45deg, #FFD700, #FDB931); color:black">PREMIUM</span>
+                                    {% else %}
+                                    <span class="badge" style="background:rgba(255,255,255,0.1)">FREE</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex; gap:5px">
+                                        <button class="btn-action" style="background:#444; color:white"
+                                            onclick="setMembership({{ u.id }}, 'free')">Free</button>
+                                        <button class="btn-action" style="background:#DAA520; color:white"
+                                            onclick="setMembership({{ u.id }}, 'premium')">Premium</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align:center; padding:20px">Kullanıcı bulunamadı.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WEEKLY HOROSCOPE EDITOR REMOVED AS REQUESTED -->
+
+            <!-- LOGS -->
+            <div class="card">
+                <h3 style="margin-bottom:15px"><i class="fas fa-list"></i> Loglar</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zaman</th>
+                            <th>Kullanıcı</th>
+                            <th>Eylem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in page_obj %}
+                        <tr>
+                            <td style="opacity:0.6">{{ log.timestamp|date:"H:i:s" }}</td>
+                            <td>{{ log.user.username|default:"Ziyaretçi" }}</td>
+                            <td>{{ log.action }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align:center">Log yok.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div style="margin-top:20px; display:flex; justify-content:center; gap:5px; align-items:center;">
+                    {% if page_obj.has_previous %}
+                    <a href="?page=1&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">&laquo; İlk</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">Önceki</a>
+                    {% endif %}
+
+                    <span style="opacity:0.8; margin:0 10px; font-weight:bold">Sayfa {{ page_obj.number }} / {{
+                        page_obj.paginator.num_pages }}</span>
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">Sonraki</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">Son &raquo;</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        async function setMembership(uid, lvl) {
+            if (!confirm(`Kullanıcı #${uid} seviyesi ${lvl.toUpperCase()} yapılacak. Emin misin?`)) return;
+
+            try {
+                const res = await fetch('/api/custom-admin/update-membership/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: uid, level: lvl })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    alert("Güncellendi!");
+                    window.location.reload(); // Server-side refresh!
+                } else {
+                    alert("Hata: " + d.error);
+                }
+            } catch (e) {
+                alert("Bağlantı hatası");
+            }
+        }
+
+        // --- WEEKLY SAVE REMOVED ---
+
+        // Initial Sidebar state
+        (function initSidebar() {
+            ['general', 'personal', 'settings'].forEach(grp => {
+                const state = localStorage.getItem('sidebar_grp_' + grp);
+                const children = document.getElementById('group-' + grp);
+                if (state === 'closed' && children) {
+                    children.classList.add('hidden');
+                    const header = children.previousElementSibling;
+                    if (header) header.classList.add('collapsed');
+                }
+            });
+        })();
+
+        function nav(page) {
+            // Redirect to home with param if clicking nav items from admin page
+            if (page === 'home') window.location.href = '/';
+            else if (page === 'admin') return;
+            else window.location.href = '/?page=' + page;
+        }
+
+        function toggleGroup(groupId, headerEl) {
+            const children = document.getElementById('group-' + groupId);
+            if (!children) return;
+            const isHidden = children.classList.contains('hidden');
+            if (isHidden) {
+                children.classList.remove('hidden');
+                headerEl.classList.remove('collapsed');
+                localStorage.setItem('sidebar_grp_' + groupId, 'open');
+            } else {
+                children.classList.add('hidden');
+                headerEl.classList.add('collapsed');
+                localStorage.setItem('sidebar_grp_' + groupId, 'closed');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

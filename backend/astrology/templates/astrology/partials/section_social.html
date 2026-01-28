@@ -1,0 +1,229 @@
+<section id="view-social" class="view animate-in" style="display:none">
+    <div style="text-align:center; margin-bottom:20px">
+        <h1 style="font-size:2.5rem; margin-bottom:0.5rem; font-family:'Cinzel'; color:var(--gold)"
+            data-i18n="social_title">SOSYAL SİNERJİ</h1>
+        <p style="opacity:0.7">Grubunuzun element dengesini ve kozmik uyumunu analiz edin.</p>
+    </div>
+
+    <div style="display:flex; gap:20px; flex-wrap:wrap">
+        <!-- Input Column -->
+        <div style="flex:1; min-width:300px">
+            <div class="glass-card" style="border:1px solid var(--border)">
+                <h3 style="color:var(--accent); margin-bottom:15px"><i class="fas fa-user-plus"></i> Kişi Ekle</h3>
+
+                <div style="margin-bottom:15px">
+                    <label style="font-size:0.8rem; opacity:0.7; display:block; margin-bottom:5px">İsim</label>
+                    <input type="text" id="soc-name" placeholder="Örn: Ahmet"
+                        style="width:100%; padding:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; color:white; font-family:'Outfit'">
+                </div>
+
+                <div style="margin-bottom:20px">
+                    <label style="font-size:0.8rem; opacity:0.7; display:block; margin-bottom:5px">Doğum Tarihi</label>
+                    <input type="text" id="soc-date" value="1995/05/05" placeholder="YYYY/AA/GG"
+                        style="width:100%; padding:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; color:white; font-family:'Outfit'">
+                </div>
+
+                <button class="btn" onclick="addMember()" data-i18n="btn_add"
+                    style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:8px; color:white; font-weight:bold; cursor:pointer; transition:0.3s">
+                    <i class="fas fa-plus-circle"></i> Ekle
+                </button>
+            </div>
+
+            <div id="member-list" style="margin-top:20px; display:flex; flex-direction:column; gap:10px"></div>
+        </div>
+
+        <!-- Result Column -->
+        <div style="flex:1; min-width:300px">
+            <div class="glass-card" id="social-res"
+                style="text-align:center; min-height:200px; display:flex; align-items:center; justify-content:center; border:1px dashed rgba(255,255,255,0.2)">
+                <p data-i18n="soc_placeholder" style="opacity:0.5; font-style:italic">Analizi görmek için gruba kişi
+                    ekleyin...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // --- SOCIAL ---
+    let members = [];
+    async function addMember() {
+        const nameInp = document.getElementById('soc-name');
+        const dateInp = document.getElementById('soc-date');
+
+        if (!nameInp.value || !dateInp.value) return alert("Lütfen isim ve tarih giriniz.");
+
+        const btn = document.querySelector('#view-social button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/calculate-chart/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    date: dateInp.value,
+                    time: "12:00",
+                    lat: 41.0,
+                    lon: 28.0,
+                    lang: document.getElementById('lang').value
+                })
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                alert("Hata: " + data.error);
+            } else {
+                members.push({ name: nameInp.value, dominants: data.meta.dominants });
+                renderMembers();
+                analyzeGroup();
+                nameInp.value = "";
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Bağlantı hatası.");
+        }
+
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+
+    function renderMembers() {
+        const list = document.getElementById('member-list');
+        list.innerHTML = "";
+        members.forEach((m, i) => list.innerHTML += `
+            <div class="glass-card" style="padding:10px; display:flex; align-items:center; gap:15px; margin-bottom:0">
+                <div style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--accent)">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div style="flex:1; font-weight:bold">${m.name}</div>
+                <i class="fas fa-trash-alt" style="color:#ff6666; cursor:pointer; opacity:0.7; transition:0.2s" 
+                   onclick="removeMember(${i})" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"></i>
+            </div>
+        `);
+    }
+
+    function removeMember(i) {
+        members.splice(i, 1);
+        renderMembers();
+        analyzeGroup();
+    }
+
+    function analyzeGroup() {
+        const resDiv = document.getElementById('social-res');
+        const lang = document.getElementById('lang').value;
+        const t = (typeof translations !== 'undefined') ? translations[lang] : {};
+
+        if (members.length === 0) {
+            resDiv.innerHTML = `<p style="opacity:0.5; font-style:italic">Analizi görmek için gruba kişi ekleyin...</p>`;
+            return;
+        }
+
+        // 1. Calculate Element Totals & Individual Roles
+        let totals = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
+        const roles = [];
+
+        members.forEach(m => {
+            if (m.dominants) {
+                totals.Fire += m.dominants.Fire || 0;
+                totals.Earth += m.dominants.Earth || 0;
+                totals.Air += m.dominants.Air || 0;
+                totals.Water += m.dominants.Water || 0;
+
+                // Assign Role
+                const pMax = Math.max(m.dominants.Fire, m.dominants.Earth, m.dominants.Air, m.dominants.Water);
+                let role = "Üye";
+                if (pMax === m.dominants.Fire) role = lang === 'tr' ? 'Öncü (Ateş)' : 'The Spark (Fire)';
+                else if (pMax === m.dominants.Earth) role = lang === 'tr' ? 'Kurucu (Toprak)' : 'The Builder (Earth)';
+                else if (pMax === m.dominants.Air) role = lang === 'tr' ? 'Fikirci (Hava)' : 'The Thinker (Air)';
+                else if (pMax === m.dominants.Water) role = lang === 'tr' ? 'Duygusal Bağ (Su)' : 'The Heart (Water)';
+                roles.push({ name: m.name, role: role });
+            }
+        });
+
+        const totalScore = totals.Fire + totals.Earth + totals.Air + totals.Water;
+        if (totalScore === 0) return;
+        const pct = (v) => Math.round((v / totalScore) * 100);
+
+        // 2. Identify Dominant & Weakest
+        const sortedElements = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+        const domElement = sortedElements[0][0];
+        const weakElement = sortedElements[3][0];
+
+        // 3. Vibe Analysis
+        let vibeTitle = "";
+        let vibeDesc = "";
+
+        // Complex Vibe Logic
+        if (domElement === 'Fire') {
+            vibeTitle = lang === 'tr' ? "Yüksek Enerji & Eylem" : "High Voltage & Action";
+            vibeDesc = lang === 'tr' ? "Bu grup yerinde duramaz! Macera, risk ve başlatma enerjisi çok yüksek." : "This group is unstoppable! High energy for adventure, risk-taking, and starting new things.";
+        } else if (domElement === 'Earth') {
+            vibeTitle = lang === 'tr' ? "Sağlam & Üretken" : "Solid & Productive";
+            vibeDesc = lang === 'tr' ? "Ayakları yere basan bir ekip. Somut sonuçlar ve finansal başarı odaklı." : "A grounded team focused on tangible results, stability, and financial success.";
+        } else if (domElement === 'Air') {
+            vibeTitle = lang === 'tr' ? "Zeka & İletişim" : "Intellectual & Social";
+            vibeDesc = lang === 'tr' ? "Fikirler havada uçuşuyor. Sohbet hiç bitmez, sürekli yeni planlar yapılır." : "Ideas are flowing non-stop. Endless conversation and constant new planning.";
+        } else { // Water
+            vibeTitle = lang === 'tr' ? "Derin Bağlar & Empati" : "Deep Bonds & Empathy";
+            vibeDesc = lang === 'tr' ? "Birbirini hisseden bir aile gibi. Duygusal destek ve sezgiler ön planda." : "Like a family that feels each other. Emotional support and intuition are the priority.";
+        }
+
+        // Warning
+        let warning = "";
+        if (totals[weakElement] < totalScore * 0.15) { // If less than 15%
+            if (weakElement === 'Fire') warning = lang === 'tr' ? "⚠️ Eksik Ateş: Harekete geçmekte zorlanabilirsiniz." : "⚠️ Low Fire: You might struggle to take action.";
+            if (weakElement === 'Earth') warning = lang === 'tr' ? "⚠️ Eksik Toprak: Planları somutlaştırmak zor olabilir." : "⚠️ Low Earth: Hard to make plans reality.";
+            if (weakElement === 'Air') warning = lang === 'tr' ? "⚠️ Eksik Hava: İletişim kopuklukları yaşanabilir." : "⚠️ Low Air: Communication might get stuck.";
+            if (weakElement === 'Water') warning = lang === 'tr' ? "⚠️ Eksik Su: Duygusal bağlar zayıf kalabilir." : "⚠️ Low Water: Emotional depth might be lacking.";
+        }
+
+        // Element Names Translation
+        const elNames = {
+            'Fire': lang === 'tr' ? 'Ateş' : 'Fire',
+            'Earth': lang === 'tr' ? 'Toprak' : 'Earth',
+            'Air': lang === 'tr' ? 'Hava' : 'Air',
+            'Water': lang === 'tr' ? 'Su' : 'Water'
+        };
+
+        // 4. Render Rich Dashboard
+        let html = `
+        <div style="animation:fadeIn 0.5s; width:100%">
+            <div class="glass-card" style="background:linear-gradient(135deg, rgba(233,69,96,0.1), rgba(26,26,46,0.8)); border:1px solid var(--accent)">
+                <h2 style="color:var(--gold); text-transform:uppercase; letter-spacing:2px; font-size:0.9rem; margin-bottom:5px">${lang === 'tr' ? 'GRUP AURASI' : 'GROUP AURA'}</h2>
+                <h1 style="font-size:1.8rem; margin-bottom:10px; font-family:'Cinzel'">${vibeTitle}</h1>
+                <p style="font-size:1rem; line-height:1.6; opacity:0.9">${vibeDesc}</p>
+                ${warning ? `<div style="background:rgba(255,200,0,0.15); color:#ffd700; padding:10px; border-radius:8px; margin-top:15px; font-size:0.9rem"><i class="fas fa-exclamation-triangle"></i> ${warning}</div>` : ''}
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:20px">
+                <div class="glass-card" style="padding:15px">
+                    <h3 style="margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; font-size:1rem">${lang === 'tr' ? 'Element Dengesi' : 'Elemental Balance'}</h3>
+                    <div style="display:flex; flex-direction:column; gap:10px; font-size:0.9rem">
+                        <div><span style="color:#e25822">🔥 ${elNames.Fire}</span> <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:3px"><div style="width:${pct(totals.Fire)}%; background:#e25822; height:100%; border-radius:4px"></div></div></div>
+                        <div><span style="color:#bada55">🌿 ${elNames.Earth}</span> <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:3px"><div style="width:${pct(totals.Earth)}%; background:#bada55; height:100%; border-radius:4px"></div></div></div>
+                        <div><span style="color:#a4dcf5">💨 ${elNames.Air}</span> <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:3px"><div style="width:${pct(totals.Air)}%; background:#a4dcf5; height:100%; border-radius:4px"></div></div></div>
+                        <div><span style="color:#1ca3ec">💧 ${elNames.Water}</span> <div style="width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:3px"><div style="width:${pct(totals.Water)}%; background:#1ca3ec; height:100%; border-radius:4px"></div></div></div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding:15px">
+                    <h3 style="margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; font-size:1rem">${lang === 'tr' ? 'Kozmik Roller' : 'Cosmic Roles'}</h3>
+                    <div style="display:flex; flex-direction:column; gap:10px">
+                        ${roles.map(r => `
+                            <div style="display:flex; align-items:center; gap:10px">
+                                <div style="width:25px; height:25px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem"><i class="fas fa-user-astronaut"></i></div>
+                                <div>
+                                    <div style="font-weight:bold; font-size:0.9rem">${r.name}</div>
+                                    <div style="font-size:0.75rem; color:var(--accent)">${r.role}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        resDiv.style.display = 'block';
+        resDiv.style.border = 'none';
+        resDiv.innerHTML = html;
+    }
+</script>

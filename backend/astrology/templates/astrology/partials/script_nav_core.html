@@ -1,0 +1,125 @@
+<script>
+    // CORE NAVIGATION & UI LOGIC
+    let currentSection = 'home';
+    let currentUserLevel = 'free'; // Will be updated by checkAuth
+
+    function nav(sectionId, el) {
+        // --- PREMIUM NAVIGATION GUARDS REMOVED ---
+        // Backend now handles all security checks securely.
+        // Frontend should not block navigation to prevent state desync issues.
+
+        // 1. Update Menu UI
+        // GLOBAL FREE MODE OVERRIDE
+        const isGlobalFree = "{{ FREE_PREMIUM_MODE|yesno:'true,false' }}" === 'true';
+        if (isGlobalFree) {
+            currentUserLevel = 'premium';
+            console.log("Global Free Mode Active: User elevated to Premium");
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        if (el) el.classList.add('active');
+        // Handle explicit active state if el is null (e.g. from URL)
+        if (!el) {
+            // Find nav item by onclick string matching
+            const items = document.querySelectorAll('.nav-item');
+            items.forEach(itm => {
+                if (itm.getAttribute('onclick') && itm.getAttribute('onclick').includes(`'${sectionId}'`)) {
+                    itm.classList.add('active');
+                }
+            });
+        }
+
+        // 2. Hide all sections
+        document.querySelectorAll('.view').forEach(view => {
+            view.style.display = 'none';
+            view.classList.remove('animate-in');
+        });
+
+        // 3. Show Target
+        const target = document.getElementById('view-' + sectionId);
+        if (target) {
+            target.style.display = 'block';
+            setTimeout(() => target.classList.add('animate-in'), 10);
+            currentSection = sectionId;
+        } else {
+            console.error("Section not found:", sectionId);
+            // Fallback to home if editor not found (e.g. permission issue)
+            if (sectionId !== 'home') nav('home');
+        }
+
+        // Mobile: Close sidebar if open
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+
+        // 4. Trigger Lazy Loaders
+        if (sectionId === 'career' && typeof loadCareer === 'function') loadCareer();
+        if (sectionId === 'daily' && typeof loadDaily === 'function') loadDaily();
+        if (sectionId === 'home') {
+            if (typeof loadHomeGrid === 'function') loadHomeGrid();
+            if (typeof loadCMSList === 'function') loadCMSList();
+        }
+        if (sectionId === 'blog' && typeof loadBlogPage === 'function') loadBlogPage();
+        if (sectionId === 'horoscopes' && typeof loadHoroPage === 'function') loadHoroPage();
+        if (sectionId === 'editor') {
+            if (typeof initEditor === 'function') initEditor();
+        }
+        // New: Load Hours Hook
+        if (sectionId === 'hours' && typeof window.loadHoursPage === 'function') {
+            window.loadHoursPage();
+        }
+
+        // Celestial Hook
+        if (sectionId === 'celestial' && typeof loadCelestial === 'function') loadCelestial();
+
+        // Draconic Hook
+        if (sectionId === 'draconic' && typeof window.loadDraconic === 'function') {
+            window.loadDraconic();
+
+            // AUTO-RECALC FIX FOR PREMIUM USERS WITH OLD DATA
+            // If user is premium provided by checkAuth/Globals but data is stale (missing draconic), force refresh.
+            if (typeof currentUserLevel !== 'undefined' && currentUserLevel === 'premium') {
+                if (currentData && currentData.meta && (!currentData.meta.draconic_chart || currentData.meta.draconic_chart.length === 0)) {
+                    console.log("Premium user missing Draconic data. Autorefreshing...");
+                    // Only trigger if inputs are present (failsafe)
+                    if (document.getElementById('date') && document.getElementById('date').value) {
+                        showToast("Premium veriler güncelleniyor...", "info");
+                        if (typeof calcChart === 'function') setTimeout(calcChart, 500);
+                    }
+                }
+            }
+        }
+    }
+
+    // --- AUTO NAV ON LOAD ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const page = params.get('page');
+        if (page) {
+            // Slight delay to ensure DOM is fully ready
+            setTimeout(() => nav(page), 100);
+        } else {
+            // Default View
+            if (document.getElementById('view-home')) nav('home');
+        }
+    });
+
+
+
+    // Toast Utility (Keep if not duplicated, checks show it is unique to this file or needed early)
+    function showToast(msg, type = 'info') {
+        const c = document.getElementById('toast-container');
+        if (!c) return;
+        const div = document.createElement('div');
+        div.className = 'toast-message';
+        div.style.background = type === 'error' ? 'rgba(233,69,96,0.9)' : 'rgba(15,12,41,0.9)';
+        div.innerText = msg;
+        c.appendChild(div);
+        setTimeout(() => div.classList.add('show'), 10);
+        setTimeout(() => {
+            div.classList.remove('show');
+            setTimeout(() => div.remove(), 400);
+        }, 3000);
+    }
+</script>

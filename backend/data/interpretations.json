@@ -1,0 +1,426 @@
+{
+    "planets": {
+        "Sun": {
+            "Aries": {
+                "1": {
+                    "en": "You have a strong sense of self and are a natural leader.",
+                    "tr": "Benlik duygunuz çok kuvvetli ve doğal bir lidersiniz."
+                },
+                "2": {
+                    "en": "You value financial independence and take initiative in earning.",
+                    "tr": "Finansal bağımsızlığa önem verir ve inisiyatif alırsınız."
+                },
+                "generic": {
+                    "en": "With the Sun in Aries, you are the quintessential pioneer. Your life force is ignited by action, courage, and a desire to be first. You possess an innate leadership quality that is not taught but felt; when you walk into a room, the energy shifts. You are here to learn about self-assertion and courage. However, your journey involves balancing this fierce independence with patience. You thrive when you follow the philosophy of 'just do it', often acting on impulse which can lead to brilliant successes or hasty lessons. Your vitality is high, but burn-out is a risk if you don't pace yourself.",
+                    "tr": "Güneş Koç burcundayken, zodyağın özündeki öncüsü sizsiniz. Yaşam gücünüz eylem, cesaret ve ilk olma arzusuyla ateşlenir. Öğretilen değil, hissedilen doğuştan gelen bir liderlik niteliğine sahipsiniz; bir odaya girdiğinizde enerji değişir. Buraya kendinizi ortaya koymayı ve cesareti öğrenmek için geldiniz. Ancak, yolculuğunuz bu ateşli bağımsızlığı sabırla dengelemeyi içerir. 'Sadece yap' felsefesini uyguladığınızda gelişirsiniz, genellikle dürtüsel hareket edersiniz ki bu da parlak başarılara veya aceleci derslere yol açabilir. Canlılığınız yüksektir, ancak kendinizi hızlandırmazsanız tükenmişlik bir risktir."
+                }
+            },
+            "Taurus": {
+                "generic": {
+                    "en": "As a Taurus Sun, your core essence is built upon stability, sensory pleasure, and unshakeable values. You are the builder of the zodiac, capable of manifesting abstract dreams into tangible reality through sheer persistence. You move through life with a deliberate, steady pace that others might mistake for slowness, but is actually a deep conservation of energy. You are deeply connected to the earth and the material realm; quality matters to you more than quantity. Your lesson in life is to embrace change without losing your grounding, and to learn that true security comes from within, not just from what you possess.",
+                    "tr": "Bir Boğa Güneşi olarak, temel özünüz istikrar, duyusal zevk ve sarsılmaz değerler üzerine kuruludur. Siz zodyağın inşa edicisisiniz, soyut hayalleri saf ısrarla somut gerçekliğe dönüştürme yeteneğine sahipsiniz. Hayatın içinde, başkalarının yavaşlık sanabileceği ama aslında derin bir enerji koruması olan kasıtlı, istikrarlı bir hızla ilerlersiniz. Dünyaya ve maddi aleme derinden bağlısınız; sizin için nitelik nicelikten daha önemlidir. Hayattaki dersiniz, zemininizi kaybetmeden değişimi kucaklamak ve gerçek güvenliğin sadece sahip olduklarınızdan değil, içten geldiğini öğrenmektir."
+                }
+            },
+            "Gemini": {
+                "generic": {
+                    "en": "With the Sun in Gemini, you are a perennial student of life, driven by an insatiable curiosity. Your mind is quick, agile, and constantly hungry for new information. You see the world not as a fixed place, but as a dynamic web of connections and stories waiting to be told. Communication is your superpower; you can talk to anyone, anywhere, about anything. However, your challenge is to find depth amidst the breadth of your interests. You are here to be the messenger, bridging gaps between people and ideas, but you must learn to focus your scattered energy to truly make an impact.",
+                    "tr": "Güneş İkizler burcundayken, doyumsuz bir merakla hareket eden daimi bir hayat öğrencisisiniz. Zihniniz hızlı, çevik ve sürekli yeni bilgilere açtır. Dünyayı sabit bir yer olarak değil, anlatılmayı bekleyen dinamik bir bağlantılar ve hikayeler ağı olarak görürsünüz. İletişim süper gücünüzdür; herkesle, her yerde, her şey hakkında konuşabilirsiniz. Ancak, zorluğunuz ilgi alanlarınızın genişliği arasında derinliği bulmaktır. İnsanlar ve fikirler arasındaki boşlukları dolduran haberci olmak için buradasınız, ancak gerçekten bir etki yaratmak için dağınık enerjinizi odaklamayı öğrenmelisiniz."
+                }
+            },
+            "Cancer": {
+                "generic": {
+                    "en": "Having your Sun in Cancer signifies a life path deeply rooted in emotional depths, intuition, and protective instincts. You navigate the world through your feelings, often picking up on undercurrents that others miss. Family, home, and heritage are not just words to you; they are the foundations of your identity. You are the nurturer of the zodiac, fiercely protective of those you love. Your journey involves learning to balance your care for others with care for yourself, and creating a shell that is strong enough to protect you but permeable enough to let love in.",
+                    "tr": "Güneşinizin Yengeç burcunda olması, duygusal derinliklere, sezgilere ve koruyucu içgüdülere derinden kök salmış bir yaşam yolunu işaret eder. Dünyada duygularınızla yol alırsınız, genellikle başkalarının kaçırdığı alt akıntıları fark edersiniz. Aile, ev ve miras sizin için sadece kelimeler değil; kimliğinizin temelleridir. Siz zodyağın besleyicisisiniz, sevdiklerinizi şiddetle korursunuz. Yolculuğunuz, başkalarına gösterdiğiniz özeni kendinize gösterdiğiniz özenle dengelemeyi ve sizi koruyacak kadar güçlü ama sevgiyi içeri alacak kadar geçirgen bir kabuk yaratmayı öğrenmeyi içerir."
+                }
+            },
+            "Leo": {
+                "generic": {
+                    "en": "With the Sun in Leo, you are born to shine. Your heart is big, warm, and generous, and you thrive when you can express your creative self authentically. Like the Sun itself, you possess a gravitational pull that draws others towards your warmth and charisma. You are here to learn about self-expression, joy, and the power of the ego in its healthiest form. While you seek recognition, your truest validation comes from creating something that reflects your unique spirit. Leadership comes naturally to you, not by force, but by the example of your unshakeable confidence.",
+                    "tr": "Güneş Aslan burcundayken, parlamak için doğdunuz. Kalbiniz büyük, sıcak ve cömerttir; yaratıcı benliğinizi otantik bir şekilde ifade edebildiğinizde gelişirsiniz. Güneş'in kendisi gibi, başkalarını sıcaklığınıza ve karizmanıza çeken bir yerçekimine sahipsiniz. Buraya kendini ifade etmeyi, neşeyi ve egonun en sağlıklı halindeki gücünü öğrenmeye geldiniz. Takdir arasanız da, en gerçek onayınız eşsiz ruhunuzu yansıtan bir şey yaratmaktan gelir. Liderlik size zorla değil, sarsılmaz güveninizin örneğiyle doğal olarak gelir."
+                }
+            },
+            "Virgo": {
+                "generic": {
+                    "en": "As a Virgo Sun, your brilliance lies in your attention to detail and your desire to be of service. You see the potential for perfection in everything and possess the practical skills to make it happen. You are the editor of the zodiac, refining, organizing, and improving whatever you touch. Your analytical mind is sharp, always processing information to find the most efficient solution. Your life lesson is to accept that perfection is a direction, not a destination, and to be as kind to yourself as you are helpful to others. Your humility is your strength, but do not let it overshadow your immense capability.",
+                    "tr": "Bir Başak Güneşi olarak, parlaklığınız detaylara verdiğiniz önemde ve hizmet etme arzunuzda yatar. Her şeyde mükemmellik potansiyelini görürsünüz ve bunu gerçekleştirecek pratik becerilere sahipsiniz. Siz zodyağın editörüsünüz; dokunduğunuz her şeyi rafine eder, düzenler ve geliştirirsiniz. Analitik zihniniz keskindir, en verimli çözümü bulmak için sürekli bilgiyi işler. Hayat dersiniz, mükemmelliğin bir varış noktası değil bir yön olduğunu kabul etmek ve başkalarına yardımsever olduğunuz kadar kendinize de nazik olmaktır. Alçakgönüllülüğünüz gücünüzdür, ancak muazzam yeteneğinizi gölgelemesine izin vermeyin."
+                }
+            },
+            "Libra": {
+                "generic": {
+                    "en": "As a Libra Sun, you are the diplomat of the zodiac, constantly seeking balance, harmony, and fairness. You are naturally attuned to aesthetics and relationships, often defining yourself through your interactions with others. You have a gift for seeing multiple perspectives, which makes you an excellent mediator, but can sometimes lead to indecision. Your charm is effortless, and you thrive in environments where there is peace and beauty. Your journey involves learning to find your own center and making choices based on your authentic desires, rather than simply to please others or keep the peace.",
+                    "tr": "Bir Terazi Güneşi olarak, sürekli denge, uyum ve adalet arayan zodyağın diplomatısınız. Estetike ve ilişkilere doğal olarak uyumlusunuz, genellikle kendinizi başkalarıyla etkileşimleriniz üzerinden tanımlarsınız. Birden fazla bakış açısını görme yeteneğiniz var, bu da sizi mükemmel bir arabulucu yapar, ancak bazen kararsızlığa yol açabilir. Çekiciliğiniz zahmetsizdir ve barış ve güzelliğin olduğu ortamlarda gelişirsiniz. Yolculuğunuz, kendi merkezinizi bulmayı ve sadece başkalarını memnun etmek veya barışı korumak yerine otantik arzularınıza dayanarak seçimler yapmayı öğrenmeyi içerir."
+                }
+            },
+            "Scorpio": {
+                "generic": {
+                    "en": "With the Sun in Scorpio, you are intense, magnetic, and profoundly deep. You view life not as a surface-level experience but as a series of mysteries to be solved and transformations to be undergone. Your emotional resilience is legendary; you can rise from the ashes of any crisis stronger than before. You seek truth above all else and have a piercing gaze that seems to look right through people. Your life path is one of emotional mastery and power, learning to use your intensity to heal and transform rather than to control or destroy.",
+                    "tr": "Güneş Akrep burcundayken, yoğun, manyetik ve son derece derinsiniz. Hayatı yüzeysel bir deneyim olarak değil, çözülmesi gereken gizemler ve geçirilmesi gereken dönüşümler dizisi olarak görürsünüz. Duygusal dayanıklılığınız efsanevidir; herhangi bir krizin küllerinden eskisinden daha güçlü bir şekilde doğabilirsiniz. Her şeyden önce gerçeği ararsınız ve insanların içini görebilen delici bir bakışınız vardır. Yaşam yolunuz, duygusal ustalık ve güç yoludur; yoğunluğunuzu kontrol etmek veya yok etmek yerine iyileştirmek ve dönüştürmek için kullanmayı öğrenmektir."
+                }
+            },
+            "Sagittarius": {
+                "generic": {
+                    "en": "As a Sagittarius Sun, you are the eternal optimist and adventurer. Your spirit is wild and constantly seeks expansion, whether through travel, philosophy, or higher learning. You value freedom above all else and have an innate faith that things will work out. Your humor and honesty are refreshing, though your bluntness can sometimes be disarming. You are here to seek the truth and share your wisdom with the world. Your challenge is to ground your grand visions in reality and to understand that freedom also comes with responsibility.",
+                    "tr": "Bir Yay Güneşi olarak, ebedi iyimser ve maceracısınız. Ruhunuz vahşidir ve seyahat, felsefe veya yüksek öğrenim yoluyla sürekli genişleme arar. Özgürlüğe her şeyden çok değer verirsiniz ve işlerin yoluna gireceğine dair doğuştan gelen bir inancınız vardır. Mizahınız ve dürüstlüğünüz tazedir, ancak patavatsızlığınız bazen şaşırtıcı olabilir. Gerçeği aramak ve bilgeliğinizi dünyayla paylaşmak için buradasınız. Zorluğunuz, büyük vizyonlarınızı gerçekliğe oturtmak ve özgürlüğün aynı zamanda sorumlulukla geldiğini anlamaktır."
+                }
+            },
+            "Capricorn": {
+                "generic": {
+                    "en": "With the Sun in Capricorn, you are the master architect of your destiny. You possess an old soul, marked by discipline, ambition, and a relentless drive to achieve. You understand the value of hard work and time, seeing life as a mountain to be climbed with patience and strategy. You are practical and responsible, often shouldering burdens that would crush others. Your journey is about building a legacy that endures. While you may seem serious, you have a dry wit and a deep capacity for loyalty. Remember to enjoy the view on your way to the summit.",
+                    "tr": "Güneş Oğlak burcundayken, kendi kaderinizin baş mimarısınız. Disiplin, hırs ve başarma konusunda amansız bir dürtüyle işaretlenmiş yaşlı bir ruha sahipsiniz. Çok çalışmanın ve zamanın değerini anlarsınız, hayatı sabır ve stratejiyle tırmanılması gereken bir dağ olarak görürsünüz. Pratik ve sorumluluk sahibisiniz, genellikle başkalarını ezecek yükleri omuzlarsınız. Yolculuğunuz kalıcı bir miras inşa etmekle ilgilidir. Ciddi görünseniz de, kuru bir mizah anlayışınız ve derin bir sadakat kapasiteniz vardır. Zirveye giden yolda manzaranın tadını çıkarmayı unutmayın."
+                }
+            },
+            "Aquarius": {
+                "generic": {
+                    "en": "As an Aquarius Sun, you are a visionary and individualist. You march to the beat of your own drum, often seeing the future long before others do. You value intellect, freedom, and the collective good. You are a humanitarian at heart, driven by ideals of equality and progress. While you are friendly and social, you can also be emotionally detached, viewing life from a rational distance. Your purpose is to break outdated molds and introduce new ways of thinking. Embrace your uniqueness, for it is your greatest gift to the world.",
+                    "tr": "Bir Kova Güneşi olarak, vizyoner ve bireyselsiniz. Kendi davulunuzun ritmine göre yürürsünüz, genellikle geleceği başkalarından çok önce görürsünüz. Zekaya, özgürlüğe ve kolektif iyiliğe değer verirsiniz. Kalben bir insancılsınız, eşitlik ve ilerleme idealleriyle hareket edersiniz. Arkadaş canlısı ve sosyal olmanıza rağmen, hayatı rasyonel bir mesafeden izleyerek duygusal olarak mesafeli olabilirsiniz. Amacınız eski kalıpları kırmak ve yeni düşünme biçimleri sunmaktır. Benzersizliğinizi kucaklayın, çünkü bu dünyaya en büyük hediyenizdir."
+                }
+            },
+            "Pisces": {
+                "generic": {
+                    "en": "With the Sun in Pisces, you are the mystic and dreamer of the zodiac. You are deeply empathetic, intuitive, and connected to the spiritual realms. The boundaries between you and the world are thin; you feel everything deeply. You are imaginative and artistic, often retreating into your inner world to escape harsh realities. Your compassion knows no bounds, and you are here to teach the world about unconditional love and surrender. Your challenge is to build healthy boundaries and to find a way to anchor your beautiful dreams in the physical world.",
+                    "tr": "Güneş Balık burcundayken, zodyağın mistiği ve hayalperestisiniz. Derinden empatik, sezgisel ve ruhsal alemlere bağlısınız. Sizinle dünya arasındaki sınırlar incedir; her şeyi derinden hissedersiniz. Hayal gücünüz geniştir ve sanatsalsınız, genellikle sert gerçeklerden kaçmak için iç dünyanıza çekilirsiniz. Merhametiniz sınır tanımaz ve dünyaya koşulsuz sevgiyi ve teslimiyeti öğretmek için buradasınız. Zorluğunuz sağlıklı sınırlar oluşturmak ve güzel hayallerinizi fiziksel dünyaya demirlemenin bir yolunu bulmaktır."
+                }
+            }
+        },
+        "Moon": {
+            "Aries": {
+                "generic": {
+                    "en": "With the Moon in Aries, your emotional responses are immediate, fiery, and honest. You don't hide how you feel; your heart is on your sleeve. You have an emotional need for independence and action. When hurt, you may flare up in anger but rarely hold a grudge. You feel safest when you are in control of your own destiny.",
+                    "tr": "Ay Koç burcundayken, duygusal tepkileriniz anlık, ateşli ve dürüsttür. Ne hissettiğinizi saklamazsınız; kalbiniz elinizdedir. Bağımsızlık ve eylem için duygusal bir ihtiyacınız vardır. İncindiğinizde öfkeyle parlayabilirsiniz ama nadiren kin tutarsınız. Kendi kaderinizin kontrolü sizde olduğunda en güvende hissedersiniz."
+                }
+            },
+            "Taurus": {
+                "generic": {
+                    "en": "The Moon in Taurus gifts you with a stable and calm emotional nature. You are grounded and find comfort in the physical world—good food, soft textures, and nature soothe your soul. You dislike emotional volatility and change. Once you commit your heart, you are fiercely loyal and enduring.",
+                    "tr": "Boğa burcundaki Ay, size istikrarlı ve sakin bir duygusal doğa bahşeder. Ayaklarınız yere basar ve fiziksel dünyada—iyi yemekler, yumuşak dokular ve doğa—huzur bulursunuz. Duygusal değişkenlikten ve değişimden hoşlanmazsınız. Kalbinizi bir kez adadığınızda, son derece sadık ve dayanıklısınızdır."
+                }
+            },
+            "Gemini": {
+                "generic": {
+                    "en": "With the Moon in Gemini, you process emotions through your intellect. You need to talk about your feelings to understand them. You are curious and adaptable, but your mood can change as quickly as the wind. Emotional security comes from communication and variety; boredom is your greatest enemy.",
+                    "tr": "Ay İkizler burcundayken, duyguları zekanızla işlersiniz. Onları anlamak için hisleriniz hakkında konuşmanız gerekir. Meraklı ve uyumlusunuz, ancak ruh haliniz rüzgar gibi hızlı değişebilir. Duygusal güvenlik iletişim ve çeşitlilikten gelir; can sıkıntısı en büyük düşmanınızdır."
+                }
+            },
+            "Cancer": {
+                "generic": {
+                    "en": "This is the Moon's home sign. You are extremely sensitive, intuitive, and nurturing. Your connection to family and history is profound. You absorb the emotions of others like a sponge, so you need a safe sanctuary to recharge. You care deeply for others, often mothering everyone around you.",
+                    "tr": "Bu, Ay'ın kendi burcudur. Son derece hassas, sezgisel ve besleyicisiniz. Aile ve tarihle olan bağınız derindir. Başkalarının duygularını bir sünger gibi emersiniz, bu yüzden şarj olmak için güvenli bir sığınağa ihtiyacınız vardır. Başkalarına derinden önem verir, genellikle çevrenizdeki herkese annelik yaparsınız."
+                }
+            },
+            "Leo": {
+                "generic": {
+                    "en": "With the Moon in Leo, your heart is warm, generous, and expressive. You need to feel special and appreciated to feel emotionally secure. You are dramatic in your expression of love and feelings, often wearing your heart on your sleeve. You have a creative soul that needs an outlet to shine.",
+                    "tr": "Ay Aslan burcundayken, kalbiniz sıcak, cömert ve dışavurumcudur. Duygusal olarak güvende hissetmek için özel hissetmeye ve takdir edilmeye ihtiyacınız vardır. Sevgi ve hislerinizi ifade ederken dramatiksinizdir. Parlamak için bir çıkışa ihtiyaç duyan yaratıcı bir ruhunuz var."
+                }
+            },
+            "Virgo": {
+                "generic": {
+                    "en": "The Moon in Virgo indicates an emotional need for order and usefulness. You show you care by doing practical things for others. You can be critical of yourself and anxious if things are disorganized. Emotional peace comes from a structured routine and a sense of service to others.",
+                    "tr": "Başak burcundaki Ay, düzen ve yararlılık için duygusal bir ihtiyacı gösterir. Önemsediğinizi başkaları için pratik şeyler yaparak gösterirsiniz. Kendinize karşı eleştirel olabilir ve işler düzensizse endişeli olabilirsiniz. Duygusal huzur, yapılandırılmış bir rutin ve başkalarına hizmet duygusundan gelir."
+                }
+            },
+            "Libra": {
+                "generic": {
+                    "en": "With the Moon in Libra, emotional security is tied to partnership and harmony. You dislike conflict and will go to great lengths to keep the peace. You have a refined aesthetic sense and need beauty in your environment to feel at ease. You are happiest when sharing your life with a significant other.",
+                    "tr": "Ay Terazi burcundayken, duygusal güvenlik ortaklık ve uyuma bağlıdır. Çatışmadan hoşlanmazsınız ve barışı korumak için büyük çaba sarf edersiniz. Rafine bir estetik anlayışınız var ve rahat hissetmek için çevrenizde güzelliğe ihtiyaç duyarsınız. Hayatınızı önemli bir başkasıyla paylaşırken en mutlusunuz."
+                }
+            },
+            "Scorpio": {
+                "generic": {
+                    "en": "The Moon in Scorpio creates intense, deep, and transformative emotions. You are secretive and prefer to keep your true feelings hidden until you trust completely. Your intuition is powerful, allowing you to see past facades. You experience emotional highs and lows with great intensity, seeking profound merging in relationships.",
+                    "tr": "Akrep burcundaki Ay, yoğun, derin ve dönüştürücü duygular yaratır. Gizlisiniz ve tamamen güvenene kadar gerçek hislerinizi saklamayı tercih edersiniz. Sezgileriniz güçlüdür, dış görünüşün ötesini görmenizi sağlar. Duygusal iniş ve çıkışları büyük bir yoğunlukla yaşar, ilişkilerde derin bir birleşme ararsınız."
+                }
+            },
+            "Sagittarius": {
+                "generic": {
+                    "en": "With the Moon in Sagittarius, you need freedom and adventure to feel emotionally secure. You are optimistic and frank about your feelings. You deal with emotional pain by seeking meaning or looking to the future. You are a wanderer at heart, always seeking new horizons to expand your spirit.",
+                    "tr": "Ay Yay burcundayken, duygusal olarak güvende hissetmek için özgürlüğe ve maceraya ihtiyacınız vardır. İyimser ve hisleriniz konusunda açık sözlüsünüz. Duygusal acıyla anlam arayarak veya geleceğe bakarak başa çıkarsınız. Kalben bir gezginsiniz, ruhunuzu genişletmek için her zaman yeni ufuklar ararsınız."
+                }
+            },
+            "Capricorn": {
+                "generic": {
+                    "en": "The Moon in Capricorn suggests a reserved and disciplined emotional nature. You take your feelings seriously and may struggle to express vulnerability. You find comfort in work, achievement, and structure. You are the rock for others, dependable and steady, even if you feel lonely inside.",
+                    "tr": "Oğlak burcundaki Ay, mesafeli ve disiplinli bir duygusal doğayı işaret eder. Hislerinizi ciddiye alırsınız ve kırılganlığı ifade etmekte zorlanabilirsiniz. İş, başarı ve yapıda konfor bulursunuz. İçten içe yalnız hissetseniz bile, başkaları için güvenilir ve sağlam bir kayasınızdır."
+                }
+            },
+            "Aquarius": {
+                "generic": {
+                    "en": "With the Moon in Aquarius, you have a detached and analytical approach to emotions. You value freedom and individuality above all. You may seem cool or distant, but you are deeply humanitarian. You need mental stimulation and a sense of belonging to a community rather than just one person.",
+                    "tr": "Ay Kova burcundayken, duygulara mesafeli ve analitik bir yaklaşımınız vardır. Özgürlüğe ve bireyselliğe her şeyden çok değer verirsiniz. Soğuk veya uzak görünebilirsiniz ama derinden insancılsınız. Zihinsel uyarıma ve sadece bir kişiye değil, bir topluluğa ait olma hissine ihtiyacınız vardır."
+                }
+            },
+            "Pisces": {
+                "generic": {
+                    "en": "The Moon in Pisces gives you a boundless, psychic, and compassionate emotional nature. You feel the pain of the world and are easily influenced by your environment. You are a dreamer, needing withdrawal into fantasy or art to cope with reality. Your intuition is your guiding light.",
+                    "tr": "Balık burcundaki Ay, size sınırsız, psişik ve şefkatli bir duygusal doğa verir. Dünyanın acısını hissedersiniz ve çevrenizden kolayca etkilenirsiniz. Bir hayalperestsiniz, gerçekle başa çıkmak için fanteziye veya sanata çekilmeye ihtiyaç duyarsınız. Sezgileriniz rehber ışığınızdır."
+                }
+            }
+        },
+        "Mercury": {
+            "Aries": {
+                "generic": {
+                    "en": "Your mind is sharp, decisive, and direct. You think rapidly, often arriving at conclusions before others have processed the question. You speak with conviction and honesty, though sometimes you can be impulsive with your words. Debate energizes you.",
+                    "tr": "Zihniniz keskin, kararlı ve doğrudandır. Hızlı düşünürsünüz, genellikle başkaları soruyu işlemeden önce sonuçlara varırsınız. İnançla ve dürüstçe konuşursunuz, ancak bazen sözlerinizde dürtüsel olabilirsiniz. Tartışma size enerji verir."
+                }
+            },
+            "Taurus": {
+                "generic": {
+                    "en": "Your mental process is deliberate, practical, and constructive. You learn by doing and retain information well. You dislike being rushed in your thinking. Your speech is pleasant and grounded, and your ideas are built on common sense.",
+                    "tr": "Zihinsel süreciniz kasıtlı, pratik ve yapıcıdır. Yaparak öğrenirsiniz ve bilgiyi iyi saklarsınız. Düşünürken acele ettirilmekten hoşlanmazsınız. Konuşmanız hoş ve ayakları yere basan bir tarzdır, fikirleriniz sağduyu üzerine kuruludur."
+                }
+            },
+            "Gemini": {
+                "generic": {
+                    "en": "This is Mercury's home sign. Your mind is incredibly versatile, quick-witted, and curious. You love to gather information and share it. You can multitask easily but may scatter your mental energy. Communication is as vital to you as breathing.",
+                    "tr": "Bu Merkür'ün ev sahibi burcudur. Zihniniz inanılmaz derecede çok yönlü, hazırcevap ve meraklıdır. Bilgi toplamayı ve paylaşmayı seversiniz. Kolayca çoklu görev yapabilirsiniz ancak zihinsel enerjinizi dağıtabilirsiniz. İletişim sizin için nefes almak kadar hayatidir."
+                }
+            },
+            "Cancer": {
+                "generic": {
+                    "en": "Your thinking is colored by emotion and intuition. You have an excellent memory, especially for personal history and feelings. You communicate with empathy and are a good listener. You may take objective criticism personally.",
+                    "tr": "Düşünceleriniz duygu ve sezgi ile renklendirilir. Özellikle kişisel tarih ve duygular için mükemmel bir hafızanız vardır. Empati ile iletişim kurarsınız ve iyi bir dinleyicisiniz. Objektif eleştiriyi kişisel algılayabilirsiniz."
+                }
+            },
+            "Leo": {
+                "generic": {
+                    "en": "Your mind is creative and your speech is dramatic and expressive. You speak with authority and confidence. You enjoy storytelling and adding flair to your communications. You are proud of your ideas and prefer looking at the big picture rather than details.",
+                    "tr": "Zihniniz yaratıcıdır ve konuşmanız dramatik ve ifadeseldir. Otorite ve güvenle konuşursunuz. Hikaye anlatmayı ve iletişimlerinize renk katmayı seversiniz. Fikirlerinizle gurur duyarsınız ve detaylardan çok büyük resme bakmayı tercih edersiniz."
+                }
+            },
+            "Virgo": {
+                "generic": {
+                    "en": "Also Mercury's home. You have a highly analytical, logical, and detail-oriented mind. You strive for precision in thought and speech. You are an excellent problem solver and organizer. Be careful not to get lost in analyzing details or excessive self-criticism.",
+                    "tr": "Aynı zamanda Merkür'ün evi. Son derece analitik, mantıklı ve detay odaklı bir zihniniz var. Düşünce ve konuşmada kesinlik için çabalarsınız. Mükemmel bir sorun çözücü ve organizatörsünüz. Detayları analiz etmekte veya aşırı öz eleştiride kaybolmamaya dikkat edin."
+                }
+            },
+            "Libra": {
+                "generic": {
+                    "en": "You have a balanced and diplomatic mind. You weigh all sides of an issue before forming an opinion, which can lead to indecision. You value fairness and harmony in communication. You have a natural ability to mediate and find common ground.",
+                    "tr": "Dengeli ve diplomatik bir zihniniz var. Bir fikir oluşturmadan önce bir konunun tüm yönlerini tartarsınız, bu da kararsızlığa yol açabilir. İletişimde adalete ve uyuma değer verirsiniz. Arabuluculuk yapma ve ortak zemin bulma konusunda doğal bir yeteneğiniz var."
+                }
+            },
+            "Scorpio": {
+                "generic": {
+                    "en": "Your mind is investigative and probing. You are not satisfied with surface answers; you want to know the 'why' behind everything. You can be secretive but are also capable of deep, transformative insights. Your words can be healing or cutting.",
+                    "tr": "Zihniniz araştırmacı ve sorgulayıcıdır. Yüzeysel cevaplarla tatmin olmazsınız; her şeyin arkasındaki 'nedeni' bilmek istersiniz. Gizli olabilirsiniz ama aynı zamanda derin, dönüştürücü içgörülere sahipsiniz. Sözleriniz iyileştirici veya kesici olabilir."
+                }
+            },
+            "Sagittarius": {
+                "generic": {
+                    "en": "You have a philosophical and visionary mind. You are interested in the big questions of life, religion, and culture. Your speech is blunt and honest, valuing truth over tact. You are a lifelong learner who loves to explore new concepts and horizons.",
+                    "tr": "Felsefi ve vizyoner bir zihniniz var. Hayatın, dinin ve kültürün büyük sorularıyla ilgileniyorsunuz. Konuşmanız patavatsız ve dürüsttür, nezaketten çok gerçeğe değer verirsiniz. Yeni kavramları ve ufukları keşfetmeyi seven, hayat boyu öğrenen birisiniz."
+                }
+            },
+            "Capricorn": {
+                "generic": {
+                    "en": "Your mind is disciplined, structured, and ambitious. You think in terms of practical application and long-term goals. You are cautious in your speech and prefer to speak only when you have something substantial to say. You are a natural strategist.",
+                    "tr": "Zihniniz disiplinli, yapılı ve hırslıdır. Pratik uygulama ve uzun vadeli hedefler açısından düşünürsünüz. Konuşmalarınızda temkinlisiniz ve sadece önemli bir şey olduğunda konuşmayı tercih edersiniz. Doğal bir stratejistsiniz."
+                }
+            },
+            "Aquarius": {
+                "generic": {
+                    "en": "You have a progressive, original, and scientific mind. You think outside the box and are often ahead of your time. You enjoy intellectual debates and abstract concepts. You communicate in a friendly but detached manner, valuing logic and objective truth.",
+                    "tr": "İlerici, orijinal ve bilimsel bir zihniniz var. Kutunun dışında düşünürsünüz ve genellikle zamanınızın ilerisindesiniz. Entelektüel tartışmalardan ve soyut kavramlardan hoşlanırsınız. Mantığa ve objektif gerçeğe değer vererek arkadaşça ama mesafeli bir şekilde iletişim kurarsınız."
+                }
+            },
+            "Pisces": {
+                "generic": {
+                    "en": "Your mind is intuitive, imaginative, and poetic. You think in images and feelings rather than strict logic. You are highly impressionable and open-minded. You communicate with compassion and may be telepathic. Focus and clarity can sometimes be a challenge.",
+                    "tr": "Zihniniz sezgisel, yaratıcı ve şiirseldir. Katı mantıktan ziyade görüntüler ve hislerle düşünürsünüz. Son derece etkilenebilir ve açık fikirlisiniz. Şefkatle iletişim kurarsınız ve telepatik olabilirsiniz. Odaklanma ve netlik bazen bir zorluk olabilir."
+                }
+            }
+        },
+        "Chiron": {
+            "Aries": {
+                "generic": {
+                    "en": "Your core wound relates to your sense of self-worth and right to exist. You may feel like you don't matter. Healing comes from asserting your identity boldly and becoming a champion for the underdog.",
+                    "tr": "Temel yaranız öz değeriniz ve var olma hakkınızla ilgilidir. Önemli değilmişsiniz gibi hissedebilirsiniz. Şifa, kimliğinizi cesurca ortaya koymaktan ve ezilenlerin şampiyonu olmaktan gelir."
+                }
+            },
+            "Taurus": {
+                "generic": {
+                    "en": "The wound lies in material security and self-worth. You might fear scarcity or not being 'enough'. You heal by finding value within yourself, unrelated to possessions, and cultivating deep inner peace.",
+                    "tr": "Yara maddi güvenlik ve öz değerdedir. Kıtlıktan veya 'yeterli' olmamaktan korkabilirsiniz. Eşyalardan bağımsız olarak kendi içinizde değer bularak ve derin bir iç huzur geliştirerek iyileşirsiniz."
+                }
+            },
+            "Gemini": {
+                "generic": {
+                    "en": "You may have felt unheard or unintelligent in childhood. This creates a wound around communication. Healing comes from trusting your intelligence, speaking your truth, and listening deeply to others.",
+                    "tr": "Çocuklukta duyulmamış veya zeki değilmiş gibi hissetmiş olabilirsiniz. Bu, iletişim etrafında bir yara yaratır. Şifa, zekanıza güvenmekten, gerçeğinizi konuşmaktan ve başkalarını derinlemesine dinlemekten gelir."
+                }
+            },
+            "Cancer": {
+                "generic": {
+                    "en": "The wound is in belonging and family. You may feel like an outsider in your own home. You heal by creating your own definition of home, nurturing yourself, and building a 'chosen family'.",
+                    "tr": "Yara aidiyet ve ailededir. Kendi evinizde bir yabancı gibi hissedebilirsiniz. Kendi ev tanımınızı yaratarak, kendinizi besleyerek ve 'seçilmiş bir aile' kurarak iyileşirsiniz."
+                }
+            },
+            "Leo": {
+                "generic": {
+                    "en": "You may feel unrecognized or that your creative light was dimmed. Healing comes from embracing your inner child, taking center stage without guilt, and creating simply for the joy of it.",
+                    "tr": "Tanınmadığınızı veya yaratıcı ışığınızın söndürüldüğünü hissedebilirsiniz. Şifa, iç çocuğunuzu kucaklamaktan, suçluluk duymadan sahneye çıkmaktan ve sadece zevk için yaratmaktan gelir."
+                }
+            },
+            "Virgo": {
+                "generic": {
+                    "en": "Wound of perfectionism and physicality. You may be overly critical or hypochondriac. Healing comes from accepting that messiness is part of life and finding holistic wellness beyond rigid rules.",
+                    "tr": "Mükemmeliyetçilik ve fiziksellik yarası. Aşırı eleştirel veya hastalık hastası olabilirsiniz. Şifa, dağınıklığın hayatın bir parçası olduğunu kabul etmekten ve katı kuralların ötesinde bütünsel esenliği bulmaktan gelir."
+                }
+            },
+            "Libra": {
+                "generic": {
+                    "en": "Wound in relationships and independence. You may lose yourself in others or fear intimacy. You heal by finding balance, realizing you are whole on your own, and then relating healthily.",
+                    "tr": "İlişkilerde ve bağımsızlıkta yara. Başkalarında kendinizi kaybedebilir veya yakınlıktan korkabilirsiniz. Denge bularak, tek başınıza tam olduğunuzu fark ederek ve sonra sağlıklı bir şekilde ilişki kurarak iyileşirsiniz."
+                }
+            },
+            "Scorpio": {
+                "generic": {
+                    "en": "Wound of trust, power, and sexuality. You may have experienced loss or betrayal. Healing comes from deep transformation, embracing your shadow side, and gaining true empowerment.",
+                    "tr": "Güven, güç ve cinsellik yarası. Kayıp veya ihanet yaşamış olabilirsiniz. Şifa derin dönüşümden, gölge yönünüzü kucaklamaktan ve gerçek güçlenmeyi kazanmaktan gelir."
+                }
+            },
+            "Sagittarius": {
+                "generic": {
+                    "en": "Wound of meaning and belief. You may have lost faith or felt restricted by dogma. You heal by finding your own spiritual truth, traveling your own path, and finding wisdom in uncertainty.",
+                    "tr": "Anlam ve inanç yarası. İnancınızı kaybetmiş veya dogma tarafından kısıtlanmış hissetmiş olabilirsiniz. Kendi ruhsal gerçeğinizi bularak, kendi yolunuzda seyahat ederek ve belirsizlikte bilgelik bularak iyileşirsiniz."
+                }
+            },
+            "Capricorn": {
+                "generic": {
+                    "en": "Wound of achievement and recognition. You may feel like a failure or burdened by responsibility. Healing comes from defining your own success internally, not by society's standards.",
+                    "tr": "Başarı ve tanınma yarası. Bir başarısızlık gibi hissedebilir veya sorumluluk altında ezilebilirsiniz. Şifa, başarınızı toplumun standartlarına göre değil, içsel olarak tanımlamaktan gelir."
+                }
+            },
+            "Aquarius": {
+                "generic": {
+                    "en": "Wound of belonging to the group. You may feel alienated or like a freak. You heal by embracing your uniqueness as a gift to humanity and finding a community that celebrates individuality.",
+                    "tr": "Gruba ait olma yarası. Yabancılaşmış veya ucube gibi hissedebilirsiniz. Benzersizliğinizi insanlığa bir hediye olarak kucaklayarak ve bireyselliği kutlayan bir topluluk bularak iyileşirsiniz."
+                }
+            },
+            "Pisces": {
+                "generic": {
+                    "en": "Wound of spiritual disconnection. You may feel like a victim or lack boundaries. Healing comes from boundless compassion, spiritual discipline, and realizing you are one with the universe.",
+                    "tr": "Ruhsal kopukluk yarası. Kurban gibi hissedebilir veya sınırlardan yoksun olabilirsiniz. Şifa sınırsız şefkatten, ruhsal disiplinden ve evrenle bir olduğunuzu fark etmekten gelir."
+                }
+            }
+        },
+        "North Node": {
+            "Aries": {
+                "generic": {
+                    "en": "Your destiny involves becoming independent and courageous. You are moving away from the dependency and indecision of Libra towards self-assertion.",
+                    "tr": "Kaderiniz bağımsız ve cesur olmayı içeriyor. Terazinin bağımlılığı ve kararsızlığından uzaklaşıp, kendinizi ortaya koymaya doğru ilerliyorsunuz."
+                }
+            },
+            "Taurus": {
+                "generic": {
+                    "en": "Destiny calls for stability and peace. You are leaving behind the crisis and emotional storms of Scorpio to find serenity in the simple life.",
+                    "tr": "Kader istikrar ve huzur çağrısı yapıyor. Basit hayatta dinginliği bulmak için Akrep'in krizlerini ve duygusal fırtınalarını geride bırakıyorsunuz."
+                }
+            },
+            "Gemini": {
+                "generic": {
+                    "en": "Your path is one of curiosity and communication. You are moving away from the dogmatic beliefs of Sagittarius to embrace open-minded learning and logic.",
+                    "tr": "Yolunuz merak ve iletişim yoludur. Açık fikirli öğrenmeyi ve mantığı kucaklamak için Yay'ın dogmatik inançlarından uzaklaşıyorsunuz."
+                }
+            },
+            "Cancer": {
+                "generic": {
+                    "en": "Destiny calls for emotional vulnerability. You are softening the rigid ambition of Capricorn to focus on home, family, and inner feelings.",
+                    "tr": "Kader duygusal kırılganlık çağrısı yapıyor. Eve, aileye ve içsel hislere odaklanmak için Oğlak'ın katı hırsını yumuşatıyorsunuz."
+                }
+            },
+            "Leo": {
+                "generic": {
+                    "en": "Your path is to shine and lead creatively. You are stepping out of the crowd (Aquarius) to discover your unique identity and self-expression.",
+                    "tr": "Yolunuz yaratıcı bir şekilde parlamak ve liderlik etmektir. Benzersiz kimliğinizi ve kendinizi ifadenizi keşfetmek için kalabalıktan (Kova) dışarı adım atıyorsunuz."
+                }
+            },
+            "Virgo": {
+                "generic": {
+                    "en": "Destiny calls for service and detail. You are grounding the dreamy escapism of Pisces to bring practical order and healing to the world.",
+                    "tr": "Kader hizmet ve detay çağrısı yapıyor. Dünyaya pratik düzen ve şifa getirmek için Balık'ın hayalperest kaçışçılığını topraklıyorsunuz."
+                }
+            },
+            "Libra": {
+                "generic": {
+                    "en": "Your path is one of partnership and balance. You are learning to consider others deeply, moving away from the self-centered impulses of Aries.",
+                    "tr": "Yolunuz ortaklık ve denge yoludur. Koç'un benmerkezci dürtülerinden uzaklaşarak, başkalarını derinlemesine düşünmeyi öğreniyorsunuz."
+                }
+            },
+            "Scorpio": {
+                "generic": {
+                    "en": "Destiny calls for deep transformation. You are leaving the comfort zone of Taurus to explore the mysteries of life and spiritual power.",
+                    "tr": "Kader derin dönüşüm çağrısı yapıyor. Hayatın gizemlerini ve ruhsal gücü keşfetmek için Boğa'nın konfor alanını terk ediyorsunuz."
+                }
+            },
+            "Sagittarius": {
+                "generic": {
+                    "en": "Your path is wisdom and belief. You are raising your gaze from the details (Gemini) to see the big picture and seek higher truth.",
+                    "tr": "Yolunuz bilgelik ve inançtır. Büyük resmi görmek ve yüksek gerçeği aramak için bakışlarınızı detaylardan (İkizler) yukarı kaldırıyorsunuz."
+                }
+            },
+            "Capricorn": {
+                "generic": {
+                    "en": "Destiny calls for responsibility and achievement. You are learning to parent yourself, moving away from emotional dependency (Cancer) towards mastery.",
+                    "tr": "Kader sorumluluk ve başarı çağrısı yapıyor. Duygusal bağımlılıktan (Yengeç) ustalığa doğru ilerleyerek, kendi kendinize ebeveynlik yapmayı öğreniyorsunuz."
+                }
+            },
+            "Aquarius": {
+                "generic": {
+                    "en": "Your path is innovation and community. You are moving beyond personal ego (Leo) to serve humanity and champion progressive ideals.",
+                    "tr": "Yolunuz yenilik ve topluluktur. İnsanlığa hizmet etmek ve ilerici idealleri savunmak için kişisel egonun (Aslan) ötesine geçiyorsunuz."
+                }
+            },
+            "Pisces": {
+                "generic": {
+                    "en": "Destiny calls for spiritual surrender. You are releasing the need for control (Virgo) to trust in the flow of the universe and unconditional love.",
+                    "tr": "Kader ruhsal teslimiyet çağrısı yapıyor. Evrenin akışına ve koşulsuz sevgiye güvenmek için kontrol ihtiyacını (Başak) serbest bırakıyorsunuz."
+                }
+            }
+        }
+    },
+    "aspects": {
+        "Sun": {
+            "Moon": {
+                "Conjunction": {
+                    "en": "Your ego (Sun) and emotions (Moon) are aligned. You are a focused, integrated person who knows what they want and need. However, you may be subjective and lack perspective.",
+                    "tr": "Egonuz (Güneş) ve duygularınız (Ay) uyumludur. Ne istediğini ve neye ihtiyacı olduğunu bilen, odaklanmış, bütünleşmiş bir insansınız. Ancak, öznel olabilir ve perspektif eksikliği yaşayabilirsiniz."
+                },
+                "Opposition": {
+                    "en": "You were born during a Full Moon. You often feel torn between your head and your heart. Relationships are crucial for your self-understanding, as you project parts of yourself onto others.",
+                    "tr": "Bir Dolunay sırasında doğdunuz. Sıklıkla aklınız ve kalbiniz arasında bölünmüş hissedersiniz. Benliğinizi anlamak için ilişkiler hayati önem taşır, çünkü kendinizin parçalarını başkalarına yansıtırsınız."
+                },
+                "Trine": {
+                    "en": "There is a fluid harmony between your will and your feelings. You flow through life with a certain ease and confidence, but may lack the friction needed for deep growth.",
+                    "tr": "İradeniz ve hisleriniz arasında akışkan bir uyum vardır. Hayatın içinde belli bir rahatlık ve güvenle akarsınız, ancak derin büyüme için gereken sürtünmeden yoksun olabilirsiniz."
+                },
+                "Square": {
+                    "en": "Internal tension acts as a motor for achievement. What you want often conflicts with what makes you feel safe. You build character through overcoming this internal resistance.",
+                    "tr": "İçsel gerilim, başarı için bir motor görevi görür. İstediğiniz şey genellikle sizi güvende hissettiren şeyle çatışır. Bu içsel direnişi aşarak karakter inşa edersiniz."
+                }
+            },
+            "Saturn": {
+                "Conjunction": {
+                    "en": "You take life seriously. Success comes through hard work and discipline. You may have felt restricted early in life but gain great authority with age.",
+                    "tr": "Hayatı ciddiye alıyorsunuz. Başarı, sıkı çalışma ve disiplinle gelir. Hayatın erken dönemlerinde kısıtlanmış hissetmiş olabilirsiniz ancak yaşla birlikte büyük bir otorite kazanırsınız."
+                },
+                "Opposition": {
+                    "en": "You may experience blocks or limitations coming from others or external circumstances. Your lesson is to internalize your authority rather than projecting it onto 'strict' figures.",
+                    "tr": "Başkalarından veya dış koşullardan gelen engeller veya sınırlamalar yaşayabilirsiniz. Dersiniz, otoritenizi 'katı' figürlere yansıtmak yerine içselleştirmektir."
+                }
+            }
+        },
+        "Venus": {
+            "Mars": {
+                "Conjunction": {
+                    "en": "You are passionate and romantic. You go after what you love with ardor. Your creative and sexual energies are fused, making you magnetic.",
+                    "tr": "Tutkulu ve romantiksiniz. Sevdiğiniz şeyin peşinden şevkle gidersiniz. Yaratıcı ve cinsel enerjileriniz birleşmiştir, bu da sizi manyetik kılar."
+                },
+                "Square": {
+                    "en": "There is tension between your desires and your actions. You may have volatile relationships where passion turns to conflict quickly. You learn through intense interactions.",
+                    "tr": "Arzularınız ve eylemleriniz arasında gerilim vardır. Tutkunun hızla çatışmaya dönüştüğü değişken ilişkileriniz olabilir. Yoğun etkileşimler yoluyla öğrenirsiniz."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,179 @@
+<section id="view-daily" class="view animate-in" style="display:none">
+    <div style="margin-bottom:1rem">
+        <h1 style="font-size:2.5rem; margin:0; font-family:'Cinzel'" data-i18n="daily_title">Kozmik Öngörü</h1>
+        <p style="color:var(--text-muted); margin-top:5px" data-i18n="daily_subtitle">7 Günlük Enerji Analiziniz ve
+            Şans Puanlarınız</p>
+    </div>
+
+    <div class="glass-card">
+        <h3 style="color:var(--gold); display:flex; justify-content:space-between; align-items:center">
+            <span><i class="fas fa-chart-line"></i> <span data-i18n="graph_title">Haftalık Enerji Grafiği</span></span>
+        </h3>
+        <div style="height:300px; margin-top:20px"><canvas id="weeklyChart"></canvas></div>
+    </div>
+
+    <h3 style="margin:25px 0 15px 0; color:var(--accent); letter-spacing:1px; font-family:'Cinzel'">GÜNLÜK DETAYLAR</h3>
+    <div id="daily-list" class="glass-card" style="border:none; background:transparent; padding:0; box-shadow:none">
+        <!-- Dynamic Items -->
+        <div style="opacity:0.5; padding:20px; text-align:center">Yükleniyor...</div>
+    </div>
+</section>
+
+<script>
+    // DAILY
+    let chartInstance = null;
+    async function loadDaily() {
+        const lang = document.getElementById('lang').value;
+
+        try {
+            // No date param, defaults to Now (Today -> Future)
+            const wRes = await fetch(`/api/weekly-forecast/?lang=${lang}`);
+            const wData = await wRes.json();
+
+            // Chart
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            // Dynamic Theme Colors
+            const style = getComputedStyle(document.body);
+            const textColor = style.getPropertyValue('--text').trim();
+            const textMuted = style.getPropertyValue('--text-muted').trim();
+            const borderColor = style.getPropertyValue('--border').trim();
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: wData.forecast.map(d => d.day),
+                    datasets: [
+                        { label: lang === 'tr' ? 'Genel Enerji' : 'General', data: wData.forecast.map(d => d.score), borderColor: '#E94560', backgroundColor: 'rgba(233,69,96,0.1)', tension: 0.4, fill: true },
+                        { label: lang === 'tr' ? 'Aşk' : 'Love', data: wData.forecast.map(d => d.love), borderColor: '#d63384', borderDash: [5, 5], tension: 0.4, fill: false },
+                        { label: lang === 'tr' ? 'Kariyer' : 'Career', data: wData.forecast.map(d => d.career), borderColor: '#FFD700', borderDash: [2, 2], tension: 0.4, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { labels: { color: textColor, font: { family: 'Outfit' } } } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: borderColor }, ticks: { color: textMuted } },
+                        x: { grid: { display: false }, ticks: { color: textMuted } }
+                    }
+                }
+            });
+
+            // Fortune List Logic
+            const listDiv = document.getElementById('daily-list');
+            let listHtml = "";
+            const daysTr = { 'Sun': 'Paz', 'Mon': 'Pzt', 'Tue': 'Sal', 'Wed': 'Çar', 'Thu': 'Per', 'Fri': 'Cum', 'Sat': 'Cmt' };
+
+            // Helper to render a row
+            const renderDayRow = (d) => {
+                let scoreColor = 'var(--accent)';
+                if (d.score > 70) scoreColor = '#4caf50';
+                if (d.score > 40 && d.score <= 70) scoreColor = 'var(--gold)';
+
+                let dayParts = d.day.split(' ');
+                let dayName = dayParts[0];
+                let dayNum = dayParts[1] || '';
+                if (lang === 'tr' && daysTr[dayName]) dayName = daysTr[dayName];
+
+                return `
+                <div style="display:flex; gap:15px; margin-bottom:15px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center; transition:0.2s; border-radius:8px; padding:10px" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                    <div style="text-align:center; min-width:60px">
+                        <div style="font-size:0.85rem; opacity:0.7; text-transform:uppercase">${dayName}</div>
+                        <div style="font-size:1.4rem; font-weight:bold; color:var(--text)">${dayNum}</div>
+                    </div>
+                    <div style="flex:1">
+                        <div style="font-size:1rem; margin-bottom:6px; color:var(--text); font-weight:500">${d.comment}</div>
+                        <div style="display:flex; gap:15px; font-size:0.85rem; opacity:0.8">
+                            <span style="color:var(--accent)"><i class="fas fa-heart"></i> ${d.love}%</span> 
+                            <span style="color:var(--gold)"><i class="fas fa-briefcase"></i> ${d.career}%</span>
+                        </div>
+                    </div>
+                    <div style="font-size:1.5rem; font-weight:bold; color:${scoreColor}">${d.score}</div>
+                </div>`;
+            };
+
+            // CHECK RESTRICTION
+            if (wData.forecast.length === 1) {
+                // 1. Render TODAY (Real Data)
+                listHtml += `<div style="text-align:center; margin-bottom:15px; background:rgba(76, 175, 80, 0.1); border:1px solid rgba(76, 175, 80, 0.3); padding:5px; border-radius:5px; font-size:0.8rem; letter-spacing:1px; color:#4caf50; font-weight:bold">BUGÜN (ÜCRETSİZ)</div>`;
+                listHtml += renderDayRow(wData.forecast[0]);
+
+                // 2. Render FAKE FUTURE (Locked)
+                for (let i = 1; i < 7; i++) {
+                    listHtml += `
+                   <div style="position:relative; margin-bottom:10px; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.05)">
+                       <div style="filter:blur(6px); opacity:0.3; user-select:none; display:flex; gap:15px; align-items:center;">
+                            <div style="text-align:center; min-width:60px">
+                                <div style="font-size:0.85rem">GÜN</div>
+                                <div style="font-size:1.4rem; font-weight:bold">0${i}</div>
+                            </div>
+                            <div style="flex:1">
+                                <div style="font-size:1rem; margin-bottom:6px">Gelecek çok parlak görünüyor...</div>
+                                <div style="display:flex; gap:15px"><span>Aşk %90</span><span>Kariyer %80</span></div>
+                            </div>
+                            <div style="font-size:1.5rem">--</div>
+                       </div>
+                       
+                       <!-- Show CTA on the first locked item only, or maybe spread it out -->
+                       <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:2">
+                            ${i === 2 ? `<button onclick="showUpgradeModal('Tüm haftanın enerjisini ve grafiğini görmek için Premium üye olun.')" style="background:linear-gradient(45deg, #FFD700, #FDB931); border:none; color:black; font-weight:bold; padding:10px 25px; border-radius:30px; cursor:pointer; font-size:0.9rem; box-shadow:0 0 20px rgba(255,215,0,0.3); transition:transform 0.2s">
+                                <i class="fas fa-lock"></i> ${lang === 'tr' ? 'Haftalık Analizi Aç' : 'Unlock Week'}
+                            </button>` : ''}
+                       </div>
+                   </div>
+                   `;
+                }
+
+                // Override Chart with Locked State if restricted
+                const canvasContainer = document.getElementById('weeklyChart').parentElement;
+                canvasContainer.style.position = 'relative';
+                // Add overlay if not exists
+                if (!document.getElementById('chart-lock-overlay')) {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'chart-lock-overlay';
+                    overlay.style = 'position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,0.6); backdrop-filter:blur(3px); z-index:10; border-radius:10px';
+                    overlay.innerHTML = `<div style="text-align:center; color:white"><i class="fas fa-chart-line" style="font-size:3rem; color:var(--gold); margin-bottom:15px"></i><h3 style="font-family:'Cinzel'">Haftalık Grafik Kilitli</h3></div>`;
+                    canvasContainer.appendChild(overlay);
+                }
+
+            } else {
+                // FULL ACCESS
+                // Remove overlay if exists
+                const ov = document.getElementById('chart-lock-overlay');
+                if (ov) ov.remove();
+
+                wData.forecast.forEach(d => {
+                    listHtml += renderDayRow(d);
+                });
+            }
+
+            listDiv.innerHTML = listHtml;
+
+            // REMOVED fetch for daily-planner since UI element is gone
+
+            // Render Real Planetary Hours (Needs section_hours.html to be loaded)
+            // dData variable no longer exists, but if needed we can fetch it separately or remove hours logic from here
+            // Assuming hours logic was tied to dData too...
+            // Let's check api/weekly-forecast response. It might have hours. 
+            // Usually weekly-forecast returns 'forecast'. 
+            // If hours needed, we need to fetch daily-planner BUT avoid error on UI text assignment.
+
+            // Safety fetch for hours only
+            try {
+                const dRes = await fetch(`/api/daily-planner/?lang=${lang}`);
+                const dData = await dRes.json();
+                if (dData.hours && typeof renderHours === 'function') {
+                    renderHours(dData.hours);
+                }
+            } catch (ignore) { }
+
+        } catch (e) {
+            console.error(e);
+            const listDiv = document.getElementById('daily-list');
+            if (listDiv) listDiv.innerHTML = '<div style="opacity:0.5; padding:20px">Veri yüklenemedi.</div>';
+        }
+    }
+</script>

@@ -1,0 +1,1124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <link rel="shortcut icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRO | Deep Cosmos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // Global User Context for SPA Parts
+        window.USER_BIRTH_DATE = "{% if user.is_authenticated and user.profile.birth_date %}{{ user.profile.birth_date|date:'Y-m-d' }}{% else %}{{ '' }}{% endif %}";
+        window.USER_BIRTH_TIME = "{% if user.is_authenticated and user.profile.birth_time %}{{ user.profile.birth_time|time:'H:i' }}{% else %}{{ '' }}{% endif %}";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* DARK THEME (DEFAULT) */
+            --primary: #0F0C29;
+            --gradient-start: #0F0C29;
+            --gradient-mid: #302B63;
+            --gradient-end: #24243E;
+            --sidebar-bg: rgba(15, 12, 41, 0.9);
+            --sidebar-footer-bg: rgba(15, 12, 41, 0.98);
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="light"] {
+            /* LIGHT THEME */
+            --primary: #ffffff;
+            --gradient-start: #fdfbfb;
+            --gradient-mid: #ebedee;
+            --gradient-end: #dce2e6;
+            --sidebar-bg: rgba(255, 255, 255, 0.9);
+            --sidebar-footer-bg: rgba(245, 245, 245, 0.98);
+            --accent: #D63447;
+            /* Slightly darker for contrast on light */
+            --gold: #B8860B;
+            /* Dark Goldenrod */
+            --text: #1a1a1a;
+            --text-muted: rgba(0, 0, 0, 0.6);
+            --glass: rgba(0, 0, 0, 0.05);
+            --glass-card-bg: rgba(255, 255, 255, 0.6);
+            --border: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Cinzel', serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        /* LAYOUT */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            position: fixed;
+            height: 100vh;
+            transition: transform 0.3s, background 0.3s;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Chrome/Safari */
+
+        .logo {
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(233, 69, 96, 0.2), transparent);
+            color: var(--text);
+            border-left: 3px solid var(--accent);
+        }
+
+        .main {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 3rem;
+        }
+
+        .glass-card {
+            background: var(--glass-card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 1rem;
+            font-family: 'Outfit';
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 1.5rem;
+                width: 100%;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: auto;
+            z-index: 101;
+            background: var(--accent);
+            padding: 10px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .planet-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .planet-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .planet-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            margin-right: 15px;
+        }
+
+        /* TAROT STYLES */
+        #view-tarot {
+            background: radial-gradient(circle at center, #1a0b2e 0%, #0F0C29 100%);
+            min-height: 100vh;
+            border-radius: 20px;
+            position: relative;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 80px 40px;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+        }
+
+        .tarot-table {
+            width: 100%;
+            height: 400px;
+            perspective: 1200px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            position: relative;
+            margin-bottom: 50px;
+            margin-top: 50px;
+        }
+
+        .tarot-card-container {
+            width: 100px;
+            height: 170px;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .tarot-card-container:hover {
+            transform: translateY(-20px) scale(1.05) rotateZ(2deg);
+            z-index: 100 !important;
+            box-shadow: 0 0 20px var(--gold);
+        }
+
+        .tarot-card-container.flipped {
+            transform: rotateY(180deg) !important;
+            z-index: 50 !important;
+        }
+
+        .selected-slot {
+            transition: all 0.5s;
+        }
+
+        .card-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #111, #222);
+            border: 2px solid var(--gold);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+        }
+
+        .card-back::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            border: 1px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .card-back::after {
+            content: '🔮';
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 5px var(--gold));
+            opacity: 0.8;
+        }
+
+        .card-front {
+            background: linear-gradient(180deg, #fff, #f4e4bc);
+            color: #111;
+            transform: rotateY(180deg);
+            border: 4px solid #fff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+            font-family: 'Cinzel', serif;
+        }
+
+        .card-art {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            padding: 0 5px;
+            letter-spacing: 1px;
+        }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .modal-content {
+            background: rgba(15, 12, 41, 0.95);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            transform: scale(0.9);
+            animation: popIn 0.3s forwards;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--gold);
+        }
+
+        .close-modal {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--accent);
+        }
+
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* TOAST NOTIFICATION STYLES */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .toast-message {
+            background: rgba(20, 0, 10, 0.95);
+            color: var(--gold);
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.4);
+            font-size: 1rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.4s ease;
+            text-align: center;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive Vertical Scaling */
+        @media (max-height: 950px) {
+            .sidebar {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+
+            .logo {
+                margin-bottom: 1.5rem;
+                font-size: 1.5rem;
+            }
+
+            .nav-item {
+                padding: 0.8rem 1rem;
+                margin-bottom: 0.3rem;
+            }
+        }
+
+        @media (max-height: 750px) {
+            .sidebar {
+                padding-top: 60px;
+                /* Space for mobile toggle if needed, or just less padding */
+            }
+
+            .logo {
+                margin-bottom: 1rem;
+                font-size: 1.3rem;
+            }
+
+            .nav-item {
+                padding: 0.6rem 0.8rem;
+                margin-bottom: 0.2rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    <!-- Core Nav Script Removed from Head -->
+</head>
+
+<body>
+    <script>
+        // SERVER-SIDE TRUTH INJECTION (Moved to Body Top)
+        const SERVER_AUTH_STATUS = {% if user.is_authenticated %}true{% else %} false{% endif %};
+        const SERVER_USER_NAME = "{{ user.username }}";
+        console.log("SERVER AUTH STATUS:", SERVER_AUTH_STATUS);
+    </script>
+
+    <div id="toast-container"></div>
+
+    <!-- MODAL INCLUDES -->
+    {% include 'astrology/partials/modal_settings.html' %}
+    {% include 'astrology/partials/section_landing.html' %}
+
+    <div class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+
+    <!-- SSR: App Visibility -->
+    <!-- SSR: App Visibility -->
+    <div class="app-container" id="app-root"
+        style="display: {% if user.is_authenticated %}flex{% else %}none{% endif %};">
+
+        <!-- SIDEBAR -->
+        {% include 'astrology/partials/sidebar.html' %}
+
+        <!-- MAIN -->
+        <main class="main" style="position:relative">
+            <!-- AUTH WIDGET -->
+            <div id="auth-widget"
+                style="position:absolute; top:20px; right:20px; z-index:900; display:flex; gap:10px; align-items:center">
+                <button onclick="toggleTheme()" class="btn"
+                    style="padding:0; width:40px; height:40px; border-radius:50%; background:var(--glass-card-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); margin-right:10px">
+                    <i id="theme-icon" class="fas fa-moon" style="font-size:1.2rem"></i>
+                </button>
+                <div id="user-display" style="font-weight:bold; color:var(--gold); display:block"><i
+                        class="fas fa-user-circle"></i> {{ user.username }}</div>
+
+                <!-- SIMPLE DIRECT LOGOUT -->
+                <button id="btn-logout-trig" onclick="localStorage.clear(); window.location.href='/api/logout/';"
+                    class="btn" style="padding:10px 20px; font-size:0.9rem">
+                    <i class="fas fa-sign-out-alt"></i> <span>Çıkış</span>
+                </button>
+            </div>
+
+            <!-- SECTIONS -->
+            {% include 'astrology/partials/section_home.html' %}
+            {% include 'astrology/partials/section_celestial.html' %}
+            {% include 'astrology/partials/section_horoscopes.html' %}
+            {% include 'astrology/partials/section_blog.html' %}
+
+            {% if user.is_staff or user.is_superuser %}
+            {% include 'astrology/partials/section_editor.html' %}
+            {% endif %}
+
+            {% include 'astrology/partials/section_chart.html' %}
+            {% include 'astrology/partials/section_daily.html' %}
+            {% include 'astrology/partials/section_social.html' %}
+            {% include 'astrology/partials/section_synastry.html' %}
+            {% include 'astrology/partials/section_draconic.html' %}
+            {% include 'astrology/partials/section_hours.html' %}
+            {% include 'astrology/partials/section_tarot.html' %}
+            {% include 'astrology/partials/section_career.html' %}
+            {% include 'astrology/partials/section_rectification.html' %}
+            {% include 'astrology/partials/section_guide.html' %}
+        </main>
+    </div>
+
+    <!-- MAIN GLOBAL SCRIPTS -->
+    {% include 'astrology/partials/script_globals.html' %}
+    {% include 'astrology/partials/script_nav_core.html' %}
+    {% include 'astrology/partials/script_auth_extensions.html' %}
+
+
+    {% include 'astrology/partials/script_admin.html' %}
+
+    {% include 'astrology/partials/script_admin.html' %}
+
+    <!-- CUSTOM PREMIUM MODAL (Added as requested) -->
+    <div id="premium-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; animation:fadeIn 0.4s; backdrop-filter:blur(8px)">
+        <div class="glass-card animate-in-up"
+            style="max-width:500px; width:90%; text-align:center; padding:40px; border:1px solid #FFD700; box-shadow:0 0 60px rgba(255, 215, 0, 0.2); background:linear-gradient(145deg, #0F0C29, #1a0b2e); position:relative; overflow:hidden">
+
+            <!-- Glow Effect -->
+            <div
+                style="position:absolute; top:-50px; left:-50px; width:100px; height:100px; background:var(--gold); filter:blur(80px); opacity:0.3">
+            </div>
+            <div
+                style="position:absolute; bottom:-50px; right:-50px; width:100px; height:100px; background:var(--accent); filter:blur(80px); opacity:0.3">
+            </div>
+
+            <i class="fas fa-crown"
+                style="font-size:3rem; color:#FFD700; margin-bottom:20px; filter:drop-shadow(0 0 15px #FFD700); animation:float 3s ease-in-out infinite"></i>
+
+            <h2
+                style="font-family:'Cinzel'; color:#FFD700; font-size:1.8rem; margin-bottom:15px; letter-spacing:2px; text-transform:uppercase">
+                PREMIUM ÖZELLİK</h2>
+
+            <p id="premium-msg"
+                style="color:rgba(255,255,255,0.9); font-size:1.1rem; line-height:1.6; margin-bottom:30px">
+                Bu özellik sadece Premium üyelere özeldir.
+            </p>
+
+            <div
+                style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); margin-bottom:30px">
+                <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:10px">Detaylı bilgi ve üyelik için:
+                </p>
+                <div style="font-size:1.2rem; font-weight:bold; color:white; margin-bottom:5px">
+                    <i class="fas fa-envelope" style="color:var(--accent); margin-right:10px"></i> ahiakin.can@gmail.com
+                </div>
+                <div style="font-size:1.2rem; font-weight:bold; color:white">
+                    <i class="fas fa-phone" style="color:var(--accent); margin-right:10px"></i> 0533 136 78 45
+                </div>
+            </div>
+
+            <button onclick="document.getElementById('premium-modal').style.display='none'" class="btn"
+                style="background:transparent; border:1px solid rgba(255,255,255,0.3); width:100%; border-radius:30px; padding:15px; color:white; font-weight:bold; letter-spacing:1px; transition:all 0.3s">
+                KAPAT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showPremiumModal(msg) {
+            if (msg) document.getElementById('premium-msg').innerHTML = msg;
+            document.getElementById('premium-modal').style.display = 'flex';
+        }
+
+        let currentData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init
+            if (document.getElementById('draconic-res')) {
+                document.getElementById('draconic-res').innerHTML = (typeof translations !== 'undefined') ? translations['tr'].draconic_wait : "";
+            }
+            if (document.getElementById('hours-res')) {
+                document.getElementById('hours-res').innerHTML = (typeof translations !== 'undefined') ? translations['tr'].hours_wait : "";
+            }
+
+            // Force Turkish Default
+            const langSel = document.getElementById('lang');
+            if (langSel) langSel.value = 'tr';
+            changeLang('tr');
+
+            loadCountries();
+            checkAuth();
+
+            // PERSISTENCE CHECK: Load saved Date/Time (USER PRIORITY)
+            // If Server has data, it OVERRIDES local storage (Single Point of Truth)
+            if (SERVER_AUTH_STATUS) {
+                const sDate = window.USER_BIRTH_DATE;
+                const sTime = window.USER_BIRTH_TIME;
+
+                if (sDate && sDate !== 'None') {
+                    const dateEl = document.getElementById('date');
+                    if (dateEl) {
+                        dateEl.value = sDate;
+                        // Sync local to match server
+                        localStorage.setItem('astro_saved_date', sDate);
+                    }
+                }
+                if (sTime && sTime !== 'None') {
+                    const timeEl = document.getElementById('time');
+                    if (timeEl) {
+                        timeEl.value = sTime;
+                        // Sync local to match server
+                        localStorage.setItem('astro_saved_time', sTime);
+                    }
+                }
+            } else {
+                // Guest Fallback
+                const savedTime = localStorage.getItem('astro_saved_time');
+                const savedDate = localStorage.getItem('astro_saved_date');
+                if (savedTime) {
+                    const timeEl = document.getElementById('time');
+                    if (timeEl) timeEl.value = savedTime;
+                }
+                if (savedDate) {
+                    const dateEl = document.getElementById('date');
+                    if (dateEl) dateEl.value = savedDate;
+                }
+            }
+
+            // RECTIFICATION RETURN HANDLING
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('rectified')) {
+                console.log("Returned from Rectification Update. Navigating to Chart...");
+                setTimeout(() => {
+                    // Trigger Nav to Chart
+                    if (typeof nav === 'function') {
+                        // Pass null as second arg since we don't have the element reference handy
+                        nav('chart', null);
+                    } else {
+                        // Fallback: manually show section
+                        document.querySelectorAll('.view').forEach(v => {
+                            v.style.display = 'none';
+                            v.classList.remove('animate-in');
+                        });
+                        const chartSec = document.getElementById('view-chart');
+                        if (chartSec) {
+                            chartSec.style.display = 'block';
+                            chartSec.classList.add('animate-in');
+                        }
+                    }
+
+                    showAstroModal("Doğum saati başarıyla güncellendi. Harita güncel saat ile yeniden hesaplanıyor.", "GÜNCELLEME BAŞARILI", "success");
+
+                    // Force Re-Calc
+                    if (typeof calcChart === 'function') {
+                        setTimeout(calcChart, 500); // Increased delay slightly to ensures views are ready
+                    }
+
+                    // Clean URL
+                    window.history.replaceState({}, document.title, "/");
+                }, 300);
+            }
+
+            // SETTINGS RETURN HANDLING
+            if (urlParams.has('settings_updated')) {
+                console.log("Returned from Settings Update.");
+                showAstroModal("Profil ayarlarınız başarıyla güncellendi.", "GÜNCELLEME BAŞARILI", "success");
+
+                // Force Re-Calc
+                if (typeof calcChart === 'function') {
+                    setTimeout(calcChart, 200);
+                }
+
+                // Clean URL
+                window.history.replaceState({}, document.title, "/");
+            }
+        });
+
+        // DUPLICATE CORE FUNCTIONS REMOVED
+        // They are provided by script_globals.html and script_nav_core.html
+
+
+        // ==========================================
+        // DYNAMIC LOCATION SELECTOR (API)
+        // ==========================================
+
+        async function loadCountries() {
+            const lang = document.getElementById('lang').value;
+            const cSel = document.getElementById('loc-country');
+            cSel.innerHTML = '<option value="">Loading...</option>';
+
+            try {
+                const res = await fetch('/api/countries/');
+                const data = await res.json();
+
+                if (data.countries) {
+                    let html = `<option value="">${lang === 'tr' ? 'Ülke Seçiniz' : 'Select Country'}</option>`;
+                    data.countries.forEach(c => {
+                        const selected = (c.code === 'TR') ? 'selected' : '';
+                        html += `<option value="${c.code}" ${selected}>${c.name}</option>`;
+                    });
+                    cSel.innerHTML = html;
+                    cSel.value = "TR";
+                    loadProvinces();
+                }
+            } catch (e) {
+                console.error(e);
+                cSel.innerHTML = '<option value="">Error</option>';
+            }
+        }
+
+        async function loadProvinces() {
+            const lang = document.getElementById('lang').value;
+            const code = document.getElementById('loc-country').value;
+            const pSel = document.getElementById('loc-province');
+            const cSel = document.getElementById('loc-city');
+
+            // Reset City
+            cSel.innerHTML = `<option value="">${lang === 'tr' ? 'Önce İl Seçiniz...' : 'Select Province First...'}</option>`;
+
+            if (!code) {
+                pSel.style.display = 'none';
+                return;
+            }
+
+            pSel.innerHTML = '<option value="">Loading...</option>';
+            pSel.style.display = 'block';
+
+            try {
+                const res = await fetch(`/api/provinces/?code=${code}`);
+                const data = await res.json();
+
+                if (data.provinces && data.provinces.length > 0) {
+                    let html = `<option value="">${lang === 'tr' ? 'İl Seçiniz' : 'Select Province'}</option>`;
+                    data.provinces.forEach(p => {
+                        html += `<option value="${p.code}">${p.name}</option>`;
+                    });
+                    pSel.innerHTML = html;
+                    pSel.style.display = 'block';
+                } else {
+                    pSel.style.display = 'none';
+                    pSel.innerHTML = '<option value="">-</option>';
+                    loadCities();
+                }
+            } catch (e) {
+                console.error(e);
+                pSel.style.display = 'none';
+                loadCities();
+            }
+        }
+
+        async function loadCities() {
+            const lang = document.getElementById('lang').value;
+            const countryCode = document.getElementById('loc-country').value;
+            const provinceCode = document.getElementById('loc-province').value;
+            const citySel = document.getElementById('loc-city');
+
+            if (!countryCode) return;
+
+            const pSel = document.getElementById('loc-province');
+            if (pSel.style.display !== 'none' && !provinceCode) {
+                citySel.innerHTML = `<option value="">${lang === 'tr' ? 'Şehir/İlçe Seçiniz' : 'Select City/District'}</option>`;
+                return;
+            }
+
+            citySel.innerHTML = '<option value="">Loading...</option>';
+
+            try {
+                let url = `/api/cities/?code=${countryCode}`;
+                if (provinceCode) {
+                    url += `&admin_code=${provinceCode}`;
+                }
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.cities) {
+                    let html = `<option value="">${lang === 'tr' ? 'İlçe Seçiniz' : 'Select District'}</option>`;
+                    data.cities.forEach(c => {
+                        html += `<option value="${c.lat},${c.lon}">${c.name}</option>`;
+                    });
+                    citySel.innerHTML = html;
+                }
+            } catch (e) {
+                console.error(e);
+                citySel.innerHTML = '<option value="">Error</option>';
+            }
+        }
+
+        function setCityCoords() {
+            const val = document.getElementById('loc-city').value;
+            if (val) {
+                const [lat, lon] = val.split(',');
+                document.getElementById('lat').value = lat;
+                document.getElementById('lon').value = lon;
+            }
+        }
+
+        // AUTH & PROFILE
+        let currentUser = null;
+
+        async function checkAuth() {
+            console.log("Checking Auth...");
+
+            // 1. CLIENT-SIDE PERSISTENCE CHECK (Immediate UI Stability)
+            const localSession = localStorage.getItem('session_active');
+            const localUser = localStorage.getItem('current_user');
+
+            if (localSession === 'true') {
+                console.log("Local Session Found. Keeping App Open.");
+                document.getElementById('app-root').style.display = 'flex';
+                document.getElementById('landing-root').style.display = 'none';
+                if (localUser) {
+                    currentUser = localUser;
+                    updateAuthUI(true, localUser);
+                }
+            }
+
+            try {
+                const res = await fetch('/api/check-auth/?t=' + new Date().getTime(), { credentials: 'include' });
+                const data = await res.json();
+
+                console.log("Auth Response:", data);
+
+                if (data.authenticated) {
+                    console.log("User is authenticated. Switching to App.");
+                    document.getElementById('app-root').style.display = 'flex';
+                    const lr = document.getElementById('landing-root');
+                    if (lr) lr.style.display = 'none';
+
+                    // Sync LocalStorage
+                    localStorage.setItem('session_active', 'true');
+                    localStorage.setItem('current_user', data.username);
+
+                    currentUser = data.username;
+                    // UPDATE LEVEL GLOBAL
+                    if (data.membership_level) {
+                        currentUserLevel = data.membership_level;
+                    }
+                    if (typeof updateAuthUI === 'function') updateAuthUI(true, data.username);
+
+                    // Switch to Home Dashboard & Load Content
+                    try {
+                        if (typeof nav === 'function') {
+                            nav('home');
+                            // Ensure content loads
+                            setTimeout(() => {
+                                if (typeof loadHomeGrid === 'function') loadHomeGrid();
+                                if (typeof loadCMSList === 'function') loadCMSList();
+                            }, 200);
+                        }
+                    } catch (e) { }
+
+                    if (data.is_superuser) {
+                        try { document.getElementById('admin-nav-item').style.display = 'flex'; } catch (e) { }
+                    }
+
+                    // FIXED: Reliable Profile Population (Simplified)
+                    if (data.profile) {
+                        try {
+                            const p = data.profile;
+
+                            // 1. Fill Values
+                            ['date', 'time', 'lat', 'lon'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) {
+                                    el.value = p[id] || "";
+                                    el.readOnly = true;
+                                }
+                            });
+
+                            // 2. Hide Guest Dropdowns & Show Locked Input
+                            const countrySel = document.getElementById('loc-country');
+                            if (countrySel && countrySel.parentElement) {
+                                countrySel.parentElement.style.display = 'none';
+                            }
+
+                            const lockedInput = document.getElementById('locked-loc-input');
+                            if (lockedInput) {
+                                lockedInput.style.display = 'block';
+                                lockedInput.disabled = true;
+                                // USER REQUEST: Only show the place name (District), no coords fallback
+                                lockedInput.value = p.place || "";
+                            }
+                        } catch (e) { console.error("Profile UI Error:", e); }
+                    }
+
+                    // Force Re-Translate
+                    setTimeout(() => {
+                        const currentLang = document.getElementById('lang').value;
+                        changeLang(currentLang);
+                    }, 100);
+
+                } else {
+                    console.log("Server API says NOT authenticated.");
+
+                    // CRITICAL: Respect SSR overrides
+                    if (typeof SERVER_AUTH_STATUS !== 'undefined' && SERVER_AUTH_STATUS === true) {
+                        console.log("BUT Server-Side Render was Authenticated. Trusting SSR/Emergency Login.");
+                        // Reinforce UI
+                        document.getElementById('app-root').style.display = 'flex';
+                        document.getElementById('landing-root').style.display = 'none';
+
+                        // Fake a success because views.py forced us in
+                        if (typeof SERVER_USER_NAME !== 'undefined') {
+                            currentUser = SERVER_USER_NAME;
+                            updateAuthUI(true, SERVER_USER_NAME);
+                        }
+                    } else {
+                        // Only kick to landing if LocalStorage is ALSO empty or we want to be strict
+                        if (!localSession) {
+                            document.getElementById('app-root').style.display = 'none';
+                            document.getElementById('landing-root').style.display = 'flex';
+                            updateAuthUI(false);
+                        } else {
+                            console.warn("Server unauth, but LocalStorage active.");
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Auth check failed", e);
+                // Fallback: If local session exists, ignore network error
+                if (!localSession) {
+                    document.getElementById('app-root').style.display = 'none';
+                    document.getElementById('landing-root').style.display = 'flex';
+                }
+            }
+        }
+
+        function updateAuthUI(isLoggedIn, name) {
+            const btnLogout = document.getElementById('btn-logout-trig');
+            const userDisplay = document.getElementById('user-display');
+            if (isLoggedIn) {
+                if (btnLogout) btnLogout.style.display = 'flex';
+                if (userDisplay) {
+                    userDisplay.innerHTML = `<i class="fas fa-user-circle"></i> ${name}`;
+                    userDisplay.style.display = 'block';
+                }
+            } else {
+                if (btnLogout) btnLogout.style.display = 'none';
+                if (userDisplay) userDisplay.style.display = 'none';
+                // PERSISTENCE CLEANUP
+                localStorage.removeItem('session_active');
+                localStorage.removeItem('current_user');
+            }
+        }
+
+        function doLogout() {
+            console.log("Logout initiated...");
+            // 1. Clear Client Persistence
+            localStorage.removeItem('session_active');
+            localStorage.removeItem('current_user');
+
+            // 2. Immediate UI Feedback (Optional, but good for perceived speed)
+            document.getElementById('app-root').style.display = 'none';
+            document.getElementById('landing-root').style.display = 'flex';
+
+            // 3. Call Server and Redirect
+            // We use navigator.sendBeacon if possible for generic 'leave' signal, or just fetch
+            fetch('/api/logout/')
+                .then(() => {
+                    console.log("Server logout ok");
+                    window.location.href = "/";
+                })
+                .catch(e => {
+                    console.error("Logout fail", e);
+                    window.location.href = "/"; // Redirect anyway
+                });
+
+            // Fallback safety: If fetch hangs, redirect after 500ms
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 500);
+        }
+
+        async function saveProfileToBackend() {
+            if (!currentUser) return;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const lat = document.getElementById('lat').value;
+            const lon = document.getElementById('lon').value;
+
+            let placeName = "Unknown";
+            const citySel = document.getElementById('loc-city');
+            if (citySel && citySel.options.length > 0 && citySel.selectedIndex >= 0) {
+                placeName = citySel.options[citySel.selectedIndex].text;
+            }
+
+            try {
+                await fetch('/api/update-profile/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, time, lat, lon, place: placeName })
+                });
+                console.log("Profile auto-saved.");
+            } catch (e) { console.error("Save failed", e); }
+        }
+    </script>
+    <!-- UPGRADE MODAL -->
+    <div id="upgrade-modal" class="modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <div class="glass-card"
+            style="width:90%; max-width:500px; text-align:center; padding:40px; border:2px solid var(--accent); box-shadow: 0 0 30px rgba(233, 69, 96, 0.4); animation: zoomIn 0.3s ease;">
+            <div style="font-size:3rem; color:var(--gold); margin-bottom:20px"><i class="fas fa-crown"></i></div>
+            <h2
+                style="font-family:'Cinzel'; margin-bottom:15px; background: linear-gradient(45deg, #FFD700, #FDB931); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Premium Özellik</h2>
+            <p id="upgrade-message" style="margin-bottom:30px; font-size:1.1rem; line-height:1.6; color:#eee">Bu
+                özelliği kullanmak için üyeliğinizi yükseltmelisiniz.</p>
+
+            <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:10px; margin-bottom:30px">
+                <p style="margin-bottom:10px; opacity:0.8; font-size:0.9rem">Detaylı bilgi ve üyelik için:</p>
+                <div style="font-size:1.1rem; font-weight:bold; color:white; margin-bottom:8px"><i
+                        class="fas fa-envelope" style="color:var(--accent)"></i> ahiakin.can@gmail.com</div>
+                <div style="font-size:1.1rem; font-weight:bold; color:white"><i class="fas fa-phone"
+                        style="color:var(--accent)"></i> 0533 136 78 45</div>
+            </div>
+
+            <button onclick="document.getElementById('upgrade-modal').style.display='none'"
+                style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); width:100%; padding:12px; border-radius:30px; color:rgba(255,255,255,0.8); font-size:0.9rem; cursor:pointer; font-weight:600; letter-spacing:1px; transition:all 0.3s"
+                onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.color='white'; this.style.borderColor='white'"
+                onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='rgba(255,255,255,0.8)'; this.style.borderColor='rgba(255,255,255,0.2)'">
+                KAPAT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showUpgradeModal(msg) {
+            const m = document.getElementById('upgrade-modal');
+            const txt = document.getElementById('upgrade-message');
+            if (m && txt) {
+                txt.innerText = msg || "Bu özelliği kullanmak için üyeliğinizi yükseltmelisiniz.";
+                m.style.display = 'flex';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <link rel="shortcut icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRO | Deep Cosmos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #0F0C29;
+            --gradient-start: #0F0C29;
+            --gradient-mid: #302B63;
+            --gradient-end: #24243E;
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* LANDING PAGE SPECIFIC STYLES */
+        #landing-root {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .horo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 1200px) {
+            .horo-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .horo-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        .horo-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .horo-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .horo-card.active {
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .horo-content {
+            display: none;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.5s;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- LANDING PAGE -->
+    <div id="landing-root">
+        <div style="text-align:center; margin-bottom:20px">
+            <h1 style="font-size:3rem; color:var(--gold); margin-bottom:10px; font-family: 'Cinzel', serif;">DEEP COSMOS
+            </h1>
+            <p style="font-size:1.2rem; opacity:0.8; font-family: 'Outfit', sans-serif;">Günlük Burç Yorumları & Kozmik
+                Rehberlik</p>
+        </div>
+
+        <div style="display:flex; gap:15px; margin-bottom:30px">
+            <!-- LINK TO AUTH PAGE (NO JS MODAL) -->
+            <a href="/auth/" class="btn" style="padding:12px 30px; font-size:1.1rem; text-decoration:none;">
+                <i class="fas fa-rocket"></i> Giriş Yap / Kayıt Ol
+            </a>
+        </div>
+
+        <div
+            style="width:100%; max-width:1200px; padding:20px; text-align:center; background:rgba(255,255,255,0.03); border-radius:12px">
+            <h3 style="color:var(--accent)">✨ Günlük Burç Yorumları</h3>
+            <p style="opacity:0.6; font-size:0.9rem">Burcunuza tıklayarak bugünün mesajını okuyun.</p>
+        </div>
+
+        <div class="horo-grid" id="horo-grid">
+            <div style="grid-column:1/-1; text-align:center; padding:50px">
+                <i class="fas fa-spinner fa-spin fa-2x"></i> Yükleniyor...
+            </div>
+        </div>
+
+        <div style="margin-top:50px; opacity:0.5; font-size:0.8rem">
+            © 2026 Deep Cosmos Astrology. All rights reserved.
+        </div>
+    </div>
+
+    <!-- Script to Load Horoscopes Only (No Auth Logic here) -->
+    <script>
+        async function loadDailyHoroscopes() {
+            try {
+                // Default to TR for landing
+                const lang = 'tr';
+                const container = document.getElementById('horo-grid');
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+                const res = await fetch(`/api/daily-horoscopes/?lang=${lang}`);
+                const data = await res.json();
+
+                if (!data.horoscopes) return;
+
+                container.innerHTML = data.horoscopes.map((h, i) => `
+                    <div class="horo-card" onclick="toggleHoro(this)">
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <div style="font-size:1.5rem; font-weight:bold; color:var(--text)">${h.sign}</div>
+                            <div style="font-size:2rem; filter:drop-shadow(0 0 10px var(--accent))">${h.mood}</div>
+                        </div>
+                        <div style="font-size:0.8rem; opacity:0.6; margin-top:5px">${h.date} - Günlük Yorum</div>
+                        
+                        <div class="horo-content">
+                            <p>${h.text}</p>
+                            <div style="margin-top:15px; text-align:right">
+                                <a href="/auth/" onclick="event.stopPropagation();" 
+                                        style="background:transparent; border:1px solid var(--accent); color:var(--accent); padding:5px 15px; border-radius:20px; cursor:pointer; font-size:0.8rem; text-decoration:none; display:inline-block">
+                                    Daha Fazlası İçin Giriş Yap <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) { console.error(e); }
+        }
+
+        function toggleHoro(el) {
+            // Uncollapse others
+            document.querySelectorAll('.horo-card.active').forEach(c => {
+                if (c !== el) {
+                    c.classList.remove('active');
+                    c.querySelector('.horo-content').style.display = 'none';
+                }
+            });
+
+            el.classList.toggle('active');
+            const content = el.querySelector('.horo-content');
+            content.style.display = el.classList.contains('active') ? 'block' : 'none';
+
+            if (el.classList.contains('active')) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDailyHoroscopes);
+    </script>
+</body>
+
+</html>

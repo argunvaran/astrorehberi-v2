@@ -1,0 +1,233 @@
+<section id="view-chart" class="view animate-in">
+    <h1 style="font-size:2.5rem; margin-bottom:0.5rem" data-i18n="chart_title">Doğum Haritası</h1>
+    <p style="color:rgba(255,255,255,0.6); margin-bottom:2rem" data-i18n="chart_subtitle">NASA Hassas Motorları</p>
+    <div class="glass-card">
+        <!-- LOCATION SELECTOR -->
+        <div style="margin-bottom:20px; text-align:left">
+            <label id="loc-label" style="color:var(--gold); font-size:0.9rem; margin-bottom:5px; display:block">
+                <i class="fas fa-map-marker-alt"></i> <span data-i18n="label_place">Birth Place</span>
+            </label>
+            {% if profile %}
+            <!-- Read-Only Mode for Registered Users -->
+            <div id="main-loc-container" style="display:none">
+                <input type="hidden" id="loc-city">
+            </div>
+            <input type="text" id="locked-loc-input" class="glass-input" disabled value="{{ profile.birth_place }}"
+                style="display:block; width:100%; margin-top:5px; opacity:0.8; cursor:not-allowed; background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--border)">
+            {% else %}
+            <!-- Guest Mode -->
+            <div id="main-loc-container" style="display:flex; gap:10px; flex-wrap:wrap">
+                <select id="loc-country" class="glass-input" style="flex:1; min-width:120px" onchange="loadProvinces()">
+                    <option value="">Loading...</option>
+                </select>
+                <select id="loc-province" class="glass-input" style="flex:1; min-width:120px; display:none;"
+                    onchange="loadCities()">
+                    <option value="">Province...</option>
+                </select>
+                <select id="loc-city" class="glass-input" style="flex:1; min-width:120px" onchange="setCityCoords()">
+                    <option value="">City/District...</option>
+                </select>
+            </div>
+            <input type="text" id="locked-loc-input" class="glass-input" disabled
+                style="display:none; width:100%; margin-top:5px; opacity:0.8; cursor:not-allowed">
+            {% endif %}
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+            <div>
+                <label data-i18n="label_date"
+                    style="display:block; margin-bottom:5px; color:var(--gold); font-size:0.9rem">Doğum Tarihi</label>
+                <!-- READONLY IF PROFILE EXISTS -->
+                <input type="text" id="date" value="{{ profile.birth_date|date:'Y/m/d'|default:'' }}" {% if profile %}readonly style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent"
+                    
+                    {% endif %} placeholder="YYYY-MM-DD">
+
+            </div>
+            <div>
+                <label data-i18n="label_time"
+                    style="display:block; margin-bottom:5px; color:var(--gold); font-size:0.9rem">Doğum Saati</label>
+                <input type="text" id="time" value="{{ profile.birth_time|time:'H:i'|default:'' }}" {% if profile %}readonly style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent"
+                    
+                    {% endif %} placeholder="HH:MM">
+
+            </div>
+
+            <!-- Coordinates (Read Only) -->
+            <div>
+                <label data-i18n="label_lat"
+                    style="display:block; margin-bottom:5px; color:var(--gold); font-size:0.9rem">Enlem</label>
+                <input type="number" id="lat" value="{{ profile.lat|default:'' }}" {% if profile %}readonly
+                    style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent" {% endif %}>
+                    
+
+
+            </div>
+            <div>
+                <label data-i18n="label_lon"
+                    style="display:block; margin-bottom:5px; color:var(--gold); font-size:0.9rem">Boylam</label>
+                <input type="number" id="lon" value="{{ profile.lon|default:'' }}" {% if profile %}readonly
+                    style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent" {% endif %}>
+                    
+
+            </div>
+        </div>
+
+        <div id="tz-display"
+            style="margin-top:10px; font-size:0.85rem; color:var(--accent); font-style:italic; display:none">
+            <i class="fas fa-clock"></i> Targeted Timezone: <span id="tz-name">Auto</span>
+        </div>
+
+        <button class="btn" onclick="calcChart()" style="margin-top:20px"><i class="fas fa-bolt"></i> <span
+                data-i18n="btn_calc">Analizi Oluştur</span></button>
+        <div id="loader-chart" style="display:none; margin-top:20px; color:var(--accent)">Running NASA Engines...</div>
+    </div>
+    <div id="res-chart" style="display:none"></div>
+</section>
+
+<script>
+    // --- CALCULATOR ---
+    // --- CALCULATOR ---
+    async function calcChart() {
+        const btn = document.querySelector('#view-chart button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'NASA Engine Running...';
+        document.getElementById('loader-chart').style.display = 'block';
+        document.getElementById('res-chart').style.display = 'none';
+
+        try {
+            const payload = {
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                lat: document.getElementById('lat').value,
+                lon: document.getElementById('lon').value,
+                lang: document.getElementById('lang').value
+            };
+
+            const res = await fetch('/api/calculate-chart/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                alert("Engine Error: " + data.error);
+            } else {
+                currentData = data;
+
+                // CACHE RESULT FOR RELOAD PERSISTENCE (Session Scope)
+                sessionStorage.setItem('astro_current_chart', JSON.stringify(data));
+                sessionStorage.setItem('astro_last_payload', JSON.stringify(payload));
+
+                renderChart(data);
+                if (typeof saveProfileToBackend === 'function') saveProfileToBackend();
+
+                // Broadcast Data to Sub-Sections
+                if (typeof renderDraconic === 'function') renderDraconic(data);
+                if (typeof renderHours === 'function') renderHours(data.meta?.planetary_hours);
+                if (typeof renderRectification === 'function') renderRectification(data);
+                if (typeof loadCelestial === 'function') loadCelestial(data.meta?.rising_sign);
+            }
+        } catch (e) { alert("Network/Server Error: " + e); }
+
+        document.getElementById('loader-chart').style.display = 'none';
+        btn.innerHTML = originalText;
+    }
+
+    // INIT: Check Cache
+    document.addEventListener('DOMContentLoaded', () => {
+        // Wait specifically for main globals to run first, but DOMContentLoaded runs in order.
+        // We added this script after main globals in index.html, so 'currentData' is defined.
+        const cached = sessionStorage.getItem('astro_current_chart');
+        if (cached) {
+            try {
+                const data = JSON.parse(cached);
+                currentData = data;
+                // Delay slightly to ensure "changeLang" or other init logic completes?
+                // Actually calling renderChart immediately is usually fine if DOM is ready.
+                // We check if "renderChart" exists (it does, defined below, hoisted or same scope).
+                // But it's defined BELOW in this file. Function declarations are hoisted, but let's be safe.
+                setTimeout(() => {
+                    renderChart(data);
+                    // Re-broadcast
+                    if (typeof renderDraconic === 'function') renderDraconic(data);
+                    if (typeof renderHours === 'function') renderHours(data.meta?.planetary_hours);
+                }, 100);
+            } catch (e) { console.error("Cache Parse Error", e); }
+        }
+    });
+
+    function renderChart(data) {
+        const el = document.getElementById('res-chart');
+        el.style.display = 'block';
+        const lang = document.getElementById('lang').value;
+        const t = (typeof translations !== 'undefined') ? translations[lang] : {};
+        const terms = (typeof astroTerms !== 'undefined') ? astroTerms[lang] : {};
+
+        // Translate Sun Sign
+        let sunSign = data.meta?.sun_sign || "Unknown";
+        if (terms[sunSign]) sunSign = terms[sunSign];
+
+        // Translate Rising Sign
+        let risingSign = data.meta?.rising_sign || "Unknown";
+        if (terms[risingSign]) risingSign = terms[risingSign];
+
+        let html = `<div class="glass-card" style="text-align:center">
+                <div style="font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:5px">${lang === 'tr' ? 'Güneş Burcu' : 'Sun Sign'}</div>
+                <h2 style="font-size:3rem; color:var(--accent); margin-bottom:15px; line-height:1">${sunSign}</h2>
+                
+                <div style="margin-bottom:15px; font-size:0.85rem; color:var(--gold); opacity:0.9">
+                     <i class="fas fa-map-marker-alt"></i> Timezone: ${data.meta?.local_timezone || 'LMT'}
+                </div>
+
+                <div style="background:rgba(255,255,255,0.1); padding:10px 20px; border-radius:30px; display:inline-block">
+                     <span style="opacity:0.8">${t.t_rising}:</span> 
+                     <span style="color:var(--gold); font-weight:bold; font-size:1.2rem; margin-left:5px">${risingSign}</span>
+                </div>
+                
+                <div style="display:flex; justify-content:center; gap:20px; margin-top:20px">
+                    <span>💎 ${data.meta?.lucky_stone || "-"}</span>
+                    <span>🎨 ${data.meta?.lucky_color || "-"}</span>
+                </div>
+            </div>`;
+
+        html += `<div class="glass-card"><h3>${t.p_pos}</h3>`;
+        if (data.planets) {
+            data.planets.forEach(p => {
+                const pName = terms[p.name] || p.name;
+                const sName = terms[p.sign] || p.sign;
+                const title = lang === 'tr' ? `${sName} Burcunda ${pName}` : `${pName} in ${sName}`;
+
+                // Smart Selection of Interpretations
+                let text = p.interpretation || "";
+                if (p.interpretations && p.interpretations[lang]) {
+                    text = p.interpretations[lang];
+                }
+
+                if (p.is_restricted) {
+                    html += `
+                    <div class="planet-row" style="position:relative; overflow:hidden; opacity:0.8; margin-bottom:15px; background:rgba(0,0,0,0.2)">
+                        <div class="planet-icon" style="filter:grayscale(1); opacity:0.5; background:rgba(255,255,255,0.05); border-color:transparent">${p.name[0]}</div>
+                        <div style="flex:1; padding-right:10px">
+                            <h4 style="color:var(--text-muted); font-size:1rem">${title}</h4>
+                            <div style="filter:blur(4px); opacity:0.5; font-size:0.9rem; margin-top:5px; user-select:none; line-height:1.4">
+                                Güneş sisteminin bu güçlü transiti karakterinizi derinden etkiliyor... Lorem ipsum yıldızların dansı...
+                            </div>
+                            <!-- Small Lock Button -->
+                            <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:2">
+                                <button onclick="showUpgradeModal('Detaylı harita yorumlarını görmek için Premium üyeliğe geçin.')" 
+                                        style="background:rgba(0,0,0,0.7); border:1px solid var(--gold); color:var(--gold); border-radius:30px; padding:8px 20px; cursor:pointer; font-size:0.85rem; font-weight:bold; backdrop-filter:blur(4px); transition:all 0.2s; box-shadow:0 0 15px rgba(0,0,0,0.5)">
+                                    <i class="fas fa-crown"></i> ${lang === 'tr' ? 'Yorumu Aç' : 'Unlock'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                } else {
+                    html += `<div class="planet-row"><div class="planet-icon">${p.name[0]}</div><div><h4 style="color:var(--text)">${title}</h4><p style="font-size:0.9rem; color:var(--text-muted); line-height:1.6; margin-top:5px">${text}</p></div></div>`;
+                }
+            });
+        }
+        html += `</div>`;
+        el.innerHTML = html;
+    }
+</script>

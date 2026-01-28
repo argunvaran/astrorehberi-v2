@@ -1,0 +1,125 @@
+<section id="view-celestial" class="view animate-in" style="display:none">
+    <div style="text-align:center; margin-bottom:30px">
+        <h1 style="font-family:'Cinzel'; font-size:2.5rem; color:var(--gold); margin-bottom:10px; text-shadow:0 0 15px rgba(255,215,0,0.3)"
+            data-i18n="menu_celestial">GÖKSEL OLAYLAR</h1>
+        <p style="opacity:0.7; font-size:1.1rem">Evrenin size özel mesajlarını keşfedin.</p>
+    </div>
+
+    <div id="celestial-container" class="glass-card"
+        style="padding:0; overflow:hidden; min-height:400px; display:flex; align-items:center; justify-content:center">
+        <div class="loader" style="color:var(--accent)">Kozmik veriler taranıyor...</div>
+    </div>
+</section>
+
+<script>
+    async function loadCelestial(risingOverride) {
+        const container = document.getElementById('celestial-container');
+        // Only show loader if content is empty or explicitly refreshing
+        if (!container.querySelector('h2')) {
+            container.innerHTML = '<div class="loader" style="color:var(--accent); text-align:center; padding:50px">NASA Verileri Taranıyor...</div>';
+        }
+
+        try {
+            const lang = document.getElementById('lang').value;
+
+            // Priority: Argument -> Session Cache -> Auto-Calculate -> Default
+            let rising = 'Aries';
+
+            if (risingOverride) {
+                rising = risingOverride;
+            } else {
+                const cached = sessionStorage.getItem('astro_current_chart');
+                if (cached) {
+                    try {
+                        const cData = JSON.parse(cached);
+                        if (cData.meta && cData.meta.rising_sign) {
+                            rising = cData.meta.rising_sign;
+                        }
+                    } catch (e) { }
+                } else {
+                    // 3. Cache Miss - Try to Recalculate implicitly if input data exists
+                    // This fixes the issue where Settings save clears cache but doesn't re-calc chart immediately
+                    const dVal = document.getElementById('date') ? document.getElementById('date').value : null;
+                    const tVal = document.getElementById('time') ? document.getElementById('time').value : null;
+
+                    if (dVal && tVal) {
+                        try {
+                            // Notify user subtly
+                            const loaderTitle = container.querySelector('.loader');
+                            if (loaderTitle) loaderTitle.innerText = lang === 'tr' ? "Kişisel veriler güncelleniyor..." : "Syncing personal data...";
+
+                            // Quick fetch to get rising sign only
+                            const quickRes = await fetch('/api/calculate-chart/', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    date: dVal,
+                                    time: tVal,
+                                    lat: document.getElementById('lat') ? document.getElementById('lat').value : 41.0,
+                                    lon: document.getElementById('lon') ? document.getElementById('lon').value : 28.0,
+                                    lang: lang
+                                })
+                            });
+                            const quickData = await quickRes.json();
+                            if (quickData.meta && quickData.meta.rising_sign) {
+                                rising = quickData.meta.rising_sign;
+
+                                // Save to cache to avoid repeating this call
+                                sessionStorage.setItem('astro_current_chart', JSON.stringify(quickData));
+                            }
+                        } catch (e) { console.log("Quick calc failed, using default"); }
+                    }
+                }
+            }
+
+            // Assuming we have a global chart data in sessionStorage if user calculated chart
+
+            const res = await fetch(`/api/celestial-events/?lang=${lang}&rising=${rising}`);
+            const data = await res.json();
+
+            if (data.events && data.events.length > 0) {
+                const e = data.events[0]; // Primary Event
+
+                // Construct HTML
+                let html = `
+                <div style="width:100%; position:relative">
+                    <!-- Header with Moon/Event Background -->
+                    <div style="padding:40px 20px; text-align:center; background:linear-gradient(to bottom, #0f0c29, #302b63); border-bottom:1px solid rgba(255,255,255,0.1)">
+                        <div style="font-size:1rem; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-bottom:10px">${lang === 'tr' ? 'YAKLAŞAN KOZMİK ETKİ' : 'UPCOMING COSMIC EVENT'}</div>
+                        <h2 style="font-size:3rem; font-family:'Cinzel'; color:white; margin:0 0 10px 0; text-shadow:0 0 20px rgba(255,255,255,0.5)">${e.title}</h2>
+                        <div style="font-size:1.5rem; color:var(--accent); font-weight:bold">${e.sign}</div>
+                        <div style="margin-top:10px; opacity:0.8"><i class="far fa-calendar-alt"></i> ${e.date}</div>
+                    </div>
+                    
+                    <div style="padding:30px; max-width:800px; margin:0 auto">
+                        <!-- House Impact Box -->
+                        <div style="background:rgba(233,69,96,0.1); border:1px solid var(--accent); border-radius:15px; padding:25px; margin-bottom:30px; text-align:center">
+                            <h3 style="color:var(--gold); margin-bottom:10px; font-family:'Cinzel'">${lang === 'tr' ? 'SİZİN İÇİN ETKİSİ' : 'IMPACT FOR YOU'}</h3>
+                            <div style="font-size:1.2rem; font-weight:bold; margin-bottom:5px; color:var(--text)">${e.house}. ${lang === 'tr' ? 'EV ALANINIZ' : 'HOUSE SECTOR'}</div>
+                            <div style="font-size:0.9rem; opacity:0.8; margin-bottom:20px; font-style:italic; color:var(--text)">(${e.theme})</div>
+                            
+                            <p style="font-size:1.1rem; line-height:1.8; color:var(--text)">
+                                ${e.personal_text}
+                            </p>
+                        </div>
+                        
+                        <!-- General Meaning -->
+                        <div style="background:rgba(255,255,255,0.03); border-radius:15px; padding:25px; border:1px solid rgba(128,128,128,0.1)">
+                            <h4 style="color:var(--text); opacity:0.7; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px">${lang === 'tr' ? 'GENEL ENERJİ' : 'GENERAL ENERGY'}</h4>
+                            <p style="line-height:1.7; color:var(--text); text-align:justify">
+                                ${e.title} ${lang === 'tr' ? 'sırasında gökyüzü bize şunları fısıldıyor:' : 'whispers to us:'} ${e.general_text}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                `;
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div style="padding:40px; text-align:center">No upcoming events found.</div>';
+            }
+
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<div style="padding:40px; text-align:center; color:#e94560">Error loading celestial data.</div>';
+        }
+    }
+</script>

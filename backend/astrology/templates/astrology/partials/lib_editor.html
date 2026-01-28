@@ -1,0 +1,222 @@
+<section id="view-editor" class="view animate-in">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+        <h1 style="font-size:2rem; font-family:'Cinzel'" data-i18n="editor_title">Editör Masası</h1>
+        <div>
+            <button onclick="nav('library', document.querySelector('[onclick*=\'library\']'))" class="btn"
+                style="background:transparent; border:1px solid var(--accent)">
+                <i class="fas fa-arrow-left"></i> Kütüphaneye Dön
+            </button>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:20px; height:80vh">
+        <!-- Sidebar List -->
+        <div class="glass-card" style="width:300px; padding:0; overflow:hidden; display:flex; flex-direction:column">
+            <div style="padding:15px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.2)">
+                <button onclick="newLibItem()" class="btn" style="width:100%; padding:10px">+ Yeni Yazı Ekle</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:10px">
+                {% for item in items %}
+                <div onclick="editLibItem({{ item.id }}, '{{ item.title|escapejs }}', '{{ item.category.id }}', '{{ item.lookup_key|default:"" }}')"
+                    class="editor-list-item" id="item-row-{{ item.id }}"
+                    style="padding:10px; cursor:pointer; border-radius:8px; margin-bottom:5px; transition:background 0.2s">
+                    <div style="font-weight:bold; font-size:0.95rem">{{ item.title }}</div>
+                    <div style="font-size:0.75rem; opacity:0.6">{{ item.category.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Editor Form -->
+        <div class="glass-card" style="flex:1; padding:20px; overflow-y:auto">
+            <input type="hidden" id="edit-id">
+
+            <div style="display:flex; gap:10px; margin-bottom:15px">
+                <div style="flex:2">
+                    <label style="display:block; margin-bottom:5px; color:var(--gold)">Başlık</label>
+                    <input type="text" id="edit-title" class="glass-input" style="width:100%; font-size:1.2rem">
+                </div>
+                <div style="flex:1">
+                    <label style="display:block; margin-bottom:5px; color:var(--gold)">Kategori</label>
+                    <select id="edit-cat" class="glass-input" style="width:100%">
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px">
+                <label style="display:block; margin-bottom:5px; color:var(--gold)">Kısa Özet</label>
+                <textarea id="edit-desc" class="glass-input" style="width:100%; height:60px"></textarea>
+            </div>
+
+            <!-- Image URL Removed -->
+
+            <div style="margin-bottom:15px; display:none"> <!-- Hidden Advanced -->
+                <label style="display:block; margin-bottom:5px; color:var(--gold)">Sistem Anahtarı (Opsiyonel)</label>
+                <input type="text" id="edit-key" class="glass-input" style="width:100%"
+                    placeholder="aries, tarot_fool vb.">
+            </div>
+
+            <div style="margin-bottom:20px">
+                <label style="display:block; margin-bottom:5px; color:var(--gold)">İçerik (HTML)</label>
+                <!-- Quill Editor Container -->
+                <div id="editor-container"
+                    style="height:300px; background:rgba(255,255,255,0.9); color:black; border-radius:8px"></div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px">
+                <button onclick="deleteLibItem()" id="btn-delete" class="btn"
+                    style="background:rgba(233,69,96,0.2); border:1px solid #ff4444; display:none">Sil</button>
+                <button onclick="saveLibItem()" class="btn" style="padding:10px 40px">KAYDET</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    var quill;
+
+    // Init Quill (Run when section becomes visible usually, but here we init immediately if script runs)
+    setTimeout(() => {
+        if (!quill && document.getElementById('editor-container')) {
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, false] }],
+                        ['bold', 'italic', 'underline'],
+                        ['image', 'code-block']
+                    ]
+                }
+            });
+        }
+    }, 500);
+
+    function newLibItem() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('edit-title').value = '';
+        document.getElementById('edit-desc').value = '';
+        document.getElementById('edit-desc').value = '';
+        // document.getElementById('edit-img').value = ''; // Removed
+        document.getElementById('edit-key').value = '';
+        if (quill) quill.root.innerHTML = '';
+
+        document.getElementById('btn-delete').style.display = 'none';
+
+        // UI Highlight clear
+        document.querySelectorAll('.editor-list-item').forEach(el => el.style.background = 'transparent');
+    }
+
+    function editLibItem(id, title, catId, key) {
+        // UI Highlight
+        document.querySelectorAll('.editor-list-item').forEach(el => el.style.background = 'transparent');
+        const row = document.getElementById('item-row-' + id);
+        if (row) row.style.background = 'rgba(255,255,255,0.1)';
+
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-title').value = title; // Already decoded? HTML input usually handles simple text
+        document.getElementById('edit-cat').value = catId;
+        document.getElementById('edit-key').value = key;
+
+        // Should fetch full content because list might restrict?
+        // But for simplicity, we assume we need to fetch detail if content is huge.
+        // For now, let's assume we need to fetch it.
+        // Wait, 'items' in context has full content.
+        // But I didn't pass content in arguments of onclick.
+        // So I must fetch it.
+        // fetchDetailForEditor(title); // Hacky: lookup by slug or id passed
+    }
+
+</script>
+
+<!-- Inject Data for Editor -->
+<script>
+    const libraryDB = {
+        {% for item in items %}
+    "{{ item.id }}": {
+        desc: `{{ item.short_desc|escapejs }}`,
+            img: "{{ item.image_url|escapejs }}",
+                content: `{{ item.content|escapejs }}`
+    },
+    {% endfor %}
+    };
+
+    function editLibItem(id, title, catId, key) {
+        document.querySelectorAll('.editor-list-item').forEach(el => el.style.background = 'transparent');
+        const row = document.getElementById('item-row-' + id);
+        if (row) row.style.background = 'rgba(255,255,255,0.1)';
+
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-title').value = title;
+        document.getElementById('edit-cat').value = catId;
+        document.getElementById('edit-key').value = key;
+
+        const data = libraryDB[id];
+        if (data) {
+            document.getElementById('edit-desc').value = data.desc;
+            document.getElementById('edit-desc').value = data.desc;
+            // document.getElementById('edit-img').value = data.img; // Removed
+            if (quill) quill.root.innerHTML = data.content;
+        }
+
+        document.getElementById('btn-delete').style.display = 'block';
+    }
+
+    async function saveLibItem() {
+        const id = document.getElementById('edit-id').value;
+        const title = document.getElementById('edit-title').value;
+        const catId = document.getElementById('edit-cat').value;
+        const desc = document.getElementById('edit-desc').value;
+        const desc = document.getElementById('edit-desc').value;
+        const img = ''; // Disabled for now: document.getElementById('edit-img').value;
+        const key = document.getElementById('edit-key').value;
+        const content = quill ? quill.root.innerHTML : '';
+
+        if (!title) { alert('Başlık gerekli.'); return; }
+
+        try {
+            const res = await fetch('/library/admin-editor/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'save',
+                    id: id,
+                    title: title,
+                    category_id: catId,
+                    short_desc: desc,
+                    image_url: img,
+                    lookup_key: key,
+                    content: content
+                })
+            });
+            const d = await res.json();
+            if (d.success) {
+                // Reload section via nav to refresh list
+                // Or just reload page
+                window.location.reload();
+            } else {
+                alert('Hata: ' + d.error);
+            }
+        } catch (e) { alert('Kaydetme hatası.'); }
+    }
+
+    async function deleteLibItem() {
+        if (!confirm('Bu içeriği silmek istediğinize emin misiniz?')) return;
+        const id = document.getElementById('edit-id').value;
+        if (!id) return;
+
+        try {
+            const res = await fetch('/library/admin-editor/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'delete',
+                    id: id
+                })
+            });
+            window.location.reload();
+        } catch (e) { }
+    }
+</script>

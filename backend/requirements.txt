@@ -1,0 +1,9 @@
+django>=5.0
+gunicorn
+django-cors-headers
+skyfield
+requests
+pytz
+timezonefinder
+numpy
+geonamescache

@@ -1,0 +1,198 @@
+<section id="view-career" class="view animate-in" style="display:none">
+    <div style="text-align:center; margin-bottom:30px">
+        <h1 style="font-family:'Cinzel'; font-size:2.5rem; color:var(--gold); margin-bottom:10px"
+            data-i18n="menu_career">KARİYER YOLU</h1>
+        <p style="opacity:0.7" data-i18n="career_subtitle">Kozmik Kariyer ve Finans Analizi</p>
+    </div>
+
+    <!-- Chart Required Warning -->
+    <div class="glass-card" id="career-input-card"
+        style="text-align:center; padding:40px; border:1px dashed var(--accent)">
+        <i class="fas fa-chart-pie" style="font-size:3rem; color:var(--accent); margin-bottom:20px; opacity:0.8"></i>
+        <h3 style="margin-bottom:15px">Haritanız Henüz Hesaplanmadı</h3>
+        <p
+            style="font-size:1.1rem; margin-bottom:25px; opacity:0.8; max-width:500px; margin-left:auto; margin-right:auto">
+            Kariyer potansiyelinizi analiz edebilmemiz için önce doğum haritanızı oluşturmalısınız.
+        </p>
+        <button class="btn" onclick="nav('chart', document.querySelectorAll('.nav-item')[0])"
+            style="padding:15px 40px; background:var(--accent); border:none; border-radius:30px; color:white; font-weight:bold; cursor:pointer;"
+            data-i18n="btn_goto_chart">
+            <i class="fas fa-arrow-right"></i> Haritama Git
+        </button>
+    </div>
+
+    <!-- Career Results -->
+    <div id="career-res" style="display:none; flex-direction: column; gap:25px;">
+        <!-- Content injected via JS -->
+    </div>
+</section>
+
+<script>
+    // --- RICH CONTENT DATABASE (Frontend Override) ---
+    const CAREER_DB = {
+        'Koç': {
+            mc: "Kariyerinizde bir savaşçı ruhuna sahipsiniz. Öncü olmak, inisiyatif almak ve rekabet etmek sizin doğanızda var. Rutin ve durağan işler enerjinizi söndürebilir.<br><br>Girişimcilik, yöneticilik, spor veya bireysel performans gerektiren alanlarda parlayabilirsiniz. Hedefinize kilitlendiğinizde sizi kimse durduramaz. Kendi işinizin patronu olmak en büyük motivasyon kaynağınızdır.",
+            sat: "Otorite kurmakta başlarda zorlanabilir, kendi gücünüze güvenmeyi zamanla öğrenirsiniz. Sabırsızlık en büyük sınavınızdır. Disiplinli ve korkusuz adımlar attığınızda kalıcı başarılar elde edersiniz."
+        },
+        'Boğa': {
+            mc: "Kariyerde güven, istikrar ve somut sonuçlar ararsınız. Finans, bankacılık, gayrimenkul, sanat veya lüks tüketim alanları size uygundur.<br><br>Sabırlı ve adım adım ilerleyen yapınızla, zamanla büyük bir servet veya statü inşa edebilirsiniz. Risk almaktansa garantici olmayı tercih eder, kalıcı değerler üretirsiniz.",
+            sat: "Maddi konularda korkularınız olabilir ancak disiplinli birikimle büyük bir finansal kale inşa edeceksiniz. Değişime direnmek yerine onu yönetmeyi öğrenmelisiniz."
+        },
+        'İkizler': {
+            mc: "İletişim, zeka ve çeşitlilik kariyerinizin anahtarıdır. Medya, yazarlık, öğretmenlik, satış veya teknoloji alanlarında başarılı olabilirsiniz.<br><br>Aynı anda birden fazla işle ilgilenmek sizi yormaz, aksine besler. Kelimeleri kullanma yeteneğiniz en büyük silahınızdır. Bilgi ticareti yaparak yükselirsiniz.",
+            sat: "Fikirlerinizi ifade etmekte bazen çekingenlik yaşayabilirsiniz. Ancak kelimelerle ustalaştığınızda ciddi bir yazar, konuşmacı veya eğitmen olarak saygınlık kazanırsınız."
+        },
+        'Yengeç': {
+            mc: "Kariyere duygusal bir bağ kurarak yaklaşırsınız. İnsanlara yardım etmek, beslemek veya korumak istersiniz. Sağlık sektörü, psikoloji, gıda veya otelcilik uygundur.<br><br>İş yerinizde aile ortamı yaratmak sizin için önemlidir. Sezgilerinizle iş dünyasında doğru adımları atabilir, insan odaklı liderlik yapabilirsiniz.",
+            sat: "Duygusal sorumluluklar kariyerinize yük olabilir. Aile ve iş dengesini kurmak yaşam dersinizdir. Duygularınızı profesyonelce yönetmeyi öğrendiğinizde çok güçlü bir lider olursunuz."
+        },
+        'Aslan': {
+            mc: "Sahne ışıkları altında olmak, yönetmek ve takdir edilmek istersiniz. Eğlence sektörü, oyunculuk, yöneticilik, siyaset veya yaratıcı sanatlar tam size göre.<br><br>Karizmanızla kitleleri etkileyebilir, doğal bir lider olarak otorite kurabilirsiniz. Sıradanlık size göre değildir, imzanızı attığınız her işte parlamalısınız.",
+            sat: "Kendinizi göstermekten korkabilir, sahnede olmaktan çekinebilirsiniz. Ancak özgüveninizi kazandığınızda ve egonuzu yönettiğinizde gerçek bir kral/kraliçe gibi saygı görürsünüz."
+        },
+        'Başak': {
+            mc: "Kariyerde detaylar, analiz, sistem ve hizmet ön plandadır. Sağlık, mühendislik, muhasebe, editörlük veya veri analizi gibi dikkat gerektiren işlerde mükemmelsiniz.<br><br>Arka planda sistemi kusursuz çalıştıran, sorunları çözen o vazgeçilmez kişi sizsiniz. Düzen, nizam ve çalışkanlık başarınızın anahtarıdır.",
+            sat: "Mükemmeliyetçilik sizi kilitleyebilir. Hata yapmaktan korkmayın. Detaylarda boğulmak yerine bütünü görmeyi ve kendinizi eleştirmeyi bırakıp üretmeyi öğrenmelisiniz."
+        },
+        'Terazi': {
+            mc: "Diplomasi, sanat, hukuk ve ilişkiler kariyer yolunuzu çizer. Adalet arayışı, estetik kaygılar veya danışmanlık rolleri size çok uygundur.<br><br>İş ortamında huzur ve uyum ararsınız. Ortaklıklar kurarak veya insanları bir araya getirerek yükselirsiniz. Zevkiniz ve nezaketiniz size kapıları açar.",
+            sat: "İlişkilerde sınır koymakta zorlanabilirsiniz. İş hayatında 'hayır' demeyi, gerektiğinde tek başına karar almayı ve adaleti kendi lehinize de kullanmayı öğrenmelisiniz."
+        },
+        'Akrep': {
+            mc: "Kriz yönetimi, araştırma, psikoloji, finans veya dedektiflik gibi derinlik gerektiren alanlar size göredir. Gizli olanı açığa çıkarmak ve dönüştürmek istersiniz.<br><br>Kariyerinizde tutku olmazsa olmazdır. Zorluklar sizi güçlendirir. Stratejik zekanızla en karmaşık durumların içinden başarıyla çıkarsınız.",
+            sat: "Güç savaşları ve güven sorunları yaşayabilirsiniz. Kontrolü bırakmayı ve dönüşüme izin vermeyi öğrendiğinizde, küllerinizden doğarak muazzam bir güç elde edersiniz."
+        },
+        'Yay': {
+            mc: "Uluslararası işler, akademi, turizm, hukuk veya yayıncılık alanlarında parlayabilirsiniz. Özgürlüğünüze düşkün olduğunuz için masa başı işler sizi sıkabilir.<br><br>Vizyoner yapınızla başkalarına ilham verebilir, öğretmen veya rehber olabilirsiniz. Sınırları aşmak ve keşfetmek kariyerinizin temel mottosudur.",
+            sat: "İnançlarınızı veya vizyonunuzu somutlaştırmakta zorlanabilirsiniz. Felsefenizi pratik hayata dökmek ve dağılmadan odaklanmak sizin büyük sınavınızdır."
+        },
+        'Oğlak': {
+            mc: "Zirveye tırmanmak sizin kaderinizdir. Yöneticilik, devlet işleri, kurumsal yapılar veya mühendislik alanlarında başarılı olursunuz.<br><br>Hırslı, disiplinli ve stratejik yapınızla en tepeye ulaşana kadar durmazsınız. Saygı görmek, yetki sahibi olmak ve kalıcı bir miras bırakmak sizin için önemlidir.",
+            sat: "Zaten kendi burcunda güçlüdür. Ancak aşırı işkoliklik, katılık ve karamsarlık riski vardır. Başarı kadar iç huzura da önem vermeli, hayatın tadını çıkarmayı unutmamalısınız."
+        },
+        'Kova': {
+            mc: "Teknoloji, bilim, astroloji, havacılık veya toplumsal reformlar kariyer alanınız olabilir. Geleceği inşa etmek ve yenilikçi fikirler sunmak istersiniz.<br><br>Kurallara uymak yerine kendi kurallarınızı koyarsınız. Ekip çalışmaları, dernekler ve hümanist projeler size uygundur. Vizyonunuz çağın ötesindedir.",
+            sat: "Topluma uyum sağlamakta zorlanabilirsiniz. Sürüden ayrılmak korkutucu gelse de, sizi özel kılan 'farklı' olmanızdır. Özgünlüğünüzden ödün vermeden disiplinli çalışmalısınız."
+        },
+        'Balık': {
+            mc: "Sanat, şifa, müzik, sinema veya ruhsal rehberlik alanları size çağrıda bulunur. Hayal gücünüz sınırsızdır ve bunu kariyere dökmelisiniz.<br><br>Katı kurallar yerine ilhamla çalışırsınız. Başkalarının acılarını dindirmek, onlara hayaller sunmak veya yaratıcı kaosun içinde düzen bulmak görevinizdir.",
+            sat: "Gerçeklerden kaçma eğilimi veya kurban psikolojisi gelişebilir. Sınırlarınızı çizmeyi, hayallerinizi somutlaştırmayı ve disiplinli olmayı öğrendiğinizde büyük bir sanatçı olursunuz."
+        }
+    };
+
+    const SIGNS_EN_TO_TR = {
+        'Aries': 'Koç', 'Taurus': 'Boğa', 'Gemini': 'İkizler', 'Cancer': 'Yengeç',
+        'Leo': 'Aslan', 'Virgo': 'Başak', 'Libra': 'Terazi', 'Scorpio': 'Akrep',
+        'Sagittarius': 'Yay', 'Capricorn': 'Oğlak', 'Aquarius': 'Kova', 'Pisces': 'Balık'
+    };
+
+    async function loadCareer() {
+        console.log("loadCareer called (Client-Side Mode)");
+
+        // 1. Check if Chart is Available (Client Side Guard)
+        if (typeof currentData === 'undefined' || !currentData) {
+            console.warn("currentData is missing");
+            document.getElementById('career-input-card').style.display = 'block';
+            document.getElementById('career-res').style.display = 'none';
+            return;
+        }
+
+        // 2. Prepare UI
+        document.getElementById('career-input-card').style.display = 'none';
+        const resDiv = document.getElementById('career-res');
+        resDiv.style.display = 'flex';
+        // Check if already rendered to avoid flicker? No, users might change data.
+
+        try {
+            // 3. Extract Signs from currentData (No Backend Call Needed)
+            let saturnSign = 'Koç';
+            let mcSign = 'Koç';
+
+            // A. Find Saturn
+            if (currentData.planets) {
+                const saturnObj = currentData.planets.find(p => p.name === 'Saturn' || p.name === 'Satürn');
+                if (saturnObj) saturnSign = saturnObj.sign;
+            }
+
+            // B. Find MC (House 10 or Planet 'MC')
+            if (currentData.houses) {
+                const hus10 = currentData.houses.find(h => h.house == 10 || h.house === '10');
+                if (hus10) mcSign = hus10.sign;
+            }
+            // Fallback check in planets for MC/Midheaven
+            if (currentData.planets) {
+                const mcObj = currentData.planets.find(p => p.name === 'MC' || p.name === 'Midheaven' || p.name === 'Tepe Noktası');
+                if (mcObj) mcSign = mcObj.sign;
+            }
+
+            // 4. Normalize Language (English -> Turkish)
+            // If signs come in English (Aries), convert to Turkish (Koç)
+            // Reverse lookup logic if needed, but SIGNS_EN_TO_TR handles En->Tr
+            if (SIGNS_EN_TO_TR[saturnSign]) saturnSign = SIGNS_EN_TO_TR[saturnSign];
+            if (SIGNS_EN_TO_TR[mcSign]) mcSign = SIGNS_EN_TO_TR[mcSign];
+
+            // Ensure valid DB keys (capitalize first letter just in case)
+            // DB keys are: 'Koç', 'Boğa'...
+            // If data comes as 'KOÇ' or 'koç', normalize
+            const normalize = (s) => {
+                if (!s) return 'Koç';
+                // Simple case fix: First upper, rest lower? 
+                // Turkish chars can be tricky.
+                // Let's rely on DB keys match
+                const dbKeys = Object.keys(CAREER_DB);
+                const found = dbKeys.find(k => k.toLowerCase() === s.toLowerCase());
+                return found || 'Koç';
+            };
+
+            const finalMc = normalize(mcSign);
+            const finalSat = normalize(saturnSign);
+
+            console.log(`Career Analyzed: MC=${finalMc}, Sat=${finalSat}`);
+
+            // 5. Render Content (Directly from CAREER_DB)
+            const mcData = CAREER_DB[finalMc] || CAREER_DB['Koç'];
+            const satData = CAREER_DB[finalSat] || CAREER_DB['Koç'];
+
+            const textMc = mcData.mc;
+            const textSat = satData.sat;
+            const textForecast = "Bu dönem kariyer hedeflerinizde netleşmek için harika bir zaman. Satürn'ün konumu, disiplinli çalışmanın uzun vadede size büyük ödüller getireceğini müjdeliyor. Ani kararlardan kaçının, stratejik ilerleyin.";
+
+            const titleMc = 'Tepe Noktası (MC) & Statü';
+            const titleSat = 'Satürn: Kariyer Sorumlulukları';
+            const titleForecast = 'Kariyer Öngörüsü';
+
+            resDiv.innerHTML = `
+                <div class="glass-card animate-in" style="border-left:5px solid var(--gold); padding:25px">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                            <h2 style="color:var(--gold); font-family:'Cinzel'; font-size:1.4rem; margin:0"><i class="fas fa-crown"></i> ${titleMc}</h2>
+                            <span style="background:rgba(255,215,0,0.1); color:var(--gold); padding:5px 15px; border-radius:20px; font-size:0.9rem; border:1px solid var(--gold)">${finalMc}</span>
+                    </div>
+                    <div style="line-height:1.7; font-size:1.05rem; opacity:0.9; text-align:justify">
+                        ${textMc}
+                    </div>
+                </div>
+                
+                <div class="glass-card animate-in" style="border-left:5px solid var(--accent); padding:25px; transition-delay:0.1s">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                        <h2 style="color:var(--accent); font-family:'Cinzel'; margin:0; font-size:1.4rem"><i class="fas fa-mountain"></i> ${titleSat}</h2>
+                            <span style="background:rgba(233,69,96,0.1); color:var(--accent); padding:5px 15px; border-radius:20px; font-size:0.9rem; border:1px solid var(--accent)">${finalSat}</span>
+                    </div>
+                    <div style="line-height:1.7; font-size:1.05rem; opacity:0.9; text-align:justify">
+                        ${textSat}
+                    </div>
+                </div>
+                
+                    <div class="glass-card animate-in" style="background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(0,0,0,0.4)); border:1px solid rgba(255,255,255,0.1); padding:25px; transition-delay:0.2s">
+                        <h2 style="color:#fff; font-family:'Cinzel'; margin-bottom:15px; font-size:1.4rem"><i class="fas fa-meteor"></i> ${titleForecast}</h2>
+                        <div style="line-height:1.7; font-size:1.05rem; font-style:italic; opacity:0.9">
+                        ${textForecast}
+                    </div>
+                </div>
+            `;
+
+        } catch (e) {
+            console.error(e);
+            resDiv.innerHTML = `<div style="color:#ff6666; text-align:center">Gösterim Hatası: ${e.message}</div>`;
+        }
+    }
+</script>

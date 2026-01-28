@@ -1,0 +1,241 @@
+<script>
+    const translations = {
+        en: {
+            app_name: "DEEP COSMOS",
+            group_general: "Cosmic Guide", group_personal: "Personal Analysis", group_system: "System",
+            menu_chart: "Natal Chart", menu_daily: "Daily & Weekly", menu_social: "Social Analysis",
+            menu_synastry: "Love Match", menu_draconic: "Draconic Soul", menu_hours: "Time Mastery", menu_tarot: "Tarot Room",
+            nav_time_management: "Time Management",
+            nav_settings: "Settings",
+            settings_title: "Settings",
+            settings_desc: "Update your birth details here.",
+            btn_save: "Save Changes",
+            footer: "Synced with NASA", app_ver: "v4.7.2 - Stable",
+
+            chart_title: "Natal Chart Calculator", chart_subtitle: "NASA Precision Engines",
+            label_date: "Birth Date", label_time: "Birth Time", label_unknown: "I don't know my birth time", label_lat: "Latitude", label_lon: "Longitude", label_lang: "Language / Dil", label_place: "Birth Place",
+            btn_calc: "Generate Analysis",
+            daily_title: "Cosmic Forecast", daily_subtitle: "NASA Synchronized Transits",
+            graph_title: "7-Day Energy Forecast", daily_intel: "Daily Intel", daily_advice: "Daily Advice",
+            social_title: "Social Synergy", social_subtitle: "Group Dynamics & Elemental Balance",
+            daily_comment: "Daily Comment", daily_login_more: "Login for More",
+            soc_add_title: "Add Member", btn_add: "Add Person", soc_placeholder: "Add members to see analysis",
+            btn_match: "Check Compatibility",
+            match_res: "COMPATIBILITY", match_desc: "A strong karmic link detected between the two dates.",
+            draconic_wait: "To view Draconic chart, first calculate your Natal Chart.",
+            hours_wait: "Run Natal Chart to determine location-based hours.",
+            hours_title: "Today's Power Hours", h_sun: "Sun Hour", h_success: "(Success)", h_mars: "Mars Hour", h_action: "(Action)",
+            p_pos: "Planetary Positions", t_rising: "Rising Sign", drac_title: "Soul Contract (Draconic)",
+            draconic_subtitle: "Your Higher Self / Soul's Purpose",
+            draconic_sun_label: "Higher Self Sun",
+            career_title: "Career Path",
+            rectify_title: "Find Your Ascendant",
+            rectify_subtitle: "Professional Birth Time Rectification",
+            rectify_info: "If you don't know your birth time, we can reverse-engineer it using 'Transits'. The planets were in specific positions during major events in your life. By matching these events to the angles of the chart, we can find the most probable birth time.",
+            rectify_step1: "1. Confirm Birth Date",
+            rectify_step2: "2. Major Life Events",
+            rectify_ev_instr: "Add at least 3 major events (Marriage, Child Birth, Graduation, Moving, loss, etc.)",
+            rectify_btn_add: "+ Add Another Event",
+            rectify_btn_find: "Find True Time",
+            rectify_scanning: "Scanning 24 hours...",
+            rectify_res_title: "Most Probable Times",
+            rectify_evid: "Evidence:",
+            rectify_use_btn: "Use This Time",
+            rectify_no_match: "No strong matches found. Try adding more events or checking the dates.",
+            rectify_error: "Error calculating. Please try again."
+        },
+        tr: {
+            app_name: "DERİN KOZMOS",
+            group_general: "Kozmik Rehber", group_personal: "Kişisel Analiz", group_system: "Sistem",
+            menu_chart: "Doğum Haritası", menu_daily: "Günlük & Haftalık", menu_social: "Sosyal Analiz",
+            menu_synastry: "Aşk Uyumu", menu_draconic: "Drakonik Ruh", menu_hours: "Zaman Yönetimi", menu_tarot: "Tarot Odası",
+            nav_time_management: "Zaman Yönetimi",
+            nav_settings: "Ayarlar",
+            settings_title: "Ayarlar",
+            settings_desc: "Doğum bilgilerinizi buradan güncelleyebilirsiniz.",
+            btn_save: "Kaydet",
+            footer: "NASA ile Senkronize", app_ver: "v4.7.2 - Stable",
+
+            chart_title: "Doğum Haritası", chart_subtitle: "NASA Hassas Motorları",
+            label_date: "Doğum Tarihi", label_time: "Doğum Saati", label_unknown: "Saati Bilmiyorum", label_lat: "Enlem", label_lon: "Boylam", label_lang: "Dil / Language", label_place: "Doğum Yeri",
+            btn_calc: "Analizi Oluştur",
+            daily_title: "Kozmik Tahmin", daily_subtitle: "Eşzamanlı NASA Transitleri",
+            graph_title: "7-Günlük Enerji Tahmini", daily_intel: "Günlük İstihbarat", daily_advice: "Günlük Tavsiye",
+            daily_comment: "Günlük Yorum",
+            social_title: "Sosyal Sinerji", social_subtitle: "Grup Dinamikleri ve Element Dengesi",
+            soc_add_title: "Üye Ekle", btn_add: "Kişi Ekle", soc_placeholder: "Analiz için üye ekleyin",
+            menu_career: "Kariyer Yolu",
+            btn_match: "Uyumu Kontrol Et",
+            match_res: "UYUM SKORU", match_desc: "İki tarih arasında güçlü bir karmik bağ tespit edildi.",
+            draconic_wait: "Drakonik haritayı görmek için önce Doğum Haritasını hesaplayın.",
+            hours_wait: "Saatleri görmek için Doğum Haritasını çalıştırın.",
+            hours_title: "Günün Güç Saatleri", h_sun: "Güneş Saati", h_success: "(Başarı)", h_mars: "Mars Saati", h_action: "(Eylem)",
+            p_pos: "Gezegen Konumları", t_rising: "Yükselen Burç", drac_title: "Ruh Sözleşmesi (Drakonik)",
+            draconic_subtitle: "Yüksek Benliğiniz / Ruhsal Amacınız",
+            draconic_sun_label: "Yüksek Benlik Güneşi",
+            career_title: "Kariyer Yolu",
+            rectify_title: "Yükselen Burcunu Bul",
+            rectify_subtitle: "Profesyonel Doğum Saati Doğrulama",
+            rectify_info: "Doğum saatinizi tam olarak bilmiyorsanız, 'Transitler' kullanarak onu tersten hesaplayabiliriz. Gezegenler hayatınızdaki önemli olaylar sırasında belirli konumlardaydı. Bu olayları haritanın kilit noktalarıyla eşleştirerek en olası doğum saatini bulabiliriz.",
+            rectify_step1: "1. Doğum Tarihini Doğrula",
+            rectify_step2: "2. Önemli Hayat Olayları",
+            rectify_ev_instr: "En az 3 önemli olay ekle (Evlilik, Çocuk, Mezuniyet, Taşınma, Kayıp vb.)",
+            rectify_btn_add: "+ Başka Olay Ekle",
+            rectify_btn_find: "Doğru Saati Bul",
+            rectify_scanning: "24 saat taranıyor...",
+            rectify_res_title: "En Olası Saatler",
+            rectify_evid: "Kanıtlar:",
+            rectify_use_btn: "Bu Saati Kullan",
+            rectify_no_match: "Güçlü bir eşleşme bulunamadı. Lütfen daha fazla olay ekleyin veya tarihleri kontrol edin.",
+            rectify_error: "Hesaplama hatası. Lütfen tekrar deneyin."
+        }
+    };
+
+    const elementDescriptions = {
+        en: {
+            Fire: "This group is driven by passion, action, and enthusiasm. Decisions are made quickly, often on impulse. You inspire each other to take risks, but may struggle with patience or details. A high-energy squad!",
+            Earth: "A grounded, practical, and reliable group. You value stability, tangible results, and common sense. While you may move slowly, you build things that last. Financially and structurally sound.",
+            Air: "Communication is the lifeblood of this group. You love debating ideas, socializing, and exploring new concepts. It's a very intellectual and buzz-filled environment, though sometimes lacking emotional depth.",
+            Water: "This group shares a deep emotional bond. Intuition, empathy, and feelings guide your interactions. You protect each other and understand unspoken moods, but can be prone to drama or mood swings."
+        },
+        tr: {
+            Fire: "Bu grup tutku, eylem ve heyecanla yönetiliyor. Kararlar hızlı ve genellikle dürtüsel alınır. Birbirinizi risk almaya teşvik edersiniz, ancak sabır veya detaylarda zorlanabilirsiniz. Yüksek enerjili bir ekip!",
+            Earth: "Ayakları yere basan, pratik ve güvenilir bir grup. İstikrarı, somut sonuçları ve sağduyuyu önemsersiniz. Biraz yavaş hareket edebilirsiniz ama kalıcı işler başarırsınız. Maddi ve yapısal olarak sağlam.",
+            Air: "İletişim bu grubun can damarıdır. Fikirleri tartışmayı, sosyalleşmeyi ve yeni kavramları keşfetmeyi seversiniz. Çok entelektüel ve hareketli bir ortamdır, ancak bazen duygusal derinlikten yoksun olabilir.",
+            Water: "Bu grup derin bir duygusal bağ paylaşır. Sezgi, empati ve hisler etkileşimlerinize yön verir. Birbirinizi korur ve söylenmemiş ruh hallerini anlarsınız, ancak drama veya ruh hali değişimlerine yatkın olabilirsiniz."
+        }
+    };
+
+    const astroTerms = {
+        en: { Sun: "Sun", Moon: "Moon", Mercury: "Mercury", Venus: "Venus", Mars: "Mars", Jupiter: "Jupiter", Saturn: "Saturn", Uranus: "Uranus", Neptune: "Neptune", Pluto: "Pluto", 'North Node': "North Node", Ascendant: "Ascendant", Aries: "Aries", Taurus: "Taurus", Gemini: "Gemini", Cancer: "Cancer", Leo: "Leo", Virgo: "Virgo", Libra: "Libra", Scorpio: "Scorpio", Sagittarius: "Sagittarius", Capricorn: "Capricorn", Aquarius: "Aquarius", Pisces: "Pisces" },
+        tr: { Sun: "Güneş", Moon: "Ay", Mercury: "Merkür", Venus: "Venüs", Mars: "Mars", Jupiter: "Jüpiter", Saturn: "Satürn", Uranus: "Uranüs", Neptune: "Neptün", Pluto: "Plüton", 'North Node': "Kuzey Ay Düğümü", Ascendant: "Yükselen", Aries: "Koç", Taurus: "Boğa", Gemini: "İkizler", Cancer: "Yengeç", Leo: "Aslan", Virgo: "Başak", Libra: "Terazi", Scorpio: "Akrep", Sagittarius: "Yay", Capricorn: "Oğlak", Aquarius: "Kova", Pisces: "Balık" }
+    };
+
+    // GLOBAL LOCATION LOGIC (Generic for loc- prefixed elements in Chart)
+    async function loadCountries() {
+        const cSel = document.getElementById('loc-country');
+        if (!cSel) return;
+
+        cSel.innerHTML = '<option value="">Yükleniyor...</option>';
+        try {
+            const res = await fetch('/api/countries/');
+            const data = await res.json();
+            if (data.countries) {
+                let html = '<option value="">Ülke Seçiniz</option>';
+                data.countries.forEach(c => {
+                    const selected = (c.code === 'TR') ? 'selected' : '';
+                    html += `<option value="${c.code}" ${selected}>${c.name}</option>`;
+                });
+                cSel.innerHTML = html;
+                loadProvinces(); // Trigger next level
+            }
+        } catch (e) { cSel.innerHTML = '<option>Hata</option>'; }
+    }
+
+    async function loadProvinces() {
+        const code = document.getElementById('loc-country').value;
+        const pSel = document.getElementById('loc-province');
+        const cSel = document.getElementById('loc-city');
+
+        if (!pSel || !cSel) return;
+
+        cSel.innerHTML = '<option value="">Önce İl Seçiniz...</option>';
+        pSel.style.display = 'none';
+
+        if (!code) return;
+
+        try {
+            const res = await fetch(`/api/provinces/?code=${code}`);
+            const data = await res.json();
+
+            if (data.provinces && data.provinces.length > 0) {
+                let html = '<option value="">İl Seçiniz</option>';
+                data.provinces.forEach(p => {
+                    html += `<option value="${p.code}">${p.name}</option>`;
+                });
+                pSel.innerHTML = html;
+                pSel.style.display = 'block';
+            } else {
+                // No provinces
+                loadCities();
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadCities() {
+        const country = document.getElementById('loc-country').value;
+        const province = document.getElementById('loc-province').value;
+        const cSel = document.getElementById('loc-city');
+
+        if (!cSel) return;
+
+        cSel.innerHTML = '<option value="">Yükleniyor...</option>';
+
+        try {
+            let url = `/api/cities/?code=${country}`;
+            if (province && document.getElementById('loc-province').style.display !== 'none') {
+                url += `&admin_code=${province}`;
+            }
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.cities) {
+                let html = '<option value="">İlçe/Şehir Seçiniz</option>';
+                data.cities.forEach(c => {
+                    html += `<option value="${c.lat},${c.lon}">${c.name}</option>`;
+                });
+                cSel.innerHTML = html;
+            }
+        } catch (e) { cSel.innerHTML = '<option>Hata</option>'; }
+    }
+
+    function setCityCoords() {
+        const val = document.getElementById('loc-city').value;
+        if (val) {
+            const [lat, lon] = val.split(',');
+            const latEl = document.getElementById('lat');
+            const lonEl = document.getElementById('lon');
+            if (latEl) latEl.value = lat;
+            if (lonEl) lonEl.value = lon;
+        }
+    }
+
+    /* THEME LOGIC */
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+
+        // Toggle theme attribute
+        if (html.getAttribute('data-theme') === 'light') {
+            html.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'dark');
+            icon.className = 'fas fa-moon';
+            icon.style.color = 'var(--gold)';
+        } else {
+            html.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+            icon.className = 'fas fa-sun';
+            icon.style.color = 'var(--accent)';
+        }
+    }
+
+    // Init Theme on Load
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme');
+        const icon = document.getElementById('theme-icon');
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            if (icon) {
+                icon.className = 'fas fa-sun';
+                icon.style.color = 'var(--accent)';
+            }
+        }
+    });
+
+    // Also run init immediately to prevent flash if possible (for inline scripts)
+    const _saved = localStorage.getItem('theme');
+    if (_saved === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+</script>

@@ -1,0 +1,112 @@
+<script>
+    console.log("Admin Script Loaded");
+
+    async function loadAdminPage() {
+        console.log("loadAdminPage CALLED");
+        const userList = document.getElementById('adm-user-list');
+        if (userList) userList.innerHTML = '<tr><td colspan="4" style="text-align:center">Veri çekiliyor...</td></tr>';
+
+        // Fetch Data from API
+        try {
+            console.log("Fetching /api/custom-admin/data/...");
+            const res = await fetch('/api/custom-admin/data/');
+
+            if (!res.ok) {
+                const txt = await res.text();
+                console.error("API Error:", txt);
+                alert("API Hatası: " + res.status);
+                return;
+            }
+
+            const data = await res.json();
+            console.log("Admin Data Received:", data);
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Bind Stats
+            if (document.getElementById('adm-unique')) document.getElementById('adm-unique').innerText = data.stats.unique_visitors;
+            if (document.getElementById('adm-req')) document.getElementById('adm-req').innerText = data.stats.total_requests;
+            if (document.getElementById('adm-total-user')) document.getElementById('adm-total-user').innerText = `(Toplam: ${data.stats.total_users})`;
+
+            // Active Users
+            const activeDiv = document.getElementById('adm-active');
+            if (activeDiv) {
+                if (data.stats.active_users.length > 0) {
+                    activeDiv.innerHTML = data.stats.active_users.map(u => `<span class="badge" style="background:rgba(50,200,50,0.2); margin-right:5px; padding:2px 5px; border-radius:4px">${u}</span>`).join('');
+                } else {
+                    activeDiv.innerText = "- Yok -";
+                }
+            }
+
+            // User List
+            const userList = document.getElementById('adm-user-list');
+            if (userList) {
+                if (data.users.length > 0) {
+                    userList.innerHTML = data.users.map(u => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                            <td style="padding:10px"><b>${u.username}</b> <span style="font-size:0.7rem; opacity:0.5">#${u.id}</span></td>
+                            <td style="padding:10px; opacity:0.8">${u.email}</td>
+                            <td style="padding:10px">
+                                 ${u.level === 'premium' ? '<span style="color:black; background:#FFD700; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:0.7rem">PREMIUM</span>' :
+                            '<span style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-size:0.7rem">FREE</span>'}
+                            </td>
+                            <td style="padding:10px">
+                                 <select onchange="changeMembership(${u.id}, this.value)" style="background:#222; color:white; border:1px solid #444; border-radius:4px; padding:2px">
+                                    <option value="" disabled selected>Değiştir...</option>
+                                    <option value="free">Free</option>
+                                    <option value="premium">Premium</option>
+                                 </select>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    userList.innerHTML = '<tr><td colspan="4" style="text-align:center">Kullanıcı bulunamadı.</td></tr>';
+                }
+            }
+
+            // Logs
+            const logList = document.getElementById('adm-log-list');
+            if (logList) {
+                if (data.logs.length > 0) {
+                    logList.innerHTML = data.logs.map(l => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+                             <td style="padding:8px; width:140px; font-size:0.8rem; opacity:0.6">${l.time}</td>
+                             <td style="padding:8px"><b>${l.user}</b></td>
+                             <td style="padding:8px; opacity:0.8">${l.action}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    logList.innerHTML = '<tr><td colspan="3" style="text-align:center">Kayıt yok.</td></tr>';
+                }
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert("Admin verisi yüklenemedi: " + e.message);
+        }
+    }
+
+    async function changeMembership(uid, lvl) {
+        if (!confirm(`Kullanıcı #${uid} seviyesi ${lvl.toUpperCase()} yapılacak. Emin misin?`)) return;
+
+        try {
+            const res = await fetch('/api/custom-admin/update-membership/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: uid, level: lvl })
+            });
+            const d = await res.json();
+            if (d.success) {
+                alert("Güncellendi!");
+                loadAdminPage(); // Refresh list
+            } else {
+                alert("Hata: " + d.error);
+            }
+        } catch (e) {
+            alert("Bağlantı hatası");
+        }
+    }
+</script>

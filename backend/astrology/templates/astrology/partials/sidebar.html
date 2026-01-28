@@ -1,0 +1,293 @@
+{% load static %}
+<style>
+    /* SIDEBAR COMPONENT CSS (Self-Contained) */
+    .sidebar {
+        width: 280px;
+        background: var(--sidebar-bg);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid var(--border);
+        padding: 0;
+        position: fixed;
+        height: 100vh;
+        transition: transform 0.3s, background 0.3s;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nav-group {
+        margin-bottom: 5px;
+    }
+
+    .nav-header {
+        padding: 15px 25px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-muted);
+        font-family: 'Cinzel', serif;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border-left: 3px solid transparent;
+    }
+
+    .nav-header:hover {
+        color: var(--accent);
+        background: var(--glass);
+    }
+
+    .nav-children {
+        display: none;
+        background: var(--input-bg);
+    }
+
+    .nav-children.show {
+        display: block;
+        animation: slideDown 0.3s forwards;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .nav-item {
+        padding: 12px 25px 12px 40px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 0.95rem;
+        border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+        background: linear-gradient(90deg, rgba(233, 69, 96, 0.2), transparent);
+        color: #E94560;
+        border-left: 3px solid #E94560;
+        padding-left: 45px;
+    }
+
+    .nav-item i {
+        width: 20px;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+
+    .logo {
+        padding: 30px 25px;
+        font-family: 'Cinzel', serif;
+        font-size: 1.5rem;
+        color: var(--gold);
+        letter-spacing: 2px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .lang-sel {
+        margin: 20px 25px;
+    }
+
+    .lang-sel select {
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 8px;
+        border-radius: 5px;
+        width: 100%;
+        outline: none;
+        cursor: pointer;
+    }
+
+    /* SCROLLBAR */
+    .sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: #E94560;
+        border-radius: 3px;
+    }
+</style>
+
+<nav class="sidebar" id="sidebar" style="overflow: hidden; display: flex; flex-direction: column;">
+    <!-- FLEX WRAPPER FOR SCROLLABLE CONTENT -->
+    <div style="flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; min-height: 0;">
+        <div class="logo" style="justify-content: center; padding: 20px;">
+            <img src="{% static 'astrology/logo_dk.png' %}" alt="Derin Kozmos"
+                style="width: 100%; max-width: 180px; height: auto; border-radius: 50%; box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);">
+        </div>
+
+        <!-- GROUP 1: KOZMİK REHBER (GENERAL) -->
+        <div class="nav-group">
+            <div class="nav-header" onclick="toggleGroup('general', this)">
+                <span data-i18n="group_general">Kozmik Rehber</span> <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="nav-children" id="group-general">
+                <div class="nav-item active" onclick="nav('home', this)">
+                    <i class="fas fa-home"></i> <span>Anasayfa</span>
+                </div>
+                <div class="nav-item" onclick="nav('horoscopes', this)">
+                    <i class="fas fa-star"></i> <span>Günlük Yorumlar</span>
+                </div>
+                <div class="nav-item" onclick="nav('blog', this)">
+                    <i class="fas fa-feather-alt"></i> <span>Kozmik Yazılar</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='/library/'">
+                    <i class="fas fa-book"></i> <span>Kütüphane</span>
+                </div>
+                <div class="nav-item" onclick="nav('tarot', this)">
+                    <i class="fas fa-hat-wizard"></i> <span data-i18n="menu_tarot">Tarot Odası</span>
+                </div>
+                <div class="nav-item"
+                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('celestial', this){% else %}showUpgradeModal('Göksel Olaylar takvimi Premium üyelere özeldir.'){% endif %}">
+                    <i class="fas fa-moon"></i> <span data-i18n="menu_celestial">Göksel Olaylar</span>
+                    {% if not FREE_PREMIUM_MODE and user.profile.effective_membership != 'premium' and not user.is_superuser %}<i class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
+                    
+                </div>
+                <div class="nav-item" onclick="nav('hours', this)">
+                    <i class="fas fa-hourglass-half"></i> <span data-i18n="menu_hours">Gezegen Saatleri</span>
+                </div>
+                <div class="nav-item" onclick="nav('guide', this)"
+                    style="border-top:1px solid rgba(255,255,255,0.05); margin-top:5px; padding-top:15px">
+                    <i class="fas fa-info-circle" style="color:var(--accent)"></i> <span data-i18n="menu_guide">Kullanım
+                        Kılavuzu</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- GROUP 2: KİŞİSEL ANALİZ (PERSONAL) -->
+        <div class="nav-group">
+            <div class="nav-header" onclick="toggleGroup('personal', this)">
+                <span data-i18n="group_personal">Kişisel Analiz</span> <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="nav-children" id="group-personal">
+                <div class="nav-item" onclick="nav('chart', this)">
+                    <i class="fas fa-globe-europe"></i> <span data-i18n="menu_chart">Doğum Haritası</span>
+                </div>
+                <div class="nav-item" onclick="nav('daily', this)">
+                    <i class="fas fa-calendar-alt"></i> <span data-i18n="menu_daily">Günlük & Haftalık</span>
+                </div>
+                <div class="nav-item" onclick="nav('social', this)">
+                    <i class="fas fa-users"></i> <span data-i18n="menu_social">Sosyal Analiz</span>
+                </div>
+                <div class="nav-item" id="nav-synastry-btn" onclick="nav('synastry', this)">
+                    <i class="fas fa-heart"></i> <span data-i18n="menu_synastry">Aşk Uyumu</span>
+                </div>
+                <div class="nav-item"
+                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('career', this){% else %}showUpgradeModal('Kariyer Yolu sadece Premium üyelere özeldir.'){% endif %}">
+                    <i class="fas fa-briefcase"></i> <span data-i18n="menu_career">Kariyer Yolu</span>
+                    {% if user.profile.effective_membership != 'premium' and not user.is_superuser %}<i
+                        class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
+                </div>
+                <div class="nav-item"
+                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('draconic', this){% else %}showUpgradeModal('Drakonik Ruh Haritası sadece Premium üyelere özeldir.'){% endif %}">
+                    <i class="fas fa-dragon"></i> <span data-i18n="menu_draconic">Drakonik Ruh</span>
+                    {% if user.profile.effective_membership != 'premium' and not user.is_superuser %}<i
+                        class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
+                </div>
+                <div class="nav-item"
+                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('rectification', this){% else %}showUpgradeModal('Rektifikasyon sadece Premium üyelere özeldir.'){% endif %}">
+                    <i class="fas fa-search-location"></i> <span data-i18n="rectify_title">Rektifikasyon</span>
+                    {% if user.profile.effective_membership != 'premium' and not user.is_superuser %}<i
+                        class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- GROUP 3: YÖNETİM (ADMIN) -->
+        <div class="nav-group">
+            <div class="nav-header" onclick="toggleGroup('settings', this)">
+                <span data-i18n="group_system">Sistem</span> <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="nav-children" id="group-settings">
+                <div class="nav-item" onclick="openSettings()">
+                    <i class="fas fa-cog"></i> <span data-i18n="nav_settings">Ayarlar</span>
+                </div>
+                {% if user.is_staff or user.is_superuser %}
+                <div class="nav-item" onclick="nav('editor', this)" style="color:#E94560;">
+                    <i class="fas fa-pen-nib"></i> <span>Kozmik Editör</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='/custom-admin/'" style="color:#E94560;">
+                    <i class="fas fa-user-shield"></i> <span>Yönetim Paneli</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='/library/admin-editor/'" style="color:#FFD700;">
+                    <i class="fas fa-edit"></i> <span>Editör Masası</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER SECTION (Pinned at bottom) -->
+    {% include 'astrology/partials/footer_sidebar.html' %}
+</nav>
+
+<script>
+    // State Persistence for Sidebar
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Restore Open Group
+        const openGroup = localStorage.getItem('sidebar_open_group');
+        if (openGroup) {
+            const group = document.getElementById('group-' + openGroup);
+            const header = document.querySelector(`.nav-header[onclick*="'${openGroup}'"]`);
+            if (group && header) {
+                group.classList.add('show');
+                const icon = header.querySelector('.fa-chevron-down');
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // 2. Force Turkish Default (Fix for Tarot English issue)
+        if (typeof changeLang === 'function') {
+            const savedLang = localStorage.getItem('app_lang') || 'tr';
+            const langSel = document.getElementById('lang');
+            if (langSel) langSel.value = savedLang;
+            changeLang(savedLang);
+        }
+    });
+
+    function toggleGroup(id, header) {
+        const group = document.getElementById('group-' + id);
+        const icon = header.querySelector('.fa-chevron-down');
+
+        if (group.classList.contains('show')) {
+            group.classList.remove('show');
+            icon.style.transform = 'rotate(0deg)';
+            localStorage.removeItem('sidebar_open_group'); // Clear if closed manually
+        } else {
+            // Optional: Close others
+            document.querySelectorAll('.nav-children').forEach(el => {
+                el.classList.remove('show');
+                // Reset icons
+                const otherHeader = el.previousElementSibling;
+                if (otherHeader) {
+                    const otherIcon = otherHeader.querySelector('.fa-chevron-down');
+                    if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+
+            group.classList.add('show');
+            icon.style.transform = 'rotate(180deg)';
+            localStorage.setItem('sidebar_open_group', id); // Save state
+        }
+    }
+</script>

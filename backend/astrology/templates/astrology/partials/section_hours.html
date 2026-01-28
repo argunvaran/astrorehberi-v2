@@ -1,0 +1,319 @@
+<section id="view-hours" class="view animate-in" style="display:none">
+    <div style="text-align:center; margin-bottom:30px">
+        <h1 style="font-family:'Cinzel'; font-size:2.5rem; color:var(--gold); margin-bottom:10px"
+            data-i18n="menu_hours">GEZEGEN SAATLERİ</h1>
+    </div>
+
+    <!-- LOCATION SELECTOR -->
+    <div class="glass-card" style="padding:20px; text-align:center; max-width:600px; margin:0 auto 30px auto">
+        <h3 style="margin-bottom:15px; color:var(--text)">Konumunuzu Seçin</h3>
+        <p style="font-size:0.9rem; color:var(--text); opacity:0.7; margin-bottom:20px">
+            Gezegen saatleri bulunduğunuz şehre göre hesaplanır. Lütfen konumunuzu doğrulayın.
+        </p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px">
+            <select id="ph-country" class="glass-input" onchange="loadPHProvinces()">
+                <option value="">Ülke...</option>
+            </select>
+            <select id="ph-province" class="glass-input" style="display:none" onchange="loadPHCities()">
+                <option value="">İl...</option>
+            </select>
+        </div>
+        <div style="margin-bottom:15px">
+            <select id="ph-city" class="glass-input" onchange="enablePHCalc()">
+                <option value="">Şehir Seçiniz...</option>
+            </select>
+        </div>
+
+        <input type="hidden" id="ph-lat">
+        <input type="hidden" id="ph-lon">
+
+        <button onclick="calculateHours()" id="btn-ph-calc" class="btn"
+            style="width:100%; justify-content:center; opacity:0.5; pointer-events:none">
+            <i class="fas fa-calculator"></i> Hesapla
+        </button>
+    </div>
+
+    <div id="hours-loader" style="display:none; text-align:center; padding:20px">
+        <div class="spinner"
+            style="border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--gold); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin:0 auto">
+        </div>
+        <p style="margin-top:10px; opacity:0.7">NASA Verileri Taranıyor...</p>
+    </div>
+
+    <div id="hours-res" class="glass-card" style="background:transparent; padding:0; box-shadow:none; display:none">
+    </div>
+</section>
+
+<script>
+    // --- LOCATION LOGIC SPECIFIC TO HOURS ---
+    async function initPHLocation() {
+        console.log("initPHLocation Starting...");
+        const cSel = document.getElementById('ph-country');
+        const pSel = document.getElementById('ph-province');
+        const citySel = document.getElementById('ph-city');
+
+        cSel.innerHTML = '<option>Yükleniyor...</option>';
+
+        try {
+            const res = await fetch('/api/countries/');
+            const data = await res.json();
+            if (data.countries) {
+                let html = '<option value="">Ülke Seçiniz</option>';
+                let defaultCode = '';
+
+                data.countries.forEach(c => {
+                    const isTr = (c.code === 'TR');
+                    if (isTr) defaultCode = 'TR';
+                    html += `<option value="${c.code}" ${isTr ? 'selected' : ''}>${c.name}</option>`;
+                });
+
+                cSel.innerHTML = html;
+
+                // Force Value Set
+                if (defaultCode) {
+                    cSel.value = defaultCode;
+                    console.log("Country set to:", defaultCode);
+                    loadPHProvinces();
+                }
+            }
+        } catch (e) {
+            console.error("Country Load Error:", e);
+            cSel.innerHTML = '<option>Hata</option>';
+        }
+    }
+
+    async function loadPHProvinces() {
+        const code = document.getElementById('ph-country').value;
+        const pSel = document.getElementById('ph-province');
+        const cSel = document.getElementById('ph-city');
+
+        console.log("Loading Provinces for:", code);
+
+        if (!code) {
+            pSel.style.display = 'none';
+            return;
+        }
+
+        pSel.style.display = 'none';
+        cSel.innerHTML = '<option>Yükleniyor...</option>';
+
+        try {
+            const res = await fetch(`/api/provinces/?code=${code}`);
+            const data = await res.json();
+
+            console.log("Provinces Data:", data);
+
+            if (data.provinces && data.provinces.length > 0) {
+                let html = '<option value="">İl Seçiniz</option>';
+                data.provinces.forEach(p => html += `<option value="${p.code}">${p.name}</option>`);
+                pSel.innerHTML = html;
+                pSel.style.display = 'block'; // Make Visible
+                cSel.innerHTML = '<option value="">Önce İl Seçiniz...</option>';
+            } else {
+                console.log("No provinces found, loading cities directly.");
+                pSel.style.display = 'none';
+                loadPHCities();
+            }
+        } catch (e) {
+            console.error("Province Load Failed:", e);
+            cSel.innerHTML = '<option>Bağlantı Hatası</option>';
+        }
+    }
+
+    async function loadPHCities() {
+        const country = document.getElementById('ph-country').value;
+        const province = document.getElementById('ph-province').value;
+        const cSel = document.getElementById('ph-city');
+
+        console.log("Loading Cities for:", country, "Prov:", province);
+
+        cSel.innerHTML = '<option>Yükleniyor...</option>';
+
+        let url = `/api/cities/?code=${country}`;
+        // Only append admin_code if province is actually selected and visible
+        if (province && document.getElementById('ph-province').style.display !== 'none') {
+            url += `&admin_code=${province}`;
+        }
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+
+            let html = '<option value="">Şehir Seçiniz</option>';
+            if (data.cities) {
+                data.cities.forEach(c => {
+                    html += `<option value="${c.lat},${c.lon}">${c.name}</option>`;
+                });
+                cSel.innerHTML = html;
+            } else {
+                cSel.innerHTML = '<option value="">Şehir Bulunamadı</option>';
+            }
+        } catch (e) {
+            console.error("City Load Error:", e);
+            cSel.innerHTML = '<option>Hata</option>';
+        }
+    }
+
+    function enablePHCalc() {
+        const val = document.getElementById('ph-city').value;
+        const btn = document.getElementById('btn-ph-calc');
+        if (val) {
+            const [lat, lon] = val.split(',');
+            document.getElementById('ph-lat').value = lat;
+            document.getElementById('ph-lon').value = lon;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'all';
+        }
+    }
+
+    // --- CALCULATION LOGIC ---
+    async function calculateHours() {
+        const lat = document.getElementById('ph-lat').value;
+        const lon = document.getElementById('ph-lon').value;
+
+        if (!lat || !lon) return;
+
+        document.getElementById('hours-res').style.display = 'none';
+        document.getElementById('hours-loader').style.display = 'block';
+
+        try {
+            // Use current Date (Client Local Date string, or let backend default?)
+            // Backend defaults to now(). Location is what matters.
+            const res = await fetch(`/api/planetary-hours/?lat=${lat}&lon=${lon}`); // Date defaults to today
+            const data = await res.json();
+
+            if (data.hours) {
+                renderHours(data.hours);
+                document.getElementById('hours-res').style.display = 'block';
+            } else if (data.upgrade_required) {
+                // Show Custom Premium Modal
+                showPremiumModal(data.error);
+            } else if (data.error) {
+                showAstroModal("Hata: " + data.error, "HATA", "error");
+            } else {
+                showAstroModal("Bilinmeyen hata (Boş veri).", "HATA", "error");
+            }
+        } catch (e) {
+            showAstroModal("Bağlantı hatası: " + e.message, "HATA", "error");
+        } finally {
+            document.getElementById('hours-loader').style.display = 'none';
+        }
+    }
+
+    function renderHours(data) {
+        const div = document.getElementById('hours-res');
+        const lang = document.getElementById('lang').value; // Global lang
+
+        const planetNames = {
+            en: { Sun: "Sun", Moon: "Moon", Mercury: "Mercury", Venus: "Venus", Mars: "Mars", Jupiter: "Jupiter", Saturn: "Saturn" },
+            tr: { Sun: "Güneş", Moon: "Ay", Mercury: "Merkür", Venus: "Venüs", Mars: "Mars", Jupiter: "Jüpiter", Saturn: "Satürn" }
+        };
+        const colors = { Sun: '#DAA520', Moon: '#AAAAAA', Mercury: '#74B9FF', Venus: '#FF9FF3', Mars: '#FF6B6B', Jupiter: '#D980FA', Saturn: '#9980FA' };
+        const icons = { Sun: '☀️', Moon: '🌙', Mercury: '☿️', Venus: '♀️', Mars: '♂️', Jupiter: '♃', Saturn: '♄' };
+        const hourMeanings = {
+            en: { Sun: "Success", Moon: "Emotion", Mercury: "Intellect", Venus: "Love", Mars: "Action", Jupiter: "Luck", Saturn: "Discipline" },
+            tr: { Sun: "Başarı", Moon: "Duygu", Mercury: "Zeka", Venus: "Aşk", Mars: "Eylem", Jupiter: "Şans", Saturn: "Disiplin" }
+        };
+
+        let html = `<div style="display:flex; flex-direction:column; gap:10px; animation:fadeIn 0.5s">`;
+
+        // Find current active hour highlight
+        // Problem: Data uses UTC/Local? Backend output depends on input.
+        // We need to compare with Client Time.
+        // But backend calculated Sunrise/Sunset based on UTC input or Local?
+        // Let's assume Backend returned Local Times as strings "HH:MM".
+
+        const planetDetails = {
+            en: {
+                Sun: "The Hour of the Sun is perfect for professional ambition, asking for promotions, public speaking, and vitality works. Your charisma is naturally high.",
+                Moon: "The Hour of the Moon favors domestic activities, cooking, emotional bonding, and rest. A great time for introspection and family.",
+                Mercury: "The Hour of Mercury is perfect for analytical tasks, coding, writing, and signing contracts. Communication is sharp.",
+                Venus: "The Hour of Venus enhances romance, art, luxury shopping, and social gatherings. Enjoy the beauty of life.",
+                Mars: "The Hour of Mars is best for workouts, tackling hard tasks, and bold moves. Avoid arguments.",
+                Jupiter: "The Hour of Jupiter brings opportunities, financial growth, and spiritual expansion. Plan your big picture.",
+                Saturn: "The Hour of Saturn supports deep focus, organization, and disciplined work. Handle responsibilities now."
+            },
+            tr: {
+                Sun: "Güneş Saati kariyer hedefleri, terfi istemek, sunum yapmak ve otorite figürleriyle görüşmek için mükemmeldir. Karizmanız yüksektir.",
+                Moon: "Ay Saati ev işleri, yemek pişirmek, aileyle vakit geçirmek ve dinlenmek için uygundur. Duygusal bağlar ve içe dönüş için harikadır.",
+                Mercury: "Merkür Saati mail atmak, kod yazmak, anlaşma imzalamak ve eğitim için en verimli zamandır. Zihin açık ve iletişim akıcıdır.",
+                Venus: "Venüs Saati romantik buluşmalar, sanatsal aktiviteler, alışveriş ve bakım için idealdir. Keyifli anların tadını çıkarın.",
+                Mars: "Mars Saati spor yapmak, zorlu işleri bitirmek ve cesaret gerektiren adımlar atmak için enerji verir. Tartışmalardan kaçının.",
+                Jupiter: "Jüpiter Saati şans, bereket ve bilgelik getirir. Yatırım planlamak, yeni bir şeyler öğrenmek ve vizyon çizmek için en iyi saattir.",
+                Saturn: "Satürn Saati disiplin, düzenleme ve odaklanma gerektiren işler için en iyisidir. Sabır isteyen uzun vadeli projeleri bu saatte halledin."
+            }
+        };
+
+        const now = new Date();
+        const currentH = now.getHours();
+        const currentM = now.getMinutes();
+        const currentVal = currentH * 60 + currentM;
+
+        data.forEach((h, index) => {
+            const planet = h.ruler;
+            const tName = planetNames[lang][planet] || planet;
+            const color = colors[planet];
+            const detail = planetDetails[lang][planet] || "";
+            const uid = `ph-detail-${index}`;
+
+            // Check active
+            const [sH, sM] = h.start.split(':').map(Number);
+            const [eH, eM] = h.end.split(':').map(Number);
+
+            let sVal = sH * 60 + sM;
+            let eVal = eH * 60 + eM;
+
+            let isActive = false;
+
+            // Check for midnight crossing (e.g. 23:00 - 00:15)
+            // If end time is smaller than start time, it means we crossed midnight
+            if (eVal < sVal) {
+                // Active if we are AFTER start (til midnight) OR BEFORE end (from midnight)
+                if (currentVal >= sVal || currentVal < eVal) isActive = true;
+            } else {
+                // Standard within-day interval
+                if (currentVal >= sVal && currentVal < eVal) isActive = true;
+            }
+
+            const style = isActive
+                ? `border-left:4px solid var(--accent); background:linear-gradient(90deg, rgba(233,69,96,0.2), rgba(0,0,0,0)); box-shadow:0 5px 15px rgba(0,0,0,0.2); transform:scale(1.02);`
+                : `border-left:4px solid ${color}; background:rgba(255,255,255,0.03);`;
+
+            html += `
+            <div class="glass-card" 
+                 onclick="const d=document.getElementById('${uid}'); d.style.display=d.style.display==='none'?'block':'none'; const i=this.querySelector('.fa-chevron-down'); i.style.transform=d.style.display==='block'?'rotate(180deg)':'rotate(0deg)'"
+                 style="padding:15px; margin:0; ${style} cursor:pointer; transition:all 0.3s">
+                
+                <div style="display:flex; align-items:center; justify-content:space-between">
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <div style="font-family:'Outfit'; font-size:1.1rem; width:110px; opacity:0.9; color:var(--text)">${h.start} - ${h.end}</div>
+                        <div style="font-size:1.8rem; text-shadow:0 0 10px ${color}; width:40px; text-align:center">${icons[planet]}</div>
+                        <div>
+                            <div style="font-weight:bold; color:var(--text); font-size:1.1rem">${tName}</div>
+                            <div style="font-size:0.8rem; color:${color}; opacity:0.8; text-transform:uppercase; letter-spacing:1px">${hourMeanings[lang][planet]}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px">
+                        ${isActive ? '<div style="background:var(--accent); color:white; padding:4px 10px; border-radius:10px; font-size:0.7rem; font-weight:bold; animation:pulse 2s infinite">ŞU AN</div>' : ''}
+                        <i class="fas fa-chevron-down" style="opacity:0.5; transition:transform 0.3s; color:var(--text)"></i>
+                    </div>
+                </div>
+
+                <div id="${uid}" style="display:none; margin-top:15px; padding-top:15px; border-top:1px solid rgba(128,128,128,0.2); font-size:0.95rem; line-height:1.6; color:var(--text); opacity:0.8;">
+                    ${detail}
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+        div.innerHTML = html;
+    }
+
+    // Expose Immediately (Before DOMContentLoaded fires)
+    window.loadHoursPage = initPHLocation;
+
+    // Auto Init if view is already active (Edge case)
+    if (document.getElementById('view-hours') && document.getElementById('view-hours').style.display !== 'none') {
+        initPHLocation();
+    }
+</script>

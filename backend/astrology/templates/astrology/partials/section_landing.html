@@ -1,0 +1,385 @@
+<!-- LANDING / AUTH SCREEN -->
+<div id="landing-root"
+    style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:200; background:radial-gradient(circle at center, #1a0b2e 0%, #000 100%); display:{% if user.is_authenticated %}none{% else %}flex{% endif %}; flex-direction:column; align-items:center; justify-content:center; text-align:center">
+
+    <div
+        style="font-size:4rem; color:var(--gold); font-family:'Cinzel'; text-shadow:0 0 30px var(--accent); margin-bottom:20px; animation: float 6s ease-in-out infinite">
+        <i class="fas fa-star-and-crescent"></i>
+    </div>
+
+    <h1 style="font-size:3rem; margin-bottom:10px; font-family:'Cinzel'; letter-spacing:2px">DEEP COSMOS</h1>
+    <!-- HEADER & BUTTON -->
+    <p
+        style="font-size:1.2rem; opacity:0.7; max-width:600px; line-height:1.6; margin-bottom:40px; font-family:'Outfit'">
+        Günlük Burç Yorumları & Kozmik Rehberlik
+    </p>
+
+    <!-- BIG ACTION BUTTON -->
+    <button onclick="document.getElementById('auth-modal-overlay').style.display='flex'"
+        style="padding:15px 50px; font-size:1.2rem; background:var(--accent); color:white; border:none; border-radius:50px; box-shadow:0 10px 30px rgba(233,69,96,0.4); margin-bottom:40px; animation:pulse 2s infinite; cursor:pointer; font-weight:bold; letter-spacing:1px; transition:transform 0.2s">
+        <i class="fas fa-rocket" style="margin-right:10px"></i> GİRİŞ YAP / KAYIT OL
+    </button>
+
+    <!-- AUTH MODAL OVERLAY -->
+    <div id="auth-modal-overlay"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:250; display:none; align-items:center; justify-content:center; backdrop-filter:blur(8px)"
+        onclick="if(event.target === this) this.style.display='none'">
+
+        <div
+            style="background:rgba(20, 20, 40, 0.95); padding:40px; border-radius:24px; border:1px solid var(--accent); width:90%; max-width:420px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.5)">
+
+            <button onclick="document.getElementById('auth-modal-overlay').style.display='none'"
+                style="position:absolute; top:20px; right:20px; background:none; border:none; color:rgba(255,255,255,0.5); font-size:1.5rem; cursor:pointer">&times;</button>
+
+            <div style="text-align:center; margin-bottom:30px">
+                <i class="fas fa-user-astronaut" style="font-size:3rem; color:var(--accent); margin-bottom:10px"></i>
+                <h2 style="margin:0; color:white">Kozmik Giriş</h2>
+            </div>
+
+            <div
+                style="display:flex; gap:10px; margin-bottom:25px; background:rgba(255,255,255,0.05); padding:5px; border-radius:12px">
+                <div id="tab-login" onclick="switchAuthTab('login')"
+                    style="flex:1; cursor:pointer; padding:10px; text-align:center; border-radius:8px; background:var(--accent); color:white; font-weight:bold; transition:all 0.3s">
+                    GİRİŞ</div>
+                <div id="tab-register" onclick="switchAuthTab('register')"
+                    style="flex:1; cursor:pointer; padding:10px; text-align:center; border-radius:8px; color:rgba(255,255,255,0.6); transition:all 0.3s">
+                    KAYIT</div>
+            </div>
+
+            <!-- INPUTS -->
+            <input type="text" id="auth-username" placeholder="Kullanıcı Adı"
+                style="margin-bottom:15px; width:100%; padding:15px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white; font-family:'Outfit'">
+            <input type="password" id="auth-password" placeholder="Şifre"
+                style="margin-bottom:15px; width:100%; padding:15px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white; font-family:'Outfit'">
+
+            <!-- REGISTER EXTRA FIELDS -->
+            <div id="reg-fields" style="display:none; text-align:left; animation:fadeIn 0.3s">
+                <div
+                    style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:bold; letter-spacing:1px">
+                    DOĞUM BİLGİLERİ (Harita İçin)</div>
+
+                <input type="date" id="auth-date"
+                    style="margin-bottom:10px; width:100%; padding:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; font-family:'Outfit'">
+
+                <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px">
+                    <input type="time" id="auth-time" value="12:00"
+                        style="flex:1; margin-bottom:0; padding:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white">
+                    <div
+                        style="display:flex; align-items:center; gap:5px; font-size:0.8rem; color:rgba(255,255,255,0.7)">
+                        <input type="checkbox" id="unknown-time" style="width:auto; margin:0">
+                        <label for="unknown-time" style="cursor:pointer">Belirsiz</label>
+                    </div>
+                </div>
+
+                <div id="rectify-msg"
+                    style="display:none; margin-bottom:15px; background:rgba(255,215,0,0.1); border:1px solid var(--gold); padding:10px; border-radius:8px; font-size:0.85rem; color:#ddd; line-height:1.4">
+                    <i class="fas fa-info-circle" style="color:var(--gold)"></i> Doğum saatinizi Rektifikasyon yöntemi
+                    ile bulacağız. Kayıt işleminden sonra sizi ilgili sayfaya yönlendireceğiz.
+                </div>
+
+                <!-- Advanced Location Selection -->
+                <div
+                    style="font-size:0.75rem; color:var(--accent); margin-bottom:8px; font-weight:bold; letter-spacing:1px">
+                    DOĞUM YERİ</div>
+
+                <select id="reg-country"
+                    style="margin-bottom:10px; width:100%; padding:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white"
+                    onchange="loadRegProvinces()">
+                    <option value="">Ülke Seçiniz...</option>
+                </select>
+
+                <select id="reg-province"
+                    style="display:none; margin-bottom:10px; width:100%; padding:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white"
+                    onchange="loadRegCities()">
+                    <option value="">İl Seçiniz...</option>
+                </select>
+
+                <select id="reg-city"
+                    style="margin-bottom:10px; width:100%; padding:12px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white"
+                    onchange="setRegCoords()">
+                    <option value="">Şehir/İlçe Seçiniz...</option>
+                </select>
+
+                <!-- Hidden Lat/Lon -->
+                <input type="hidden" id="reg-lat" value="41.0">
+                <input type="hidden" id="reg-lon" value="28.0">
+            </div>
+
+            <button onclick="doAuth()" class="btn"
+                style="width:100%; justify-content:center; margin-top:10px; font-size:1.1rem; padding:15px; border-radius:12px">DEVAM
+                ET</button>
+            <div id="auth-msg"
+                style="margin-top:15px; color:#ff4444; font-size:0.9rem; text-align:center; min-height:20px"></div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="position:fixed; bottom:10px; font-size:0.8rem; opacity:0.4; pointer-events:none">
+        &copy; 2026 Deep Cosmos Astrology. All rights reserved.
+    </div>
+
+</div>
+
+<script>
+    let authMode = 'login';
+    let isRegistering = false;
+
+    function switchAuthTab(mode) {
+        authMode = mode;
+        const btnLogin = document.getElementById('tab-login');
+        const btnReg = document.getElementById('tab-register');
+
+        if (mode === 'login') {
+            btnLogin.style.background = 'var(--accent)';
+            btnLogin.style.color = 'white';
+            btnReg.style.background = 'transparent';
+            btnReg.style.color = 'rgba(255,255,255,0.6)';
+        } else {
+            btnReg.style.background = 'var(--accent)';
+            btnReg.style.color = 'white';
+            btnLogin.style.background = 'transparent';
+            btnLogin.style.color = 'rgba(255,255,255,0.6)';
+        }
+
+        document.getElementById('reg-fields').style.display = mode === 'register' ? 'block' : 'none';
+        isRegistering = (mode === 'register');
+    }
+
+    function onAuthSuccess(username) {
+        // Sync LocalStorage
+        localStorage.setItem('session_active', 'true');
+        localStorage.setItem('current_user', username);
+
+        // SOFT LOGIN TRANSITION (Instant)
+        const landing = document.getElementById('landing-root');
+        const app = document.getElementById('app-root');
+
+        if (landing) {
+            landing.style.opacity = '0';
+            setTimeout(() => landing.style.display = 'none', 300);
+        }
+
+        if (app) {
+            app.style.display = 'flex';
+            app.classList.add('animate-in');
+        }
+
+        // Update UI Elements
+        const uDisp = document.getElementById('user-display');
+        if (uDisp) uDisp.innerHTML = `<i class="fas fa-user-circle"></i> ${username}`;
+
+        // Initialize App Data (Since we skipped reload)
+        if (typeof loadHomeGrid === 'function') loadHomeGrid();
+        if (typeof checkAuth === 'function') checkAuth(); // Re-check level
+
+        showToast(`Hoşgeldin ${username}`, 'success');
+    }
+
+    async function doAuth() {
+        const u = document.getElementById('auth-username').value;
+        const p = document.getElementById('auth-password').value;
+        const msg = document.getElementById('auth-msg');
+        msg.innerText = "";
+
+        if (!u || !p) { msg.innerText = "Alanları doldurun."; return; }
+
+        if (authMode === 'login') {
+            try {
+                const res = await fetch('/api/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p }),
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (data.authenticated || data.success) {
+                    onAuthSuccess(data.username || u);
+                } else {
+                    msg.innerText = "Hatalı giriş.";
+                }
+            } catch (e) { msg.innerText = "Sunucu hatası."; }
+        } else {
+            // REGISTER
+            const d = document.getElementById('auth-date').value;
+            const t = document.getElementById('auth-time').value;
+
+            // Check Unknown Time Hook
+            const unknownCheck = document.getElementById('unknown-time');
+            const isUnknown = unknownCheck && unknownCheck.checked;
+
+            // Simple validation
+            if (!d) { msg.innerText = "Doğum tarihi gerekli."; return; }
+
+            try {
+                const res = await fetch('/api/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: u, password: p,
+                        date: d.replace(/\//g, '-'),
+                        time: t,
+                        lat: document.getElementById('reg-lat').value,
+                        lon: document.getElementById('reg-lon').value,
+                        place: (document.getElementById('reg-city').options[document.getElementById('reg-city').selectedIndex]?.text || "Unknown")
+                    }),
+                    credentials: 'include'
+                });
+                const data = await res.json();
+
+                if (data.success || data.created) {
+                    // Auto Login
+                    try {
+                        const loginRes = await fetch('/api/login/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: u, password: p }),
+                            credentials: 'include'
+                        });
+                        const loginData = await loginRes.json();
+
+                        if (loginData.success || loginData.authenticated) {
+                            if (isUnknown && window.postRegistrationHook) {
+                                window.postRegistrationHook();
+                                document.getElementById('landing-root').style.display = 'none';
+                                document.getElementById('app-root').style.display = 'flex';
+                            } else {
+                                onAuthSuccess(u);
+                            }
+                        } else {
+                            // Fallback
+                            onAuthSuccess(u);
+                        }
+                    } catch (e) {
+                        onAuthSuccess(u);
+                    }
+                } else {
+                    msg.innerText = "Kayıt başarısız: " + (data.error || "Bilinmeyen hata");
+                }
+            } catch (e) { msg.innerText = "Kayıt hatası."; }
+        }
+    }
+
+    // --- REGISTRATION LOCATION LOGIC ---
+    async function loadRegCountries() {
+        const cSel = document.getElementById('reg-country');
+        cSel.innerHTML = '<option value="">Yükleniyor...</option>';
+        try {
+            const res = await fetch('/api/countries/');
+            const data = await res.json();
+            if (data.countries) {
+                let html = '<option value="">Ülke Seçiniz</option>';
+                data.countries.forEach(c => {
+                    const selected = (c.code === 'TR') ? 'selected' : '';
+                    html += `<option value="${c.code}" ${selected}>${c.name}</option>`;
+                });
+                cSel.innerHTML = html;
+                loadRegProvinces(); // Trigger next level
+            }
+        } catch (e) { cSel.innerHTML = '<option>Hata</option>'; }
+    }
+
+    async function loadRegProvinces() {
+        const code = document.getElementById('reg-country').value;
+        const pSel = document.getElementById('reg-province');
+        const cSel = document.getElementById('reg-city');
+
+        cSel.innerHTML = '<option value="">Önce İl Seçiniz...</option>';
+        pSel.style.display = 'none';
+
+        if (!code) return;
+
+        try {
+            const res = await fetch(`/api/provinces/?code=${code}`);
+            const data = await res.json();
+
+            if (data.provinces && data.provinces.length > 0) {
+                let html = '<option value="">İl Seçiniz</option>';
+                data.provinces.forEach(p => {
+                    html += `<option value="${p.code}">${p.name}</option>`;
+                });
+                pSel.innerHTML = html;
+                pSel.style.display = 'block';
+            } else {
+                // No provinces
+                loadRegCities();
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadRegCities() {
+        const country = document.getElementById('reg-country').value;
+        const province = document.getElementById('reg-province').value;
+        const cSel = document.getElementById('reg-city');
+
+        cSel.innerHTML = '<option value="">Yükleniyor...</option>';
+
+        try {
+            let url = `/api/cities/?code=${country}`;
+            if (province && document.getElementById('reg-province').style.display !== 'none') {
+                url += `&admin_code=${province}`;
+            }
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.cities) {
+                let html = '<option value="">İlçe/Şehir Seçiniz</option>';
+                data.cities.forEach(c => {
+                    html += `<option value="${c.lat},${c.lon}">${c.name}</option>`;
+                });
+                cSel.innerHTML = html;
+            }
+        } catch (e) { cSel.innerHTML = '<option>Hata</option>'; }
+    }
+
+    function setRegCoords() {
+        const val = document.getElementById('reg-city').value;
+        if (val) {
+            const [lat, lon] = val.split(',');
+            document.getElementById('reg-lat').value = lat;
+            document.getElementById('reg-lon').value = lon;
+        }
+    }
+
+    // FORCE INIT
+    // Call immediately (safe since elements are defined above)
+    // AND on DOMContentLoaded just in case
+    if (document.getElementById('reg-country')) {
+        loadRegCountries();
+    } else {
+        document.addEventListener('DOMContentLoaded', loadRegCountries);
+    }
+
+    // UNKNOWN TIME TOGGLE LOGIC
+    document.getElementById('unknown-time').addEventListener('change', function () {
+        const timeInput = document.getElementById('auth-time');
+        const msgDiv = document.getElementById('rectify-msg');
+
+        if (this.checked) {
+            timeInput.disabled = true;
+            timeInput.style.opacity = '0.5';
+            timeInput.value = ''; // Optional: clear value
+            msgDiv.style.display = 'block';
+        } else {
+            timeInput.disabled = false;
+            timeInput.style.opacity = '1';
+            msgDiv.style.display = 'none';
+        }
+    });
+</script>
+
+<style>
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+</style>
