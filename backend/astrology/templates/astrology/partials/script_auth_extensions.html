@@ -26,6 +26,16 @@
 
         loadRegCountries();
         checkAuth();
+
+        // Check for Login Welcome Toast
+        const welcomeUser = localStorage.getItem('login_complete_toast');
+        if (welcomeUser) {
+            // Small delay to ensure toast container is ready
+            setTimeout(() => {
+                if (typeof showToast === 'function') showToast(`Hoşgeldin ${welcomeUser}`, 'success');
+            }, 500);
+            localStorage.removeItem('login_complete_toast');
+        }
     });
 
     // --- MISSING CHECKAUTH IMPLEMENTATION ---

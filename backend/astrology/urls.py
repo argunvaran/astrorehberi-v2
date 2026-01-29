@@ -16,6 +16,7 @@ urlpatterns = [
     path('daily-horoscopes/', views.get_daily_horoscopes_api, name='daily_horoscopes'),
     path('planetary-hours/', views.get_planetary_hours, name='planetary_hours'),
     path('celestial-events/', views.get_celestial_events_view, name='celestial_events'),
+    path('appointment/', views.appointment_view, name='appointment'),
     
     # Auth
     path('auth/', views.auth_view, name='auth'),

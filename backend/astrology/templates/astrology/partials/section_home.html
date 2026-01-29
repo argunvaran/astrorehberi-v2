@@ -81,12 +81,17 @@
         </div>
 
         <!-- CARD 7: CELESTIAL (New) -->
-        <div onclick="nav('celestial', document.querySelectorAll('.nav-item')[5])" class="glass-card"
-            style="padding:30px; text-align:center; cursor:pointer; border:1px solid rgba(255,255,255,0.1); transition:all 0.3s; background:linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(0,0,0,0))">
+        <div onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('celestial', document.querySelectorAll('.nav-item')[5]){% else %}showUpgradeModal('Göksel Olaylar takvimi Premium üyelere özeldir.'){% endif %}"
+            class="glass-card"
+            style="position:relative; padding:30px; text-align:center; cursor:pointer; border:1px solid rgba(255,255,255,0.1); transition:all 0.3s; background:linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(0,0,0,0))">
             <div style="font-size:3rem; color:#00bcd4; margin-bottom:20px; text-shadow:0 0 15px #00bcd4"><i
                     class="fas fa-moon"></i></div>
             <h2 style="margin:0 0 10px 0; color:var(--text)">Göksel Olaylar</h2>
             <p style="opacity:0.7; color:var(--text)">Ay fazları, tutulmalar ve gezegen hareketlerini takip edin.</p>
+            {% if not FREE_PREMIUM_MODE and user.profile.effective_membership != 'premium' and not user.is_superuser %}
+            <div style="position:absolute; top:15px; right:15px; color:#FFD700; font-size:1.2rem"><i
+                    class="fas fa-lock"></i></div>
+            {% endif %}
         </div>
 
         <!-- CARD 8: HOURS (New) -->

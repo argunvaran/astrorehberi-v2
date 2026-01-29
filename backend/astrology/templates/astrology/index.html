@@ -4,8 +4,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
-    <link rel="shortcut icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=2">
+    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=3">
+    <link rel="shortcut icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=3">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASTRO | Deep Cosmos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -558,11 +558,20 @@
             <!-- AUTH WIDGET -->
             <div id="auth-widget"
                 style="position:absolute; top:20px; right:20px; z-index:900; display:flex; gap:10px; align-items:center">
+                <!-- NOTIFICATIONS BELL -->
+                <button onclick="window.location.href='/interactive/wall/?view=notifications'" class="btn"
+                    style="padding:0; width:40px; height:40px; border-radius:50%; background:var(--glass-card-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); margin-right:5px; position:relative">
+                    <i class="fas fa-bell" style="font-size:1.1rem"></i>
+                    <span id="global-unread-count"
+                        style="display:none; position:absolute; top:-5px; right:-5px; background:var(--accent); color:white; font-size:0.7rem; font-weight:bold; width:18px; height:18px; border-radius:50%; align-items:center; justify-content:center; box-shadow:0 0 5px var(--accent)">0</span>
+                </button>
+
                 <button onclick="toggleTheme()" class="btn"
                     style="padding:0; width:40px; height:40px; border-radius:50%; background:var(--glass-card-bg); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); margin-right:10px">
                     <i id="theme-icon" class="fas fa-moon" style="font-size:1.2rem"></i>
                 </button>
-                <div id="user-display" style="font-weight:bold; color:var(--gold); display:block"><i
+                <div id="user-display" style="font-weight:bold; color:var(--gold); display:block; cursor:pointer"
+                    onclick="window.location.href='/interactive/user/{{ user.username }}/'"><i
                         class="fas fa-user-circle"></i> {{ user.username }}</div>
 
                 <!-- SIMPLE DIRECT LOGOUT -->
@@ -571,6 +580,32 @@
                     <i class="fas fa-sign-out-alt"></i> <span>Çıkış</span>
                 </button>
             </div>
+
+            <script>
+                async function updateUnreadCount() {
+                    try {
+                        const res = await fetch('/interactive/api/inbox/');
+                        if (res.ok) {
+                            const data = await res.json();
+                            // Count unread
+                            const unread = data.notifications.filter(n => !n.is_read).length;
+                            const badge = document.getElementById('global-unread-count');
+                            if (unread > 0) {
+                                badge.innerText = unread > 9 ? '9+' : unread;
+                                badge.style.display = 'flex';
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        }
+                    } catch (e) { console.log("Notif check failed", e); }
+                }
+
+                // Check every 15s and on load
+                if (SERVER_AUTH_STATUS) {
+                    updateUnreadCount();
+                    setInterval(updateUnreadCount, 15000);
+                }
+            </script>
 
             <!-- SECTIONS -->
             {% include 'astrology/partials/section_home.html' %}

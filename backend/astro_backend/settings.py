@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     'astrology',
     'content_manager', # New CMS App
     'library',
+    'interactive',
 ]
 
 MIDDLEWARE = [

@@ -32,6 +32,10 @@ except ImportError:
     FLATLIB_AVAILABLE = False
 
 @csrf_exempt
+def appointment_view(request):
+    return render(request, 'astrology/appointment.html')
+
+@csrf_exempt
 def calculate_chart(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST request required'}, status=405)

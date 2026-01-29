@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesajlar | Deep Cosmos</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0F0C29;
+            --sidebar-bg: rgba(15, 12, 41, 0.9);
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #1a1a2e;
+            color: var(--text);
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Layout Grid for Messaging */
+        .msg-layout {
+            flex: 1;
+            display: flex;
+            margin-left: 280px;
+            height: 100vh;
+        }
+
+        /* Conversation List (Left) */
+        .conv-sidebar {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .conv-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            font-family: 'Cinzel';
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        .conv-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .conv-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .conv-item:hover,
+        .conv-item.active {
+            background: rgba(233, 69, 96, 0.1);
+            border-left: 3px solid var(--accent);
+        }
+
+        .conv-username {
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .conv-preview {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-top: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Chat Area (Right) */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .chat-header {
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .messages-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .msg-sent {
+            align-self: flex-end;
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-received {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border-bottom-left-radius: 2px;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            outline: none;
+        }
+
+        .mobile-toggle {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .msg-layout {
+                margin-left: 0;
+                flex-direction: column;
+            }
+
+            .conv-sidebar {
+                width: 100%;
+                height: 40%;
+            }
+
+            .chat-area {
+                height: 60%;
+            }
+
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 2000;
+                background: var(--accent);
+                padding: 8px;
+                border-radius: 50%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+    {% include 'astrology/partials/sidebar.html' %}
+
+    <div class="page-wrapper">
+        <div class="msg-layout">
+            <!-- Sidebar list -->
+            <div class="conv-sidebar">
+                <div class="conv-header">Mesajlar</div>
+                <div class="conv-list" id="conv-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Chat -->
+            <div class="chat-area" id="chat-ui" style="display:none">
+                <div class="chat-header">
+                    <h3 id="chat-with" style="margin:0; color:var(--gold)">User</h3>
+                    <a href="#" id="profile-link" style="color:var(--text-muted)"><i class="fas fa-user"></i> Profil</a>
+                </div>
+                <div class="messages-box" id="msg-box">
+                    <!-- Msgs here -->
+                </div>
+                <div class="input-area">
+                    <input type="text" id="msg-input" placeholder="Mesaj yaz...">
+                    <button onclick="sendMessage()"
+                        style="background:var(--gold); border:none; width:40px; height:40px; border-radius:50%; cursor:pointer"><i
+                            class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <div id="empty-state"
+                style="flex:1; display:flex; align-items:center; justify-content:center; opacity:0.5; flex-direction:column">
+                <i class="fas fa-comments" style="font-size:4rem; margin-bottom:20px"></i>
+                <div>Bir sohbet seçin veya yeni mesaj başlatın.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = '';
+                sidebar.classList.remove('open');
+            } else {
+                sidebar.style.transform = 'translateX(0px)';
+                sidebar.classList.add('open');
+            }
+        }
+        function nav(sectionId) { window.location.href = '/?page=' + sectionId; }
+
+        let activeUser = null;
+        const currentUser = "{{ user.username }}";
+
+        // Check URL params for auto-open
+        const urlParams = new URLSearchParams(window.location.search);
+        const startChatWith = urlParams.get('with');
+
+        async function loadConversations() {
+            const res = await fetch('/interactive/api/messages/conversations/');
+            const data = await res.json();
+            const list = document.getElementById('conv-list');
+            list.innerHTML = '';
+
+            data.conversations.forEach(c => {
+                const item = document.createElement('div');
+                item.className = `conv-item ${activeUser === c.username ? 'active' : ''}`;
+                item.onclick = () => openChat(c.username);
+                item.innerHTML = `
+                    <div class="conv-username">
+                        <span>${c.username}</span>
+                        <span style="font-size:0.7rem; font-weight:normal; opacity:0.7">${c.timestamp}</span>
+                    </div>
+                    <div class="conv-preview">${c.last_message || 'Yeni sohbet'}</div>
+                `;
+                list.appendChild(item);
+            });
+
+            // If starting a new chat that isn't in list yet
+            if (startChatWith && !data.conversations.find(c => c.username === startChatWith)) {
+                // If not in history, just open it, it will appear in list after sending msg
+                if (!activeUser) openChat(startChatWith);
+            } else if (startChatWith) {
+                if (!activeUser) openChat(startChatWith);
+            }
+        }
+
+        async function openChat(username) {
+            activeUser = username;
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('chat-ui').style.display = 'flex';
+            document.getElementById('chat-with').innerText = username;
+            document.getElementById('profile-link').href = `/interactive/user/${username}/`;
+
+            const res = await fetch(`/interactive/api/messages/${username}/`);
+            const data = await res.json();
+
+            const box = document.getElementById('msg-box');
+            box.innerHTML = '';
+
+            data.messages.forEach(m => {
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${m.is_me ? 'msg-sent' : 'msg-received'}`;
+                bubble.innerText = m.body;
+                bubble.title = m.created_at;
+                box.appendChild(bubble);
+            });
+
+            box.scrollTop = box.scrollHeight;
+            loadConversations(); // refresh list to update styles
+        }
+
+        async function sendMessage() {
+            const txt = document.getElementById('msg-input');
+            const body = txt.value.trim();
+            if (!body || !activeUser) return;
+
+            // Visual feedback - disable button temporarily
+            const btn = document.querySelector('.input-area button');
+            const originalBtnContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch('/interactive/api/messages/send/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to: activeUser, body: body })
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Sunucu hatası: ${res.status}`);
+                }
+
+                const d = await res.json();
+                if (d.success) {
+                    txt.value = '';
+                    openChat(activeUser); // Refresh chat and scroll to bottom
+                } else {
+                    alert('Mesaj gönderilemedi: ' + (d.error || 'Bilinmeyen hata'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Bir hata oluştu: ' + err.message);
+            } finally {
+                // Restore button
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
+                txt.focus();
+            }
+        }
+
+        // Add event listener for Enter key
+        document.getElementById('msg-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        loadConversations();
+
+        // Auto refresh every 10s
+        setInterval(() => {
+            if (activeUser) openChat(activeUser);
+            else loadConversations();
+        }, 10000);
+    </script>
+</body>
+
+</html>

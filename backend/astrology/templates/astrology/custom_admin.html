@@ -272,6 +272,22 @@
 
             <!-- WEEKLY HOROSCOPE EDITOR REMOVED AS REQUESTED -->
 
+            <!-- APPOINTMENT MANAGEMENT (NEW) -->
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                    <h3 style="color:var(--gold); margin:0"><i class="fas fa-calendar-check"></i> Randevu Talepleri
+                        (YENİ)</h3>
+                    <button onclick="loadAppointments()" class="btn-action" style="background:#555; color:white"><i
+                            class="fas fa-sync"></i> Yenile</button>
+                </div>
+
+                <div id="appointments-container"
+                    style="max-height:400px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:10px; background:rgba(0,0,0,0.2)">
+                    <!-- Loaded via JS -->
+                    <div style="text-align:center; opacity:0.6">Yükleniyor...</div>
+                </div>
+            </div>
+
             <!-- LOGS -->
             <div class="card">
                 <h3 style="margin-bottom:15px"><i class="fas fa-list"></i> Loglar</h3>
@@ -346,7 +362,75 @@
             }
         }
 
-        // --- WEEKLY SAVE REMOVED ---
+        // --- APPOINTMENTS LOGIC ---
+        async function loadAppointments() {
+            try {
+                const res = await fetch('/interactive/admin/appointments/');
+                const data = await res.json();
+                const container = document.getElementById('appointments-container');
+                container.innerHTML = '';
+
+                if (!data.appointments || data.appointments.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6">Bekleyen randevu yok.</div>';
+                    return;
+                }
+
+                data.appointments.forEach(app => {
+                    let statusColor = '#999';
+                    if (app.status === 'approved') statusColor = '#4CAF50';
+                    else if (app.status === 'rejected') statusColor = '#F44336';
+                    else if (app.status === 'pending') statusColor = '#FF9800';
+
+                    const html = `
+                    <div style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:10px; border-radius:8px; border-left:4px solid ${statusColor}">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px">
+                            <span style="font-weight:bold; color:var(--gold)">${app.user} (${app.topic})</span>
+                            <span style="font-size:0.8rem; opacity:0.7">${app.date}</span>
+                        </div>
+                        <div style="font-size:0.9rem; margin-bottom:5px"><b>İletişim:</b> ${app.contact}</div>
+                        <div style="font-size:0.9rem; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.2); border-radius:5px">"${app.message}"</div>
+                        
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <span style="font-weight:bold; color:${statusColor}">${app.status.toUpperCase()}</span>
+                            
+                            ${app.status === 'pending' ? `
+                            <div style="display:flex; gap:10px; align-items:center">
+                                <input type="text" id="note-${app.id}" placeholder="Yönetici notu..." style="background:#222; border:1px solid #555; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
+                                <button onclick="reviewApp(${app.id}, 'approve')" class="btn-action" style="background:#4CAF50; color:white"><i class="fas fa-check"></i> Onayla</button>
+                                <button onclick="reviewApp(${app.id}, 'reject')" class="btn-action" style="background:#F44336; color:white"><i class="fas fa-times"></i> Reddet</button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    `;
+                    container.innerHTML += html;
+                });
+            } catch (e) {
+                console.error(e);
+                document.getElementById('appointments-container').innerHTML = '<div style="color:red">Hata oluştu.</div>';
+            }
+        }
+
+        async function reviewApp(id, action) {
+            const note = document.getElementById('note-' + id).value;
+            if (!confirm(action === 'approve' ? "Onaylamak istiyor musunuz?" : "Reddetmek istiyor musunuz?")) return;
+
+            try {
+                const res = await fetch('/interactive/admin/review-appointment/', {
+                    method: 'POST',
+                    body: JSON.stringify({ id, action, note })
+                });
+                const d = await res.json();
+                if (d.success) {
+                    // Send message via prompt if needed or just reload
+                    alert("İşlem başarılı! Kullanıcıya bildirim gönderildi.");
+                    loadAppointments();
+                } else alert("Hata: " + d.error);
+            } catch (e) { alert("Bağlantı hatası"); }
+        }
+
+        // Auto load
+        loadAppointments();
 
         // Initial Sidebar state
         (function initSidebar() {

@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('astrology.urls')),
+    path('interactive/', include('interactive.urls')),
     path('cms/', include('content_manager.urls')), # CMS Routes
     path('library/', include('library.urls')), # Library App
     path('', include('astrology.urls')),

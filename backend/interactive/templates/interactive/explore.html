@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kozmik İnsanlar | Deep Cosmos</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0F0C29;
+            --sidebar-bg: rgba(15, 12, 41, 0.9);
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0F0C29, #302B63, #24243E);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .page-wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding-top: 2rem;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--gold);
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            width: 100%;
+            outline: none;
+            font-family: 'Outfit';
+        }
+
+        .user-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+
+        .btn-action {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-action:hover {
+            background: var(--gold);
+            color: black;
+        }
+
+        .mobile-toggle {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                padding-top: 4rem
+            }
+
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: var(--accent);
+                padding: 10px;
+                border-radius: 50%;
+                color: white;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+    {% include 'astrology/partials/sidebar.html' %}
+
+    <div class="page-wrapper">
+        <div class="main-content">
+            <div class="container">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
+                    <h1 style="font-family:'Cinzel'; color:var(--gold); margin:0">Kozmik İnsanlar</h1>
+                    <a href="/interactive/wall/" style="color:var(--text-muted); text-decoration:none">Kozmik Duvar <i
+                            class="fas fa-arrow-right"></i></a>
+                </div>
+
+                <div class="search-box">
+                    <i class="fas fa-search" style="color:var(--gold); margin-right:15px"></i>
+                    <input type="text" id="search-input" placeholder="Ruh eşini veya astroloji arkadaşını ara..."
+                        onkeyup="searchUsers()">
+                </div>
+
+                <div id="results-area">
+                    <div style="text-align:center; opacity:0.6; margin-top:50px">
+                        <i class="fas fa-user-astronaut" style="font-size:3rem; margin-bottom:20px"></i>
+                        <p>Kullanıcı adı yazarak arama yapmaya başla.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = '';
+                sidebar.classList.remove('open');
+            } else {
+                sidebar.style.transform = 'translateX(0px)';
+                sidebar.classList.add('open');
+            }
+        }
+        function nav(sectionId) { window.location.href = '/?page=' + sectionId; }
+
+        let debounceTimer;
+        function searchUsers() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                const query = document.getElementById('search-input').value;
+                if (query.length < 2) return;
+
+                const res = await fetch(`/interactive/api/search-users/?q=${query}`);
+                const data = await res.json();
+
+                const area = document.getElementById('results-area');
+                area.innerHTML = '';
+
+                if (data.users.length === 0) {
+                    area.innerHTML = '<div style="text-align:center; opacity:0.6">Kullanıcı bulunamadı.</div>';
+                    return;
+                }
+
+                data.users.forEach(u => {
+                    area.innerHTML += `
+                    <div class="user-card" onclick="window.location.href='/interactive/user/${u.username}/'">
+                        <div style="display:flex; align-items:center">
+                            <div class="user-avatar">${u.username[0].toUpperCase()}</div>
+                            <div style="font-weight:bold; font-size:1.1rem">${u.username}</div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color:var(--gold)"></i>
+                    </div>
+                    `;
+                });
+            }, 500);
+        }
+    </script>
+</body>
+
+</html>

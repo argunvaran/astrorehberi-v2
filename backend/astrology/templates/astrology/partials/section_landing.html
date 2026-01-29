@@ -150,29 +150,13 @@
         localStorage.setItem('session_active', 'true');
         localStorage.setItem('current_user', username);
 
-        // SOFT LOGIN TRANSITION (Instant)
-        const landing = document.getElementById('landing-root');
-        const app = document.getElementById('app-root');
+        // Save for toast on reload
+        localStorage.setItem('login_complete_toast', username);
 
-        if (landing) {
-            landing.style.opacity = '0';
-            setTimeout(() => landing.style.display = 'none', 300);
-        }
-
-        if (app) {
-            app.style.display = 'flex';
-            app.classList.add('animate-in');
-        }
-
-        // Update UI Elements
-        const uDisp = document.getElementById('user-display');
-        if (uDisp) uDisp.innerHTML = `<i class="fas fa-user-circle"></i> ${username}`;
-
-        // Initialize App Data (Since we skipped reload)
-        if (typeof loadHomeGrid === 'function') loadHomeGrid();
-        if (typeof checkAuth === 'function') checkAuth(); // Re-check level
-
-        showToast(`Hoşgeldin ${username}`, 'success');
+        // FORCE RELOAD FOR SERVER-SIDE TEMPLATE UPDATES
+        // The sidebar locks and feature gates are rendered by Django.
+        // We must reload to get the correctly unlocked UI.
+        window.location.reload();
     }
 
     async function doAuth() {

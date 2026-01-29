@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelen Kutusu | Deep Cosmos</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0F0C29;
+            --sidebar-bg: rgba(15, 12, 41, 0.9);
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #1a1a2e;
+            color: var(--text);
+            margin: 0;
+        }
+
+        /* LAYOUT FIX: Flex container for Sidebar + Main */
+        .page-wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Main Area */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            /* Space for Sidebar */
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            /* Center horizontally */
+        }
+
+        .inbox-container {
+            width: 100%;
+            max-width: 800px;
+            /* Limit width */
+            padding-top: 2rem;
+        }
+
+        .msg-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .msg-card.read {
+            opacity: 0.6;
+            border-left-color: var(--border);
+        }
+
+        .msg-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .msg-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .msg-title {
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 1.1rem;
+        }
+
+        .msg-date {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Mobile Toggle Default Hidden */
+        .mobile-toggle {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                padding-top: 4rem
+            }
+
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: var(--accent);
+                padding: 10px;
+                border-radius: 50%;
+                color: white;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+    {% include 'astrology/partials/sidebar.html' %}
+
+    <div class="page-wrapper">
+        <div class="main-content">
+            <div class="inbox-container">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
+                    <h1 style="font-family:'Cinzel'; color:var(--gold); margin:0">Gelen Kutusu</h1>
+                    <button onclick="markAllRead()"
+                        style="background:transparent; border:1px solid var(--border); color:white; padding:5px 15px; cursor:pointer">Tümünü
+                        Okundu İşaretle</button>
+                </div>
+
+                <div id="inbox-list">
+                    <div style="text-align:center; padding:20px"><i class="fas fa-circle-notch fa-spin"></i>
+                        Yükleniyor...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = '';
+                sidebar.classList.remove('open');
+            } else {
+                sidebar.style.transform = 'translateX(0px)';
+                sidebar.classList.add('open');
+            }
+        }
+        function nav(sectionId) { window.location.href = '/?page=' + sectionId; }
+
+        async function loadInbox() {
+            const res = await fetch('/interactive/api/inbox/');
+            const data = await res.json();
+            const container = document.getElementById('inbox-list');
+            container.innerHTML = '';
+
+            if (data.notifications.length === 0) {
+                container.innerHTML = '<div style="text-align:center; opacity:0.5; margin-top:50px">Mesajınız yok.</div>';
+                return;
+            }
+
+            data.notifications.forEach(n => {
+                const html = `
+                <div class="msg-card ${n.is_read ? 'read' : ''}">
+                    <div class="msg-header">
+                        <span class="msg-title">${n.title}</span>
+                        <span class="msg-date">${n.date}</span>
+                    </div>
+                    <div>${n.message}</div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        async function markAllRead() {
+            await fetch('/interactive/inbox/mark-read/', { method: 'POST' });
+            loadInbox();
+        }
+
+        loadInbox();
+    </script>
+</body>
+
+</html>
