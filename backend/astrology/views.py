@@ -829,12 +829,15 @@ def get_blog_posts_api(request):
         data = []
         for p in page_obj:
             img_url = p.image_url
-            if p.banner_image:
-                img_url = request.build_absolute_uri(p.banner_image.url)
+            try:
+                if p.banner_image:
+                    img_url = request.build_absolute_uri(p.banner_image.url)
+            except:
+                pass # Fallback to image_url (Char)
             
-            # Simple text preview from HTML
-            # Strip tags roughly or just send first 200 chars
-            preview = p.content[:200] + "..."
+            # Simple text preview
+            content_str = p.content if p.content else ""
+            preview = content_str[:200] + "..."
             
             data.append({
                 'id': p.id,
@@ -843,7 +846,7 @@ def get_blog_posts_api(request):
                 'image': img_url,
                 'date': p.created_at.strftime("%d %B %Y"),
                 'preview': preview,
-                'content': p.content # Optional: send full content if list is small, or fetch detail separately
+                # 'content': p.content # Optimize payload
             })
             
         return JsonResponse({
@@ -851,7 +854,9 @@ def get_blog_posts_api(request):
             'has_next': page_obj.has_next()
         })
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': f"Server Error: {str(e)}"}, status=500)
 
 @csrf_exempt
 def get_blog_detail_api(request, slug):
@@ -861,8 +866,11 @@ def get_blog_detail_api(request, slug):
     try:
         p = BlogPost.objects.get(slug=slug)
         img_url = p.image_url
-        if p.banner_image:
-            img_url = request.build_absolute_uri(p.banner_image.url)
+        try:
+           if p.banner_image:
+               img_url = request.build_absolute_uri(p.banner_image.url)
+        except:
+           pass
             
         return JsonResponse({
             'id': p.id,
