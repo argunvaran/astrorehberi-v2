@@ -131,25 +131,21 @@ class ApiService {
     required double lat,
     required double lon,
     String lang = 'en',
-    bool simulatePremium = false,
   }) async {
     final url = Uri.parse('$baseUrl/calculate-chart/');
     final dateStr = "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}";
 
     try {
-      final body = {
+      final response = await http.post(
+        url,
+        headers: _headers, 
+        body: jsonEncode({
           'date': dateStr,
           'time': time,
           'lat': lat,
           'lon': lon,
           'lang': lang,
-          'simulate_premium': simulatePremium
-      };
-
-      final response = await http.post(
-        url,
-        headers: _headers, 
-        body: jsonEncode(body),
+        }),
       );
       _updateCookie(response);
 

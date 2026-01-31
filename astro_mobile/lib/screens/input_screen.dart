@@ -41,7 +41,7 @@ class _InputScreenState extends State<InputScreen> {
   
   bool _isLoading = false;
   String _lang = 'tr';
-  bool _simulatePremium = false; // Added for testing
+
 
   bool _isAuth = false;
   bool _isAdmin = false;
@@ -113,7 +113,6 @@ class _InputScreenState extends State<InputScreen> {
         lat: double.parse(_latController.text),
         lon: double.parse(_lonController.text),
         lang: _lang,
-        simulatePremium: _simulatePremium,
       );
       
       DataManager.instance.setChartData(chartData);
@@ -467,21 +466,7 @@ class _InputScreenState extends State<InputScreen> {
                  Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen(lang: _lang)));
               }, highlight: true),
 
-            const Divider(color: Colors.white24),
-            SwitchListTile(
-              title: const Text("Premium Modu (Test)", style: TextStyle(color: Colors.white70)),
-              value: _simulatePremium,
-              activeColor: Colors.amber,
-              onChanged: (val) {
-                setState(() => _simulatePremium = val);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(val ? "Premium Modu Aktif (Geçici)" : "Premium Modu Kapalı"),
-                  duration: const Duration(seconds: 1),
-                  backgroundColor: val ? Colors.amber : Colors.grey,
-                ));
-              },
-            ),
+
 
             const Spacer(),
             if(_isAuth)
