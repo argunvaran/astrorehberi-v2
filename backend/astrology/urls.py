@@ -32,5 +32,11 @@ urlpatterns = [
     path('general-weekly-horoscopes/', views.get_general_weekly_horoscopes, name='general_weekly_horoscopes'),
     path('admin/save-weekly-horoscope/', views.admin_save_weekly_horoscope, name='admin_save_weekly_horoscope'),
     path('custom-admin/', views.custom_admin_dashboard, name='custom_admin'),
+    
+    # Static Pages (For AdSense)
+    path('about-us/', views.about_view, name='about_us'),
+    path('privacy-policy/', views.privacy_view, name='privacy_policy'),
+    path('contact/', views.contact_view, name='contact'),
+    path('submit-contact/', views.submit_contact_form, name='submit_contact'),
 ]
 # Force Reload Trigger (Auto)

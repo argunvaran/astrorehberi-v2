@@ -8,3 +8,4 @@ timezonefinder
 numpy
 geonamescache
 djangorestframework
+Pillow

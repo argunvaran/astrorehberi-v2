@@ -41,6 +41,21 @@
             target.style.display = 'block';
             setTimeout(() => target.classList.add('animate-in'), 10);
             currentSection = sectionId;
+
+            // Updated: Set URL Hash for State Persistence
+            if (sectionId !== 'home') {
+                const newHash = '#view-' + sectionId;
+                if (window.location.hash !== newHash) {
+                    history.replaceState(null, null, window.location.pathname + window.location.search + newHash);
+                }
+            } else {
+                // For home, we can optionally clear hash to keep it clean, or use #view-home
+                // Let's clear it for cleanest URL, ensuring we keep search params if any (though usually rare for home)
+                if (window.location.hash) {
+                    history.replaceState(null, null, window.location.pathname + window.location.search);
+                }
+            }
+
         } else {
             console.error("Section not found:", sectionId);
             // Fallback to home if editor not found (e.g. permission issue)
@@ -94,15 +109,41 @@
 
     // --- AUTO NAV ON LOAD ---
     document.addEventListener('DOMContentLoaded', () => {
-        const params = new URLSearchParams(window.location.search);
-        const page = params.get('page');
-        if (page) {
-            // Immediate navigation to prevent flicker
-            nav(page);
-        } else {
-            // Default View
-            if (document.getElementById('view-home')) nav('home');
+        // 0. Server-Side Override (e.g. from about/contact views)
+        if (window.INITIAL_SECTION) {
+            nav(window.INITIAL_SECTION);
+            return;
         }
+
+        // 1. Check Hash (Priority for explicit sections)
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#view-')) {
+            const section = hash.replace('#view-', '');
+            // Simple validation to ensure section exists before trying
+            if (document.getElementById('view-' + section)) {
+                nav(section);
+                return;
+            }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        // 2. Blog Pagination/Search Fallback
+        // If we have 'q' (search) or 'page' (numeric pagination), default to blog
+        if (params.has('q') || (params.get('page') && !isNaN(params.get('page')))) {
+            nav('blog');
+            return;
+        }
+
+        // 3. Legacy 'page' param (e.g. ?page=career)
+        const pageParam = params.get('page');
+        if (pageParam && isNaN(pageParam)) {
+            nav(pageParam);
+            return;
+        }
+
+        // 4. Default View
+        if (document.getElementById('view-home')) nav('home');
     });
 
 

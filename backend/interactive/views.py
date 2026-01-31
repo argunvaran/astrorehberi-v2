@@ -319,9 +319,29 @@ def send_message_api(request):
 @csrf_exempt
 def get_admin_appointments(request):
     if not (request.user.is_staff or request.user.is_superuser): return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    status_filter = request.GET.get('status')
     apps = Appointment.objects.all().order_by('-created_at')
-    data = [{'id': a.id, 'user': a.user.username, 'topic': a.topic, 'message': a.message, 'contact': a.contact_info, 'status': a.status, 'date': a.created_at.strftime("%Y-%m-%d")} for a in apps]
-    return JsonResponse({'appointments': data})
+    
+    if status_filter and status_filter != 'all':
+        apps = apps.filter(status=status_filter)
+        
+    paginator = Paginator(apps, 10) # 10 appointments per page
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except:
+        page_obj = paginator.get_page(1)
+        
+    data = [{'id': a.id, 'user': a.user.username, 'topic': a.topic, 'message': a.message, 'contact': a.contact_info, 'status': a.status, 'date': a.created_at.strftime("%Y-%m-%d")} for a in page_obj]
+    
+    return JsonResponse({
+        'appointments': data,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'current_page': page_obj.number,
+        'total_pages': paginator.num_pages
+    })
 
 @csrf_exempt
 def review_appointment(request):

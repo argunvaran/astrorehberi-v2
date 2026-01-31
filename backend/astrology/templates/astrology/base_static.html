@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'astrology/favicon.png' %}?v=3">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRO | Deep Cosmos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* DARK THEME (DEFAULT) */
+            --primary: #0F0C29;
+            --gradient-start: #0F0C29;
+            --gradient-mid: #302B63;
+            --gradient-end: #24243E;
+            --accent: #E94560;
+            --gold: #FFD700;
+            --text: #EEEEEE;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Cinzel', serif;
+        }
+
+        .static-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .static-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Simple Nav -->
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); background: rgba(15,12,41,0.9);">
+        <div
+            style="max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="font-family: 'Cinzel'; font-size: 1.5rem; color: var(--gold); text-decoration: none;">
+                <i class="fas fa-star-and-crescent"></i> ASTRO
+            </a>
+            <a href="/" style="color: var(--text); text-decoration: none; font-size: 0.9rem;">Ana Sayfa</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="static-container">
+        <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> Geri Dön</a>
+
+        <div class="static-card">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer Links -->
+        <div style="margin-top: 40px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+            <a href="{% url 'about_us' %}" style="color: inherit; text-decoration: none; margin: 0 10px;">Hakkımızda</a>
+            |
+            <a href="{% url 'privacy_policy' %}"
+                style="color: inherit; text-decoration: none; margin: 0 10px;">Gizlilik</a> |
+            <a href="{% url 'contact' %}" style="color: inherit; text-decoration: none; margin: 0 10px;">İletişim</a>
+            <div style="margin-top: 10px; opacity: 0.5;">&copy; 2026 AstroRehberi (Deep Cosmos)</div>
+        </div>
+    </div>
+
+</body>
+
+</html>

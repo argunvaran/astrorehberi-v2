@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'dart:io' show Platform;
 import '../models/chart_model.dart';
 import '../models/tarot_model.dart';
+import '../models/interactive_models.dart';
 
 class ApiService {
   String get baseUrl {
@@ -245,4 +246,206 @@ class ApiService {
     }
     return null;
   }
+
+  String get rootUrl {
+     if (kIsWeb) return "http://127.0.0.1:8000";
+     try {
+       if (Platform.isAndroid) return "http://10.0.2.2:8000";
+     } catch (_) {}
+     return "http://127.0.0.1:8000";
+  }
+
+  // --- INTERACTIVE / SOCIAL API ---
+
+  // 1. Wall / Posts
+  Future<Map<String, dynamic>> getWallPosts({String filter = 'all', int page = 1, String? username}) async {
+    String query = '?filter=$filter&page=$page';
+    if(username != null) query += '&username=$username';
+    
+    // Correct URL: /interactive/wall/api/posts/
+    final url = Uri.parse('$rootUrl/interactive/wall/api/posts/$query');
+    final response = await http.get(url, headers: _headers);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to load posts');
+    }
+  }
+
+  Future<void> createPost(String content) async {
+    final url = Uri.parse('$rootUrl/interactive/wall/api/create/');
+    final response = await http.post(
+      url,
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to post');
+  }
+
+  // 2. Following / Users
+  Future<Map<String, dynamic>> toggleFollow(String username) async {
+    final url = Uri.parse('$rootUrl/interactive/api/follow/');
+    final response = await http.post(
+      url, 
+      headers: _headers,
+      body: jsonEncode({'username': username})
+    );
+     if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to follow');
+    }
+  }
+  
+  Future<List<UserSummary>> searchUsers(String query) async {
+    final url = Uri.parse('$rootUrl/interactive/api/search-users/?q=$query');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return (data['users'] as List).map((e) => UserSummary.fromJson(e)).toList();
+    }
+    return [];
+  }
+
+  // 3. Inbox / Notifications
+  Future<Map<String, dynamic>> getNotifications({int page = 1}) async {
+    final url = Uri.parse('$rootUrl/interactive/api/inbox/?page=$page');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Failed to load notifs');
+  }
+  
+  Future<void> markRead() async {
+    await http.post(Uri.parse('$rootUrl/interactive/inbox/mark-read/'), headers: _headers);
+  }
+
+  // 4. Messaging
+  Future<List<Conversation>> getConversations() async {
+    final url = Uri.parse('$rootUrl/interactive/api/messages/conversations/');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return (data['conversations'] as List).map((e) => Conversation.fromJson(e)).toList();
+    }
+    return [];
+  }
+  
+  Future<List<DirectMessage>> getMessages(String username) async {
+    final url = Uri.parse('$rootUrl/interactive/api/messages/$username/');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return (data['messages'] as List).map((e) => DirectMessage.fromJson(e)).toList();
+    }
+    return [];
+  }
+  
+  Future<void> sendMessage(String to, String body) async {
+    final url = Uri.parse('$rootUrl/interactive/api/messages/send/');
+    final res = await http.post(url, headers: _headers, body: jsonEncode({'to': to, 'body': body}));
+    if(res.statusCode != 200) throw Exception('Failed to send');
+  }
+
+  // 5. Contact & Appointments (User)
+  Future<void> submitContactMessage(String name, String email, String message) async {
+    final url = Uri.parse('$baseUrl/submit-contact/'); // Correct in Astrology App
+    final res = await http.post(
+      url, 
+      headers: _headers, 
+      body: jsonEncode({'name': name, 'email': email, 'message': message})
+    );
+    if(res.statusCode != 200) throw Exception('Failed to submit message');
+  }
+
+  Future<void> submitAppointment(String topic, String message, String contact) async {
+    // Correct URL in Interactive App
+    final url = Uri.parse('$rootUrl/interactive/appointment/create/');
+    final res = await http.post(
+      url,
+      headers: _headers,
+      body: jsonEncode({'topic': topic, 'message': message, 'contact': contact}) // 'contact' key matches view logic
+    );
+    if(res.statusCode != 200) throw Exception('Failed to submit request');
+  }
+
+  // 6. Admin Panel API
+  
+  // Fetch Appointments (Filtered & Paginated)
+  Future<Map<String, dynamic>> getAdminAppointments({String status = 'all', int page = 1}) async {
+    final url = Uri.parse('$rootUrl/interactive/admin/appointments/?status=$status&page=$page');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+       return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Failed to load appointments');
+  }
+
+  Future<void> reviewAppointment(int id, String action, String note) async {
+    final url = Uri.parse('$rootUrl/interactive/admin/review-appointment/');
+    final res = await http.post(
+      url, headers: _headers,
+      body: jsonEncode({'id': id, 'action': action, 'note': note})
+    );
+    if(res.statusCode != 200) throw Exception('Review failed');
+  }
+
+  Future<void> updateMembership(int userId, String level) async {
+    final url = Uri.parse('$baseUrl/custom-admin/update-membership/'); // Correct in Astrology App
+    final res = await http.post(
+      url, headers: _headers,
+      body: jsonEncode({'user_id': userId, 'level': level})
+    );
+    if(res.statusCode != 200) throw Exception('Update failed');
+  }
+
+  // Fetch Dashboard Data (Stats, Logs, Messages)
+  Future<Map<String, dynamic>> getAdminDashboardData({
+      String? startDate, 
+      String? endDate, 
+      String? logSearch, 
+      String? msgSearch,
+      String? msgStart,
+      String? msgEnd,
+      String? userSearch, 
+      int msgPage = 1,
+      int logPage = 1,
+      int userPage = 1, 
+  }) async {
+    String query = '?msg_page=$msgPage&page=$logPage&user_page=$userPage'; 
+    if(startDate != null && startDate.isNotEmpty) query += '&start_date=$startDate';
+    if(endDate != null && endDate.isNotEmpty) query += '&end_date=$endDate';
+    if(logSearch != null && logSearch.isNotEmpty) query += '&log_search=$logSearch';
+    
+    if(msgSearch != null && msgSearch.isNotEmpty) query += '&msg_search=$msgSearch';
+    if(msgStart != null && msgStart.isNotEmpty) query += '&msg_start=$msgStart';
+    if(msgEnd != null && msgEnd.isNotEmpty) query += '&msg_end=$msgEnd';
+    
+    if(userSearch != null && userSearch.isNotEmpty) query += '&user_search=$userSearch';
+
+    // Correct URL for Custom Admin Data
+    final url = Uri.parse('$baseUrl/custom-admin/data/$query');
+    final response = await http.get(url, headers: _headers);
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else if (response.statusCode == 403) {
+      throw Exception('Unauthorized');
+    }
+    throw Exception('Failed to load admin data');
+  }
+
+  // --- 7. Content / Blog API ---
+  Future<Map<String, dynamic>> getBlogPosts({int page = 1}) async {
+    final url = Uri.parse('$rootUrl/cms/list/?page=$page'); // Uses content_manager endpoint
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Failed to load blog posts');
+  }
 }
+
+

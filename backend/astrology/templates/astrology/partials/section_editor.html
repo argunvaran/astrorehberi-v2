@@ -16,6 +16,12 @@
 
             <div
                 style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px">
+                KAPAK GÖRSELİ (Opsiyonel)</div>
+            <input type="file" id="post-image" accept="image/*"
+                style="width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:white; font-family:'Outfit'; font-size:1rem; margin-bottom:15px; outline:none;">
+
+            <div
+                style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:5px">
                 YAYIN TARİHİ</div>
             <input type="datetime-local" id="post-date"
                 style="width:100%; padding:15px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:white; font-family:'Outfit'; font-size:1.1rem; margin-bottom:25px; outline:none;">
@@ -88,18 +94,23 @@
                 }
             }
 
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+            formData.append('published', 'true');
+            formData.append('date', dateVal);
+
+            const fileInput = document.getElementById('post-image');
+            if (fileInput && fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
             const res = await fetch('/cms/save/', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': token
                 },
-                body: JSON.stringify({
-                    title: title,
-                    content: content,
-                    published: true,
-                    date: dateVal // Send custom date
-                })
+                body: formData
             });
             const data = await res.json();
             if (data.success) {

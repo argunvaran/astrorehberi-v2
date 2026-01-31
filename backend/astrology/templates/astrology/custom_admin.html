@@ -194,14 +194,92 @@
                     <div class="stat-label" style="margin-bottom:10px; font-weight:bold">Aktif Kullanıcılar (24s)</div>
                     <div>
                         {% for u in active_users %}
-                        <span class="badge" style="background:rgba(50,200,50,0.2); color:#4eff4e; margin-right:5px">{{ u
-                            }}</span>
-
+                        <span class="badge" style="background:rgba(50,200,50,0.2); color:#4eff4e; margin-right:5px">{{ u }}</span>
+                            
                         {% empty %}
                         <span style="opacity:0.5">- Yok -</span>
                         {% endfor %}
                     </div>
                 </div>
+            </div>
+
+            <!-- MESSAGES SECTION -->
+            <div class="card">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px">
+                    <h3 style="color:var(--gold); margin:0"><i class="fas fa-envelope"></i> İletişim Mesajları</h3>
+
+                    <form method="GET" style="display:flex; gap:5px; align-items:center;">
+                        <!-- Maintain context -->
+                        <input type="hidden" name="user_search" value="{{ user_search }}">
+
+                        <input type="date" name="msg_start" value="{{ msg_start }}"
+                            style="background:#222; border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
+                        <span style="opacity:0.5">-</span>
+                        <input type="date" name="msg_end" value="{{ msg_end }}"
+                            style="background:#222; border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
+
+                        <input type="text" name="msg_search" value="{{ msg_search }}" placeholder="Ara..."
+                            style="background:#222; border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:0.8rem; width:100px">
+
+                        <button type="submit" class="btn-action"
+                            style="background:var(--accent); color:white">Filtrele</button>
+                        {% if msg_search or msg_start or msg_end %}
+                        <a href="/custom-admin/?user_search={{ user_search }}" class="btn-action"
+                            style="background:#444; color:white; text-decoration:none">X</a>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden">
+                    <table>
+                        <thead style="background:#0F0C29">
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kimden</th>
+                                <th>Mesaj</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in contact_messages %}
+                            <tr>
+                                <td style="width:120px; font-size:0.85rem; opacity:0.8">{{ m.created_at|date:"d M H:i" }}</td>
+                                    
+                                <td>
+                                    <div style="font-weight:bold; color:var(--accent)">{{ m.name }}</div>
+                                    <div style="font-size:0.8rem; opacity:0.6">{{ m.email }}</div>
+                                </td>
+                                <td style="font-style:italic; opacity:0.9">"{{ m.message }}"</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align:center; padding:20px">Mesaj bulunamadı.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Messages Pagination -->
+                {% if contact_messages.has_other_pages %}
+                <div style="margin-top:10px; display:flex; justify-content:center; gap:5px; align-items:center;">
+                    {% if contact_messages.has_previous %}
+                    <a href="?msg_page=1&msg_search={{ msg_search }}&msg_start={{ msg_start }}&msg_end={{ msg_end }}&user_search={{ user_search }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">&laquo;</a>
+                    <a href="?msg_page={{ contact_messages.previous_page_number }}&msg_search={{ msg_search }}&msg_start={{ msg_start }}&msg_end={{ msg_end }}&user_search={{ user_search }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">&lt;</a>
+                    {% endif %}
+
+                    <span style="opacity:0.8; font-size:0.8rem">Sayfa {{ contact_messages.number }} / {{ contact_messages.paginator.num_pages }}</span>
+                        
+                    {% if contact_messages.has_next %}
+                    <a href="?msg_page={{ contact_messages.next_page_number }}&msg_search={{ msg_search }}&msg_start={{ msg_start }}&msg_end={{ msg_end }}&user_search={{ user_search }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">&gt;</a>
+                    <a href="?msg_page={{ contact_messages.paginator.num_pages }}&msg_search={{ msg_search }}&msg_start={{ msg_start }}&msg_end={{ msg_end }}&user_search={{ user_search }}"
+                        class="btn-action" style="background:#333; color:white; text-decoration:none">&raquo;</a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
 
             <!-- USER MANAGEMENT -->
@@ -274,11 +352,21 @@
 
             <!-- APPOINTMENT MANAGEMENT (NEW) -->
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
-                    <h3 style="color:var(--gold); margin:0"><i class="fas fa-calendar-check"></i> Randevu Talepleri
-                        (YENİ)</h3>
-                    <button onclick="loadAppointments()" class="btn-action" style="background:#555; color:white"><i
-                            class="fas fa-sync"></i> Yenile</button>
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap: wrap; gap:10px">
+                    <h3 style="color:var(--gold); margin:0"><i class="fas fa-calendar-check"></i> Randevu Talepleri</h3>
+                    <div style="display:flex; gap:5px">
+                        <button onclick="filterAppointments('all')" id="im-btn-all" class="btn-action"
+                            style="background:var(--accent); color:white">Tümü</button>
+                        <button onclick="filterAppointments('pending')" id="im-btn-pending" class="btn-action"
+                            style="background:#333; color:white; border:1px solid #555">Bekleyen</button>
+                        <button onclick="filterAppointments('approved')" id="im-btn-approved" class="btn-action"
+                            style="background:#333; color:white; border:1px solid #555">Onaylanan</button>
+                        <button onclick="filterAppointments('rejected')" id="im-btn-rejected" class="btn-action"
+                            style="background:#333; color:white; border:1px solid #555">Red</button>
+                        <button onclick="loadAppointments()" class="btn-action"
+                            style="background:#555; color:white; margin-left:5px"><i class="fas fa-sync"></i></button>
+                    </div>
                 </div>
 
                 <div id="appointments-container"
@@ -290,7 +378,32 @@
 
             <!-- LOGS -->
             <div class="card">
-                <h3 style="margin-bottom:15px"><i class="fas fa-list"></i> Loglar</h3>
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px">
+                    <h3 style="margin:0"><i class="fas fa-list"></i> Loglar</h3>
+
+                    <form method="GET" style="display:flex; gap:5px; align-items:center;">
+                        <!-- Include other major filters to preserve state if desired, but here we focus on logs -->
+                        <!-- Note: start_date and end_date affect stats too, which is consistent -->
+
+                        <input type="date" name="start_date" value="{{ start_date }}"
+                            style="background:#222; border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
+                        <span style="opacity:0.5">-</span>
+                        <input type="date" name="end_date" value="{{ end_date }}"
+                            style="background:#222; border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
+
+                        <input type="text" name="log_search" value="{{ log_search }}" placeholder="Log ara..."
+                            style="background:#222; border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:0.8rem; width:100px">
+
+                        <button type="submit" class="btn-action"
+                            style="background:var(--accent); color:white">Filtrele</button>
+                        {% if log_search or start_date or end_date %}
+                        <a href="/custom-admin/" class="btn-action"
+                            style="background:#444; color:white; text-decoration:none">X</a>
+                        {% endif %}
+                    </form>
+                </div>
+
                 <table>
                     <thead>
                         <tr>
@@ -302,7 +415,8 @@
                     <tbody>
                         {% for log in page_obj %}
                         <tr>
-                            <td style="opacity:0.6">{{ log.timestamp|date:"H:i:s" }}</td>
+                            <td style="opacity:0.6; white-space:nowrap; font-size:0.85rem">{{ log.timestamp|date:"d M Y H:i:s" }}</td>
+                                
                             <td>{{ log.user.username|default:"Ziyaretçi" }}</td>
                             <td>{{ log.action }}</td>
                         </tr>
@@ -318,19 +432,19 @@
                 {% if page_obj.has_other_pages %}
                 <div style="margin-top:20px; display:flex; justify-content:center; gap:5px; align-items:center;">
                     {% if page_obj.has_previous %}
-                    <a href="?page=1&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                    <a href="?page=1&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}&log_search={{ log_search }}"
                         class="btn-action" style="background:#333; color:white; text-decoration:none">&laquo; İlk</a>
-                    <a href="?page={{ page_obj.previous_page_number }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                    <a href="?page={{ page_obj.previous_page_number }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}&log_search={{ log_search }}"
                         class="btn-action" style="background:#333; color:white; text-decoration:none">Önceki</a>
                     {% endif %}
 
-                    <span style="opacity:0.8; margin:0 10px; font-weight:bold">Sayfa {{ page_obj.number }} / {{
-                        page_obj.paginator.num_pages }}</span>
+                    <span style="opacity:0.8; margin:0 10px; font-weight:bold">Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                        
 
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                    <a href="?page={{ page_obj.next_page_number }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}&log_search={{ log_search }}"
                         class="btn-action" style="background:#333; color:white; text-decoration:none">Sonraki</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}"
+                    <a href="?page={{ page_obj.paginator.num_pages }}&user_search={{ user_search }}&start_date={{ start_date }}&end_date={{ end_date }}&log_search={{ log_search }}"
                         class="btn-action" style="background:#333; color:white; text-decoration:none">Son &raquo;</a>
                     {% endif %}
                 </div>
@@ -363,48 +477,98 @@
         }
 
         // --- APPOINTMENTS LOGIC ---
+        let currentStatus = 'all';
+        let currentAppPage = 1;
+
+        function filterAppointments(status) {
+            currentStatus = status;
+            currentAppPage = 1; // Reset to page 1 on filter change
+
+            // Update UI
+            ['all', 'pending', 'approved', 'rejected'].forEach(s => {
+                const btn = document.getElementById('im-btn-' + s);
+                if (btn) {
+                    if (s === status) btn.style.background = 'var(--accent)';
+                    else btn.style.background = '#333';
+                }
+            });
+
+            loadAppointments();
+        }
+
+        function changeAppPage(delta) {
+            currentAppPage += delta;
+            if (currentAppPage < 1) currentAppPage = 1;
+            loadAppointments();
+        }
+
         async function loadAppointments() {
             try {
-                const res = await fetch('/interactive/admin/appointments/');
+                const res = await fetch(`/interactive/admin/appointments/?status=${currentStatus}&page=${currentAppPage}`);
                 const data = await res.json();
                 const container = document.getElementById('appointments-container');
                 container.innerHTML = '';
 
                 if (!data.appointments || data.appointments.length === 0) {
                     container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6">Bekleyen randevu yok.</div>';
-                    return;
+                } else {
+                    data.appointments.forEach(app => {
+                        let statusColor = '#999';
+                        if (app.status === 'approved') statusColor = '#4CAF50';
+                        else if (app.status === 'rejected') statusColor = '#F44336';
+                        else if (app.status === 'pending') statusColor = '#FF9800';
+
+                        const html = `
+                        <div style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:10px; border-radius:8px; border-left:4px solid ${statusColor}">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px">
+                                <span style="font-weight:bold; color:var(--gold)">${app.user} (${app.topic})</span>
+                                <span style="font-size:0.8rem; opacity:0.7">${app.date}</span>
+                            </div>
+                            <div style="font-size:0.9rem; margin-bottom:5px"><b>İletişim:</b> ${app.contact}</div>
+                            <div style="font-size:0.9rem; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.2); border-radius:5px">"${app.message}"</div>
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center">
+                                <span style="font-weight:bold; color:${statusColor}">${app.status.toUpperCase()}</span>
+                                
+                                ${app.status === 'pending' ? `
+                                <div style="display:flex; gap:10px; align-items:center">
+                                    <input type="text" id="note-${app.id}" placeholder="Yönetici notu..." style="background:#222; border:1px solid #555; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
+                                    <button onclick="reviewApp(${app.id}, 'approve')" class="btn-action" style="background:#4CAF50; color:white"><i class="fas fa-check"></i> Onayla</button>
+                                    <button onclick="reviewApp(${app.id}, 'reject')" class="btn-action" style="background:#F44336; color:white"><i class="fas fa-times"></i> Reddet</button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        `;
+                        container.innerHTML += html;
+                    });
                 }
 
-                data.appointments.forEach(app => {
-                    let statusColor = '#999';
-                    if (app.status === 'approved') statusColor = '#4CAF50';
-                    else if (app.status === 'rejected') statusColor = '#F44336';
-                    else if (app.status === 'pending') statusColor = '#FF9800';
+                // Render Pagination Controls inside the Card
+                const pagId = 'app-pagination-controls';
+                let pagDiv = document.getElementById(pagId);
+                // Clean up old pagination div if it exists outside/inside incorrectly
+                if (!pagDiv) {
+                    pagDiv = document.createElement('div');
+                    pagDiv.id = pagId;
+                    pagDiv.style.marginTop = '15px';
+                    pagDiv.style.display = 'flex';
+                    pagDiv.style.justifyContent = 'center';
+                    pagDiv.style.alignItems = 'center';
+                    pagDiv.style.gap = '10px';
+                    container.parentNode.appendChild(pagDiv);
+                }
 
-                    const html = `
-                    <div style="background:rgba(255,255,255,0.05); padding:15px; margin-bottom:10px; border-radius:8px; border-left:4px solid ${statusColor}">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px">
-                            <span style="font-weight:bold; color:var(--gold)">${app.user} (${app.topic})</span>
-                            <span style="font-size:0.8rem; opacity:0.7">${app.date}</span>
-                        </div>
-                        <div style="font-size:0.9rem; margin-bottom:5px"><b>İletişim:</b> ${app.contact}</div>
-                        <div style="font-size:0.9rem; margin-bottom:10px; padding:10px; background:rgba(0,0,0,0.2); border-radius:5px">"${app.message}"</div>
-                        
-                        <div style="display:flex; justify-content:space-between; align-items:center">
-                            <span style="font-weight:bold; color:${statusColor}">${app.status.toUpperCase()}</span>
-                            
-                            ${app.status === 'pending' ? `
-                            <div style="display:flex; gap:10px; align-items:center">
-                                <input type="text" id="note-${app.id}" placeholder="Yönetici notu..." style="background:#222; border:1px solid #555; color:white; padding:5px; border-radius:4px; font-size:0.8rem">
-                                <button onclick="reviewApp(${app.id}, 'approve')" class="btn-action" style="background:#4CAF50; color:white"><i class="fas fa-check"></i> Onayla</button>
-                                <button onclick="reviewApp(${app.id}, 'reject')" class="btn-action" style="background:#F44336; color:white"><i class="fas fa-times"></i> Reddet</button>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
+                if (data.total_pages > 1) {
+                    pagDiv.innerHTML = `
+                        <button onclick="changeAppPage(-1)" class="btn-action" style="background:#333; color:white; opacity:${data.has_previous ? '1' : '0.5'}; pointer-events:${data.has_previous ? 'auto' : 'none'}">&laquo; Önceki</button>
+                        <span style="opacity:0.8; font-size:0.9rem">Sayfa ${data.current_page} / ${data.total_pages}</span>
+                        <button onclick="changeAppPage(1)" class="btn-action" style="background:#333; color:white; opacity:${data.has_next ? '1' : '0.5'}; pointer-events:${data.has_next ? 'auto' : 'none'}">Sonraki &raquo;</button>
                     `;
-                    container.innerHTML += html;
-                });
+                } else {
+                    pagDiv.innerHTML = '';
+                }
+
             } catch (e) {
                 console.error(e);
                 document.getElementById('appointments-container').innerHTML = '<div style="color:red">Hata oluştu.</div>';

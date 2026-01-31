@@ -11,4 +11,4 @@ urlpatterns = [
     path('cms/', include('content_manager.urls')), # CMS Routes
     path('library/', include('library.urls')), # Library App
     path('', include('astrology.urls')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

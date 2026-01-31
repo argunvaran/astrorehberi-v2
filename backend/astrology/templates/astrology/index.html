@@ -20,6 +20,7 @@
         // Global User Context for SPA Parts
         window.USER_BIRTH_DATE = "{% if user.is_authenticated and user.profile.birth_date %}{{ user.profile.birth_date|date:'Y-m-d' }}{% else %}{{ '' }}{% endif %}";
         window.USER_BIRTH_TIME = "{% if user.is_authenticated and user.profile.birth_time %}{{ user.profile.birth_time|time:'H:i' }}{% else %}{{ '' }}{% endif %}";
+        window.INITIAL_SECTION = "{{ initial_section|default:'' }}";
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -608,6 +609,9 @@
             </script>
 
             <!-- SECTIONS -->
+            <!-- Legal Sections -->
+            {% include 'astrology/partials/section_legal.html' %}
+
             {% include 'astrology/partials/section_home.html' %}
             {% include 'astrology/partials/section_celestial.html' %}
             {% include 'astrology/partials/section_horoscopes.html' %}
@@ -1091,11 +1095,15 @@
                 window.location.href = "/";
             }, 500);
         }
+    </script>
+    <script>
+        // --- GLOBAL: Save Profile if Logged In / Premium Check ---
+        async function saveProfile() {
+            // ... (keep existing implementation or move to a partial if large)
+            if ("{{ user.is_authenticated | yesno:'true,false' }}" !== 'true') return;
 
-        async function saveProfileToBackend() {
-            if (!currentUser) return;
             const date = document.getElementById('date').value;
-            const time = document.getElementById('time').value;
+            consttime = document.getElementById('time').value;
             const lat = document.getElementById('lat').value;
             const lon = document.getElementById('lon').value;
 

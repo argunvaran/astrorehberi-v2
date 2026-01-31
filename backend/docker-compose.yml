@@ -20,6 +20,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - static_volume:/app/staticfiles
+      - ./media:/app/media # Media Files
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
     ports:

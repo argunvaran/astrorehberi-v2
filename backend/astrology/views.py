@@ -11,7 +11,7 @@ import geonamescache
 from .tarot_data import tarot_deck
 from .horoscope_data import SENTENCES, SIGNS_TR, SIGNS_EN
 from django.db.models import Q
-from .models import PlanetInterpretation, AspectInterpretation, DailyTip, DailyHoroscope, WeeklyHoroscope, UserProfile, UserActivityLog
+from .models import PlanetInterpretation, AspectInterpretation, DailyTip, DailyHoroscope, WeeklyHoroscope, UserProfile, UserActivityLog, BlogPost, ContactMessage
 from .forms import UserSettingsForm
 from .celestial_engine import get_next_celestial_events, calculate_impact_house
 from .celestial_data import HOUSE_THEMES, EVENT_DESCRIPTIONS
@@ -34,6 +34,25 @@ except ImportError:
 @csrf_exempt
 def appointment_view(request):
     return render(request, 'astrology/appointment.html')
+
+@csrf_exempt
+def submit_contact_form(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Basic validation
+            if not data.get('name') or not data.get('email') or not data.get('message'):
+                return JsonResponse({'success': False, 'error': 'Tüm alanlar zorunludur.'})
+            
+            ContactMessage.objects.create(
+                name=data.get('name'),
+                email=data.get('email'),
+                message=data.get('message')
+            )
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'error': 'POST required'}, status=405)
 
 @csrf_exempt
 def calculate_chart(request):
@@ -1075,10 +1094,29 @@ def index(request):
     else:
         settings_form = UserSettingsForm()
 
+    # --- BLOG SEARCH & PAGINATION & FILTER ---
+    query = request.GET.get('q', '')
+    date_filter = request.GET.get('date', '')
+    page_number = request.GET.get('page', 1)
+    
+    blog_queryset = BlogPost.objects.filter(is_published=True).order_by('-created_at')
+    
+    if query:
+        blog_queryset = blog_queryset.filter(Q(title__icontains=query) | Q(content__icontains=query))
+    
+    if date_filter:
+        blog_queryset = blog_queryset.filter(created_at__date=date_filter)
+    
+    paginator = Paginator(blog_queryset, 9) # 9 Per Page
+    blog_posts = paginator.get_page(page_number)
+    
     context = {
         'profile': profile,
         'user': request.user,
-        'settings_form': settings_form
+        'settings_form': settings_form,
+        'blog_posts': blog_posts,
+        'search_query': query,
+        'date_filter': date_filter
     }
     return render(request, 'astrology/index.html', context)
 
@@ -1490,6 +1528,19 @@ def custom_admin_dashboard(request):
     if end_date_str:
         base_qs = base_qs.filter(timestamp__date__lte=end_date_str)
 
+    # Log Search
+    log_search = request.GET.get('log_search')
+    if log_search:
+        search_query = Q(user__username__icontains=log_search) | \
+                       Q(action__icontains=log_search) | \
+                       Q(ip_address__icontains=log_search)
+        
+        # Handle "Ziyaretçi" (Visitor) special case since it's a template fallback for None
+        if 'ziyaretçi' in log_search.lower() or 'visitor' in log_search.lower():
+            search_query |= Q(user__isnull=True)
+            
+        base_qs = base_qs.filter(search_query)
+
     # 1. Logs (Paginated)
     log_list = base_qs.select_related('user').order_by('-timestamp')
     paginator = Paginator(log_list, 20) # Show 20 logs per page
@@ -1516,6 +1567,30 @@ def custom_admin_dashboard(request):
             Q(email__icontains=user_search)
         )
 
+    # 6. Contact Messages (Filtered & Paginated)
+    msg_qs = ContactMessage.objects.all().order_by('-created_at')
+
+    # Message Filtering
+    msg_search = request.GET.get('msg_search')
+    if msg_search:
+        msg_qs = msg_qs.filter(
+            Q(name__icontains=msg_search) | 
+            Q(email__icontains=msg_search) | 
+            Q(message__icontains=msg_search)
+        )
+    
+    msg_start = request.GET.get('msg_start')
+    msg_end = request.GET.get('msg_end')
+    
+    if msg_start:
+        msg_qs = msg_qs.filter(created_at__date__gte=msg_start)
+    if msg_end:
+        msg_qs = msg_qs.filter(created_at__date__lte=msg_end)
+
+    msg_paginator = Paginator(msg_qs, 10) 
+    msg_page_num = request.GET.get('msg_page', 1)
+    msg_page_obj = msg_paginator.get_page(msg_page_num)
+
     context = {
         'page_obj': page_obj, # Use page_obj for the loop
         'action_counts': action_counts,
@@ -1528,7 +1603,13 @@ def custom_admin_dashboard(request):
         # Pass back filter params to keep them in pagination links
         'start_date': start_date_str or '', 
         'end_date': end_date_str or '',
-        'user_search': user_search or ''
+        'user_search': user_search or '',
+        'log_search': log_search or '',
+        # Message Context
+        'contact_messages': msg_page_obj, # Replaced list with page object
+        'msg_search': msg_search or '',
+        'msg_start': msg_start or '',
+        'msg_end': msg_end or ''
     }
     
     return render(request, 'astrology/custom_admin.html', context)
@@ -1617,7 +1698,7 @@ def calculate_career_view(request):
         
         # Generate Text
         if lang == 'tr':
-            mc_text = f"Tepe Noktanız (MC) **{mc_sign}** burcunda.<br>Bu, kariyerde yönetici ve öncü bir rol üstlenmeniz gerektiğine işaret eder. Toplum önünde {mc_sign} özellikleriyle tanınacaksınız."
+            mc_text = f"Tepe Noktanız (MC) **{mc_sign}** burcunda.<br>Bu, kariyerde yönetici ve öncü bir rol üstlemeniz gerektiğine işaret eder. Toplum önünde {mc_sign} özellikleriyle tanınacaksınız."
             sat_text = f"Satürn **{saturn_sign}** burcunda.<br>Disiplin ve sorumluluk alanınız burasıdır. Zorluklarla büyüyecek ve bu alanda otorite olacaksın."
             fore_text = "Bu ay kariyerinizde yeni fırsatlar var. Özellikle ayın 15'inden sonra beklediğiniz bir haber gelebilir."
         else:
@@ -1716,6 +1797,18 @@ def custom_admin_data_api(request):
             'user': l.user.username if l.user else 'Visitor',
             'action': l.action
         })
+
+    # Contact Messages (Last 50)
+    messages = []
+    for m in ContactMessage.objects.all().order_by('-created_at')[:50]:
+        messages.append({
+            'id': m.id,
+            'name': m.name,
+            'email': m.email,
+            'message': m.message,
+            'date': m.created_at.strftime("%d.%m %H:%M"),
+            'is_read': m.is_read
+        })
         
     return JsonResponse({
         'stats': {
@@ -1725,7 +1818,8 @@ def custom_admin_data_api(request):
             'active_users': active_users
         },
         'users': users,
-        'logs': logs
+        'logs': logs,
+        'messages': messages
     })
 
 @csrf_exempt
@@ -1892,3 +1986,14 @@ def get_general_weekly_horoscopes(request):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def about_view(request):
+    return render(request, 'astrology/index.html', {'initial_section': 'about', 'user': request.user})
+
+def privacy_view(request):
+    return render(request, 'astrology/index.html', {'initial_section': 'privacy', 'user': request.user})
+
+def contact_view(request):
+    return render(request, 'astrology/index.html', {'initial_section': 'contact', 'user': request.user})
+

@@ -33,7 +33,7 @@
         }
 
         h1 {
-            color: #Gold;
+            color: gold;
         }
     </style>
 </head>
@@ -45,6 +45,11 @@
     <div style="margin-bottom:20px">
         <input type="text" id="post-title" placeholder="Başlık (Örn: 24-30 Ocak Haftası)"
             style="width:100%; padding:10px; border-radius:5px; border:none; margin-bottom:10px">
+        <input type="file" id="post-image" accept="image/*" style="color:white; margin-bottom:10px">
+        <br>
+        <span style="font-size:0.8rem; color: #aaa;">Yayın Tarihi (Opsiyonel):</span>
+        <input type="datetime-local" id="post-date"
+            style="margin-bottom:10px; padding:5px; border-radius:5px; border:none;">
     </div>
 
     <!-- Create the editor container -->
@@ -64,23 +69,36 @@
         async function saveContent() {
             const content = quill.root.innerHTML;
             const title = document.getElementById('post-title').value;
+            /* Add Date Retrieval */
+            const dateVal = document.getElementById('post-date') ? document.getElementById('post-date').value : '';
 
             if (!title) { alert("Başlık giriniz."); return; }
 
             document.getElementById('status').innerText = "Kaydediliyor...";
 
+
+            console.log("DEBUG: Date Val being sent:", dateVal);
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+            formData.append('published', 'true');
+            if (dateVal) {
+                formData.append('date', dateVal);
+            }
+
+            const fileInput = document.getElementById('post-image');
+            if (fileInput && fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
             try {
                 const res = await fetch('/cms/save/', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify({
-                        title: title,
-                        content: content,
-                        published: true
-                    })
+                    body: formData
                 });
                 const data = await res.json();
                 if (data.success) {

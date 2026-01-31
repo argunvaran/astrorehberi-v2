@@ -13,8 +13,12 @@ import 'synastry_screen.dart';
 import 'draconic_screen.dart';
 import 'hours_screen.dart';
 import 'career_screen.dart';
-import 'celestial_screen.dart'; // Added
+import 'celestial_screen.dart'; 
+import 'social/social_hub_screen.dart'; // New Social Hub
 import 'landing_screen.dart';
+import 'contact_screen.dart';
+import 'admin_screen.dart';
+import 'blog_screen.dart'; // Added Import
 
 import '../theme/strings.dart';
 
@@ -435,14 +439,30 @@ class _InputScreenState extends State<InputScreen> {
                  _checkDataAndNavigate(CareerScreen(lang: _lang));
             }),
             const Divider(color: Colors.white24),
+            _drawerItem(Icons.grid_view, isTr ? "Kozmik Duvar" : "Cosmic Wall", () {
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (_) => SocialHubScreen(lang: _lang)));
+            }, highlight: true),
+            
+            _drawerItem(Icons.article, isTr ? "Kozmik Yazılar" : "Cosmic Articles", () {
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (_) => BlogScreen(lang: _lang)));
+            }),
+
             _drawerItem(Icons.style, isTr ? "Mistik Tarot" : "Mystic Tarot", () {
                  Navigator.pop(context);
                  Navigator.push(context, MaterialPageRoute(builder: (_) => TarotScreen(lang: _lang)));
             }, highlight: true),
             
+            _drawerItem(Icons.headset_mic, isTr ? "İletişim & Randevu" : "Contact & Appointment", () {
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (_) => ContactScreen(lang: _lang)));
+            }),
+            
             if (_isAdmin)
               _drawerItem(Icons.admin_panel_settings, "Kozmik Panel", () {
-                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Admin Panel is Web-Only for now")));
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen(lang: _lang)));
               }, highlight: true),
 
             const Spacer(),
@@ -524,6 +544,12 @@ class _InputScreenState extends State<InputScreen> {
           title: _lang == 'tr' ? "Drakonik Ruh" : "Draconic Soul",
           color: Colors.deepPurple,
           onTap: () => _checkDataAndNavigate(DraconicScreen(lang: _lang))
+        ),
+        _buildDashboardCard(
+          icon: Icons.hub, 
+          title: "Kozmik Bağlantı",
+          color: Colors.pink,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SocialHubScreen(lang: _lang)))
         ),
         _buildDashboardCard(
           icon: Icons.work,
