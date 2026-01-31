@@ -3,12 +3,14 @@ class Planet {
   final String sign;
   final double lon;
   final String interpretation;
+  final bool isRestricted;
 
   Planet({
     required this.name,
     required this.sign,
     required this.lon,
     required this.interpretation,
+    this.isRestricted = false,
   });
 
   factory Planet.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Planet {
       sign: json['sign'] ?? '',
       lon: (json['lon'] ?? 0.0).toDouble(),
       interpretation: json['interpretation'] ?? '',
+      isRestricted: json['is_restricted'] ?? false,
     );
   }
 }

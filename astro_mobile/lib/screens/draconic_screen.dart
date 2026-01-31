@@ -23,25 +23,8 @@ class DraconicScreen extends StatelessWidget {
     if (backendData != null && backendData.isNotEmpty) {
        draconicPlanets = backendData.map((e) => e as Map<String, dynamic>).toList();
     } else {
-      // 2. Fallback: Client-Side Calc (No interpretation)
-      // Find North Node
-      Planet? northNode;
-      try {
-          northNode = chart.planets.firstWhere((p) => p.name.contains('Node') || p.name.contains('True') || p.name.contains('Mean'));
-      } catch (_) {}
-  
-      final offset = northNode?.lon ?? 0.0; 
-  
-      draconicPlanets = chart.planets.map((p) {
-          double newLon = p.lon - offset;
-          if (newLon < 0) newLon += 360;
-          return {
-             'name': p.name,
-             'sign': _getZodiacSign(newLon),
-             'lon': newLon,
-             'interpretation': null 
-          };
-      }).toList();
+       // Premium Only - no client side fallback
+       draconicPlanets = [];
     }
 
     return Scaffold(
@@ -53,6 +36,8 @@ class DraconicScreen extends StatelessWidget {
         leading: const BackButton(color: Colors.white),
       ),
       body: Container(
+         width: double.infinity,
+         height: double.infinity,
          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter, end: Alignment.bottomCenter,
@@ -60,7 +45,45 @@ class DraconicScreen extends StatelessWidget {
             )
          ),
          child: SafeArea(
-           child: ListView.builder(
+           child: draconicPlanets.isEmpty
+           ? Center(
+               child: Container(
+                 margin: const EdgeInsets.all(30),
+                 padding: const EdgeInsets.all(30),
+                 decoration: BoxDecoration(
+                   color: Colors.black45,
+                   borderRadius: BorderRadius.circular(20),
+                   border: Border.all(color: Colors.purpleAccent.withOpacity(0.5))
+                 ),
+                 child: Column(
+                   mainAxisSize: MainAxisSize.min,
+                   children: [
+                     const Icon(Icons.fingerprint, color: Colors.purpleAccent, size: 80),
+                     const SizedBox(height: 20),
+                     const Icon(Icons.lock, color: Colors.amber, size: 40),
+                     const SizedBox(height: 20),
+                     Text(
+                       lang == 'tr' ? "DRAKONİK RUH" : "DRACONIC SOUL",
+                       style: GoogleFonts.cinzel(color: Colors.purpleAccent, fontSize: 24, fontWeight: FontWeight.bold)
+                     ),
+                     const SizedBox(height: 10),
+                     Text(
+                       lang == 'tr' 
+                       ? "Ruhunuzun derin kodlarını keşfetmek ve Drakonik Harita analizini görüntülemek için Premium üye olmalısınız."
+                       : "You must be a Premium member to explore your soul's deep codes and view the Draconic Chart analysis.",
+                       textAlign: TextAlign.center,
+                       style: const TextStyle(color: Colors.white70, fontSize: 16),
+                     ),
+                     const SizedBox(height: 30),
+                     Text(
+                       lang == 'tr' ? "Sadece Premium Üyelere Özeldir" : "Exclusive to Premium Members",
+                       style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                     )
+                   ],
+                 ),
+               ),
+           )
+           : ListView.builder(
              padding: const EdgeInsets.all(16),
              itemCount: draconicPlanets.length + 1,
              itemBuilder: (context, index) {
@@ -76,8 +99,8 @@ class DraconicScreen extends StatelessWidget {
                       ),
                       child: Text(
                         lang == 'tr' 
-                        ? "Drakonik harita, ruhunuzun asıl amacını ve bilinçaltındaki kodlarını gösterir. Kuzey Ay Düğümü'nün 0 derece Koç kabul edildiği ruhsal bir haritadır. Kartlara tıklayarak detayları görebilirsiniz."
-                        : "The Draconic chart reveals your soul's purpose. Tap on cards to see details.",
+                        ? "Drakonik harita, ruhunuzun asıl amacını ve bilinçaltındaki kodlarını gösterir. Kuzey Ay Düğümü'nün 0 derece Koç kabul edildiği ruhsal bir haritadır."
+                        : "The Draconic chart reveals your ancient soul purpose. It is a spiritual chart where the North Node is 0° Aries.",
                         style: const TextStyle(color: Colors.white70, fontSize: 16),
                         textAlign: TextAlign.center,
                       ),

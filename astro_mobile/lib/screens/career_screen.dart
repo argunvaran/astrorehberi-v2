@@ -55,6 +55,39 @@ class CareerScreen extends StatelessWidget {
                 _buildHeaderCard(),
                 const SizedBox(height: 20),
                 
+                if (chart.planets.isNotEmpty && chart.planets[0].isRestricted)
+                   Center(
+                     child: Container(
+                       padding: const EdgeInsets.all(30),
+                       decoration: BoxDecoration(
+                         color: Colors.black45,
+                         borderRadius: BorderRadius.circular(20),
+                         border: Border.all(color: Colors.amber.withOpacity(0.5))
+                       ),
+                       child: Column(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           const Icon(Icons.lock_outline, color: Colors.amber, size: 60),
+                           const SizedBox(height: 20),
+                           Text(
+                             lang == 'tr' ? "PREMIUM İÇERİK" : "PREMIUM CONTENT",
+                             style: GoogleFonts.cinzel(color: Colors.amber, fontSize: 24, fontWeight: FontWeight.bold)
+                           ),
+                           const SizedBox(height: 10),
+                           Text(
+                             lang == 'tr' 
+                             ? "Kariyer Yolu detaylı analizini görüntülemek için Premium üye olmalısınız."
+                             : "You must be a Premium member to view the detailed Career Path analysis.",
+                             textAlign: TextAlign.center,
+                             style: const TextStyle(color: Colors.white70),
+                           ),
+                         ],
+                       ),
+                     ),
+                   )
+                else
+                   Column(
+                   children: [
                 if (saturn != null) 
                   _buildAnalysisCard(
                     lang == 'tr' ? "Disiplin ve Sorumluluk (Satürn)" : "Discipline & Responsibility (Saturn)", 
@@ -87,6 +120,8 @@ class CareerScreen extends StatelessWidget {
                    
                  if (saturn == null && mc == null)
                     const Center(child: Text("Yeterli gezegen verisi bulunamadı.", style: TextStyle(color: Colors.white)))
+                   ],
+                 )
              ],
            ),
          ),

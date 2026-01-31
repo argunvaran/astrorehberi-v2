@@ -149,27 +149,99 @@ class _SynastryScreenState extends State<SynastryScreen> {
   }
 
   Widget _buildResult() {
-    // Attempt to parse result or show generic
     final score = _result?['score'] ?? 85; 
+    final isRestricted = _result?['is_restricted'] ?? false;
     final text = _result?['analysis'] ?? (widget.lang == 'tr' ? "Bu iki harita arasında güçlü bir çekim var." : "Strong attraction is indicated between these charts.");
 
     return Column(
       children: [
          const SizedBox(height: 20),
-         Text("${score}%", style: GoogleFonts.oswald(fontSize: 80, color: Colors.white, fontWeight: FontWeight.bold)),
-         Text(widget.lang == 'tr' ? "Uyum Skoru" : "Compatibility Score", style: const TextStyle(color: Colors.white70)),
-         const SizedBox(height: 30),
+         // Score Circle
          Container(
-           padding: const EdgeInsets.all(20),
+           padding: const EdgeInsets.all(30),
            decoration: BoxDecoration(
-             color: Colors.white.withOpacity(0.15),
-             borderRadius: BorderRadius.circular(20)
+             shape: BoxShape.circle,
+             gradient: LinearGradient(
+                colors: [Colors.pinkAccent.withOpacity(0.3), Colors.purpleAccent.withOpacity(0.3)],
+                begin: Alignment.topLeft, end: Alignment.bottomRight
+             ),
+             border: Border.all(color: Colors.white24, width: 2),
+             boxShadow: [
+               BoxShadow(color: Colors.pink.withOpacity(0.3), blurRadius: 30, spreadRadius: 5)
+             ]
            ),
-           child: Text(text.toString(), style: const TextStyle(color: Colors.white, fontSize: 16)),
+           child: Column(
+             children: [
+               Text("${score}%", style: GoogleFonts.oswald(fontSize: 60, color: Colors.white, fontWeight: FontWeight.bold)),
+               Text(widget.lang == 'tr' ? "Uyum Skoru" : "Compatibility Score", style: const TextStyle(color: Colors.white70, fontSize: 12)),
+             ],
+           ),
          ),
+         const SizedBox(height: 10),
+         Text(_result?['summary'] ?? '', style: GoogleFonts.cinzel(color: Colors.amberAccent, fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+
+         const SizedBox(height: 30),
+         
+         if (isRestricted)
+             Container(
+               padding: const EdgeInsets.all(30),
+               width: double.infinity,
+               decoration: BoxDecoration(
+                 color: Colors.black45,
+                 borderRadius: BorderRadius.circular(20),
+                 border: Border.all(color: Colors.amber.withOpacity(0.5))
+               ),
+               child: Column(
+                 children: [
+                   const Icon(Icons.lock_outline, color: Colors.amber, size: 50),
+                   const SizedBox(height: 15),
+                   Text(
+                     widget.lang == 'tr' ? "DETAYLI ANALİZ KİLİTLİ" : "DETAILED ANALYSIS LOCKED",
+                     style: GoogleFonts.cinzel(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold),
+                     textAlign: TextAlign.center,
+                   ),
+                   const SizedBox(height: 10),
+                   Text(
+                     widget.lang == 'tr' 
+                     ? "İlişkinizin detaylı gezegen etkileşimlerini (sinastri) görmek için Premium üye olmalısınız."
+                     : "You must be a Premium member to view detailed planetary interactions (synastry).",
+                     textAlign: TextAlign.center,
+                     style: const TextStyle(color: Colors.white70),
+                   ),
+                 ],
+               ),
+             )
+         else
+             Container(
+               padding: const EdgeInsets.all(20),
+               decoration: BoxDecoration(
+                 color: Colors.white.withOpacity(0.1),
+                 borderRadius: BorderRadius.circular(20),
+                 border: Border.all(color: Colors.white10)
+               ),
+               child: Column(
+                 children: [
+                    Text(text.toString(), style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5), textAlign: TextAlign.center),
+                    if (_result?['aspects'] != null)
+                      ...(_result!['aspects'] as List).map((a) => Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: ListTile(
+                           leading: const Icon(Icons.star, color: Colors.amber, size: 16),
+                           title: Text(a['interpretation'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                        ),
+                      ))
+                 ]
+               ),
+             ),
+
          const SizedBox(height: 30),
          OutlinedButton(
            onPressed: () => setState(() => _result = null),
+           style: OutlinedButton.styleFrom(
+             side: const BorderSide(color: Colors.white30),
+             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
+           ),
            child: Text(widget.lang == 'tr' ? "Yeni Analiz" : "New Analysis", style: const TextStyle(color: Colors.white)),
          )
       ],
