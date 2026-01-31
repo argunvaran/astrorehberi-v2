@@ -1,4 +1,4 @@
-package com.example.astro_mobile
+package com.deepcosmos.astrorehberi
 
 import io.flutter.embedding.android.FlutterActivity
 
