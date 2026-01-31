@@ -1,6 +1,10 @@
 import os
+import sys
 import django
 from collections import defaultdict
+
+# Add backend directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Setup Django Environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "astro_backend.settings")
