@@ -36,6 +36,18 @@ def appointment_view(request):
     return render(request, 'astrology/appointment.html')
 
 @csrf_exempt
+def blog_detail(request, slug):
+    """
+    Renders a single Blog Post page (SSR) for SEO/AdSense.
+    """
+    try:
+        post = BlogPost.objects.get(slug=slug)
+        # Ensure 'views' count increment logic if needed
+        return render(request, 'astrology/pages/blog_detail.html', {'post': post})
+    except BlogPost.DoesNotExist:
+        return render(request, 'astrology/404.html', status=404)
+
+@csrf_exempt
 def submit_contact_form(request):
     if request.method == 'POST':
         try:

@@ -1,0 +1,87 @@
+{% extends 'astrology/base_static.html' %}
+{% load static %}
+
+{% block content %}
+<div class="main-content-wrapper" style="padding: 40px; max-width: 900px; margin: 0 auto; color: var(--text);">
+
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted);">
+        <a href="/" style="color: var(--gold); text-decoration: none;">Anasayfa</a> >
+        <a href="/?section=blog" style="color: var(--gold); text-decoration: none;">Kozmik Yazılar</a> >
+        <span>{{ post.title }}</span>
+    </div>
+
+    <!-- Title -->
+    <h1
+        style="font-family: 'Cinzel', serif; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; font-size: 2.5rem; line-height: 1.3;">
+        {{ post.title }}
+    </h1>
+
+    <!-- Meta Info -->
+    <div
+        style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px; font-size: 0.9rem; color: var(--text-muted);">
+        <span><i class="far fa-calendar-alt"></i> {{ post.created_at|date:"d F Y" }}</span>
+        {% if post.user %}
+        <span><i class="far fa-user"></i> {{ post.user.username }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Featured Image -->
+    <div
+        style="width: 100%; max-height: 400px; overflow: hidden; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border);">
+        <img src="{% if post.banner_image %}{{ post.banner_image.url }}{% else %}{{ post.image_url }}{% endif %}"
+            alt="{{ post.title }}" style="width: 100%; height: 100%; object-fit: cover;"
+            onerror="this.style.display='none'">
+    </div>
+
+    <!-- Content -->
+    <div class="blog-content" style="font-size: 1.1rem; line-height: 1.8; color: var(--text);">
+        {{ post.content|safe }}
+    </div>
+
+    <!-- Share / Navigation Footer -->
+    <div
+        style="margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
+        <a href="/" class="cta-button" style="text-decoration: none; display: inline-block; padding: 10px 20px;">
+            <i class="fas fa-arrow-left"></i> Ana Sayfaya Dön
+        </a>
+    </div>
+
+</div>
+
+<style>
+    /* Content Styling */
+    .blog-content p {
+        margin-bottom: 20px;
+    }
+
+    .blog-content h2 {
+        color: var(--accent);
+        margin-top: 30px;
+        margin-bottom: 15px;
+        font-family: 'Cinzel', serif;
+    }
+
+    .blog-content h3 {
+        color: var(--gold);
+        margin-top: 25px;
+        margin-bottom: 10px;
+    }
+
+    .blog-content ul,
+    .blog-content ol {
+        margin-left: 20px;
+        margin-bottom: 20px;
+    }
+
+    .blog-content li {
+        margin-bottom: 10px;
+    }
+
+    .blog-content img {
+        max-width: 100%;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
