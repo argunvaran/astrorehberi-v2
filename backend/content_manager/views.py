@@ -172,6 +172,7 @@ def get_forecast_list(request):
                 'total_pages': paginator.num_pages
             }
         })
+    except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
 @user_passes_test(is_admin_user)
