@@ -8,6 +8,12 @@ import '../models/interactive_models.dart';
 
 class ApiService {
   String get baseUrl {
+    // 1. Production (Release Mode)
+    if (!kDebugMode) {
+      return "https://astrorehberi.com/api";
+    }
+
+    // 2. Development (Debug Mode)
     if (kIsWeb) return "http://127.0.0.1:8000/api";
     try {
       if (Platform.isAndroid) return "http://10.0.2.2:8000/api";
@@ -15,6 +21,19 @@ class ApiService {
       return "http://127.0.0.1:8000/api";
     }
     return "http://127.0.0.1:8000/api";
+  }
+
+  String get rootUrl {
+     if (!kDebugMode) {
+      return "https://astrorehberi.com";
+    }
+    if (kIsWeb) return "http://127.0.0.1:8000";
+    try {
+      if (Platform.isAndroid) return "http://10.0.2.2:8000";
+    } catch(e){
+       return "http://127.0.0.1:8000";
+    }
+    return "http://127.0.0.1:8000";
   }
 
   static Map<String, String> _headers = {'Content-Type': 'application/json'};
