@@ -462,8 +462,10 @@ class _InputScreenState extends State<InputScreen> {
             }),
             
             if (_isAdmin)
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen(lang: _lang)));
-               }, highlight: true),
+              _drawerItem(Icons.admin_panel_settings, "Kozmik Panel", () {
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen(lang: _lang)));
+              }, highlight: true),
 
             const Divider(color: Colors.white24),
             SwitchListTile(
