@@ -191,4 +191,4 @@ SESSION_COOKIE_NAME = 'astro_session'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_DOMAIN = None # Allow localhost
 SESSION_COOKIE_PATH = '/'
-FREE_PREMIUM_MODE = True
+FREE_PREMIUM_MODE = False

@@ -334,9 +334,14 @@ def calculate_synastry_view(request):
             except: pass
             
         if is_free:
-            # Hide detailed aspects, only show Score & Short Summary
-            result['aspects'] = [] 
-            result['is_restricted'] = True # Frontend will show "Upgrade to see details"
+            # Check Global Free Mode
+            from django.conf import settings
+            is_global_free = getattr(settings, 'FREE_PREMIUM_MODE', False)
+            
+            if not is_global_free:
+                # Hide detailed aspects, only show Score & Short Summary
+                result['aspects'] = [] 
+                result['is_restricted'] = True # Frontend will show "Upgrade to see details"
         
         # Add Interpretation Texts
         summary = ""
@@ -1762,12 +1767,23 @@ def calculate_career_view(request):
             level = str(p.membership_level).lower().strip()
         except: pass
         
+        # Check Global Free Mode Check
+        try:
+             from django.conf import settings
+             if getattr(settings, 'FREE_PREMIUM_MODE', False) == True:
+                 level = 'premium'
+        except: pass
+
         if level != 'premium' and not request.user.is_superuser:
               return JsonResponse({
                 'error': 'Kariyer Analizi detayları Premium üyelere özeldir.',
                 'upgrade_required': True
             }, status=200)
     else:
+         # Check Global Mode for Guests too? Usually Auth required first.
+         # But if FREE_PREMIUM_MODE is True, maybe we allow? 
+         # Web Logic typically requires Auth for "Career".
+         # Let's keep Auth requirement but allow content if Auth + GlobalFree
          return JsonResponse({'error': 'Giriş Yapmalısınız', 'upgrade_required':True}, status=200)
     
     try:
@@ -1952,9 +1968,28 @@ def get_celestial_events_view(request):
         
         # 1. Get User's Rising Sign
         rising_sign = request.GET.get('rising', 'Aries')
-
+        
+        # --- MEMBERSHIP CHECK ---
+        is_free_user = True
+        if request.user.is_authenticated:
+            try:
+                p = UserProfile.objects.get(user=request.user)
+                level = str(p.effective_membership).lower().strip()
+                if level in ['premium'] or request.user.is_superuser:
+                    is_free_user = False
+            except: pass
+            
+        # Check Global Free Mode
+        try:
+             from django.conf import settings
+             if getattr(settings, 'FREE_PREMIUM_MODE', False) == True:
+                 is_free_user = False
+        except: pass
+        
+        limit = 3 if not is_free_user else 1
+        
         # 2. Get Events
-        events = get_next_celestial_events(limit=1) # Just next 1 major event for focus
+        events = get_next_celestial_events(limit=limit)
         
         response_data = []
         
