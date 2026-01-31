@@ -143,13 +143,34 @@ class _TarotScreenState extends State<TarotScreen> {
                               borderRadius: BorderRadius.circular(15),
                               border: Border.all(color: Colors.amber)
                            ),
-                           child: Column(
-                             children: [
-                               Text(widget.lang == 'tr' ? "SENTEZ & YORUM" : "SYNTHESIS", style: GoogleFonts.cinzel(color: Colors.amber, fontSize: 20, fontWeight: FontWeight.bold)),
-                               const SizedBox(height: 10),
-                               Text(_tarotData!.synthesis, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)),
-                             ],
-                           ),
+                             child: Column(
+                               children: [
+                                 Text(widget.lang == 'tr' ? "SENTEZ & YORUM" : "SYNTHESIS", style: GoogleFonts.cinzel(color: Colors.amber, fontSize: 20, fontWeight: FontWeight.bold)),
+                                 const SizedBox(height: 10),
+                                 Text(_tarotData!.synthesis, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, height: 1.4)),
+                                 
+                                 const Divider(color: Colors.amber, height: 30),
+                                 
+                                 // WISH OUTCOME
+                                 Text(_tarotData!.wish.title, style: GoogleFonts.cinzel(color: const Color(0xFF00E5FF), fontSize: 18, fontWeight: FontWeight.bold)),
+                                 const SizedBox(height: 5),
+                                 Text(_tarotData!.wish.text, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+                                 const SizedBox(height: 10),
+                                 
+                                 // Score Indicator
+                                 Container(
+                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                   decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(20)),
+                                   child: Text(
+                                     "Enerji Puanı: ${_tarotData!.wish.score}",
+                                     style: TextStyle(
+                                       color: _tarotData!.wish.score > 0 ? Colors.greenAccent : Colors.redAccent,
+                                       fontWeight: FontWeight.bold
+                                     ),
+                                   ),
+                                 )
+                               ],
+                             ),
                          ),
                        )
                   ],
