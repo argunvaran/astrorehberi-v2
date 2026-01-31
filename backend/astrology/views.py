@@ -811,6 +811,8 @@ def draw_tarot(request):
                 'score': int(total_score)
             }
         })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 # --- BLOG API FOR MOBILE ---
 @csrf_exempt
