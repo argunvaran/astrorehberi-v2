@@ -167,11 +167,10 @@ def calculate_chart(request):
                     is_free_user = False
             except: pass
         
-        # DEBUG/TESTING OVERRIDE
-        # If the client sends 'simulate_premium': True, respect it for testing
+        # Check Global Free Premium Mode from Settings
         try:
-             req_body = json.loads(request.body)
-             if req_body.get('simulate_premium') == True:
+             from django.conf import settings
+             if getattr(settings, 'FREE_PREMIUM_MODE', False) == True:
                  is_free_user = False
         except: pass
 
