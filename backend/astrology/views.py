@@ -1419,11 +1419,16 @@ def check_auth_api(request):
             except:
                 return JsonResponse({'authenticated': True, 'username': request.user.username, 'profile': None})
 
+            # Check Global Free Mode
+            from django.conf import settings
+            is_global_free = getattr(settings, 'FREE_PREMIUM_MODE', False)
+
             return JsonResponse({
                 'authenticated': True,
                 'username': request.user.username,
                 'is_superuser': request.user.is_superuser,
                 'membership_level': request.user.profile.effective_membership,
+                'is_global_free': is_global_free, 
                 'profile': {
                     'date': p.birth_date.strftime("%Y-%m-%d") if p.birth_date else "",
                     'time': p.birth_time.strftime("%H:%M") if p.birth_time else "",
@@ -1436,7 +1441,10 @@ def check_auth_api(request):
             # Fallback if serialization fails
             return JsonResponse({'authenticated': True, 'username': request.user.username, 'error': str(e)})
     else:
-        return JsonResponse({'authenticated': False})
+        # Check Global Free Mode even for Guests
+        from django.conf import settings
+        is_global_free = getattr(settings, 'FREE_PREMIUM_MODE', False)
+        return JsonResponse({'authenticated': False, 'is_global_free': is_global_free})
 
 
 @csrf_exempt
@@ -2124,4 +2132,57 @@ def privacy_view(request):
 
 def contact_view(request):
     return render(request, 'astrology/index.html', {'initial_section': 'contact', 'user': request.user})
+
+@csrf_exempt
+def get_library_api(request):
+    """
+    Public API to return all library categories and items for the mobile app.
+    """
+    try:
+        from library.models import LibraryCategory
+        
+        cats = LibraryCategory.objects.all().prefetch_related('items')
+        data = []
+        for c in cats:
+            items = []
+            for i in c.items.filter(is_active=True):
+                items.append({
+                    'title': i.title,
+                    'slug': i.slug,
+                    'short_desc': i.short_desc,
+                    'image_url': i.image_url,
+                    'lookup_key': i.lookup_key
+                })
+            
+            # Only add if has items? Or empty categories too? Let's keep all.
+            data.append({
+                'name': c.name,
+                'slug': c.slug,
+                'icon': c.icon,
+                'items': items
+            })
+            
+        return JsonResponse({'categories': data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def get_library_detail_api(request, slug):
+    """
+    Public API to get details of a library item.
+    """
+    try:
+        from library.models import LibraryItem
+        item = LibraryItem.objects.get(slug=slug, is_active=True)
+        return JsonResponse({
+            'title': item.title,
+            'category': item.category.name,
+            'content': item.content,
+            'image_url': item.image_url,
+            'updated_at': item.updated_at
+        })
+    except LibraryItem.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 

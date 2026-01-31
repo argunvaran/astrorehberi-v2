@@ -488,6 +488,36 @@ class ApiService {
     final response = await http.post(url, headers: _headers);
     if (response.statusCode != 200) throw Exception('Failed to delete posts');
   }
+  Future<List<dynamic>> getLibraryItems() async {
+    final url = Uri.parse('$baseUrl/api/library/');
+    try {
+      final response = await http.get(url, headers: _headers);
+      _updateCookie(response);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data['categories'] ?? [];
+      } else {
+        throw Exception("Failed to load library");
+      }
+    } catch (e) {
+      throw Exception('Error loading library: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getLibraryItemDetail(String slug) async {
+    final url = Uri.parse('$baseUrl/api/library/$slug/');
+    try {
+      final response = await http.get(url, headers: _headers);
+      _updateCookie(response);
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes));
+      } else {
+        throw Exception("Failed to load item detail");
+      }
+    } catch (e) {
+      throw Exception('Error loading item: $e');
+    }
+  }
 }
 
 

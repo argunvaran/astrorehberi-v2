@@ -41,6 +41,9 @@ urlpatterns = [
     path('api/blog/', views.get_blog_posts_api, name='api_blog_list'),
     path('api/blog/<slug:slug>/', views.get_blog_detail_api, name='api_blog_detail'),
     
+    path('api/library/', views.get_library_api, name='api_library_list'),
+    path('api/library/<slug:slug>/', views.get_library_detail_api, name='api_library_detail'),
+    
     path('submit-contact/', views.submit_contact_form, name='submit_contact'),
 ]
 # Force Reload Trigger (Auto)

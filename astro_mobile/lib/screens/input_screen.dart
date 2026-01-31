@@ -18,7 +18,8 @@ import 'social/social_hub_screen.dart'; // New Social Hub
 import 'landing_screen.dart';
 import 'contact_screen.dart';
 import 'admin_screen.dart';
-import 'blog_screen.dart'; // Added Import
+import 'blog_screen.dart'; 
+import 'library_screen.dart'; // Added Import
 
 import '../theme/strings.dart';
 
@@ -47,6 +48,10 @@ class _InputScreenState extends State<InputScreen> {
   bool _isAdmin = false;
   bool _formLocked = false;
   String _username = "Guest";
+  
+  // Access Control
+  bool _isPremium = false;
+  bool _globalFreeMode = false;
 
   @override
   void initState() {
@@ -56,12 +61,21 @@ class _InputScreenState extends State<InputScreen> {
 
   Future<void> _checkAuth() async {
     final res = await _apiService.checkAuth();
+    
+    // Parse Global Free Mode first
+    final bool globalFree = res['is_global_free'] == true;
+    
     if (res['authenticated'] == true) {
       if(mounted) {
         setState(() {
           _isAuth = true;
           _isAdmin = res['is_superuser'] == true;
           _username = res['username'] ?? "User";
+          _globalFreeMode = globalFree;
+          
+          final level = (res['membership_level'] ?? 'free').toString().toLowerCase();
+          _isPremium = level == 'premium' || _isAdmin || _globalFreeMode;
+
           if (res['profile'] != null) {
              final p = res['profile'];
              _formLocked = true;
@@ -82,6 +96,42 @@ class _InputScreenState extends State<InputScreen> {
           }
         });
       }
+    } else {
+       // Even if not auth, check global free
+       if(mounted) setState(() => _globalFreeMode = globalFree);
+    }
+  }
+
+  void _checkPremiumAccess(VoidCallback onGranted) {
+    // If Global Free Mode is On, allow everyone (even guests if that's the policy, but usually auth required)
+    // Assuming Global Free overrides everything for testing.
+    
+    if (_isPremium || _globalFreeMode) {
+      onGranted();
+    } else {
+      // Show Lock Dialog
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1A2E),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          icon: const Icon(Icons.lock, color: Colors.amber, size: 40),
+          title: Text(_lang == 'tr' ? "Premium İçerik" : "Premium Content", style: const TextStyle(color: Colors.white)),
+          content: Text(
+            _lang == 'tr' 
+            ? "Bu alana erişmek için Premium üye olmalısınız." 
+            : "You must be a Premium member to access this feature.",
+            style: const TextStyle(color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(_lang == 'tr' ? "Tamam" : "OK", style: const TextStyle(color: Colors.white)),
+            )
+          ],
+        )
+      );
     }
   }
   
@@ -428,22 +478,32 @@ class _InputScreenState extends State<InputScreen> {
             }),
             _drawerItem(Icons.fingerprint, isTr ? "Drakonik Ruh" : "Draconic Soul", () {
                  Navigator.pop(context);
-                 _checkDataAndNavigate(DraconicScreen(lang: _lang));
+                 _checkPremiumAccess(() {
+                     _checkDataAndNavigate(DraconicScreen(lang: _lang));
+                 });
             }),
             _drawerItem(Icons.access_time_filled, isTr ? "Gezegen Saatleri" : "Planetary Hours", () {
                  Navigator.pop(context);
-                 // Planetary hours requires lat/lon/date, which are in chartData
-                 _checkDataAndNavigate(HoursScreen(lang: _lang));
+                 _checkPremiumAccess(() {
+                    _checkDataAndNavigate(HoursScreen(lang: _lang));
+                 });
             }),
             _drawerItem(Icons.business_center, isTr ? "Kariyer Yolu" : "Career Path", () {
                  Navigator.pop(context);
-                 _checkDataAndNavigate(CareerScreen(lang: _lang));
+                 _checkPremiumAccess(() {
+                     _checkDataAndNavigate(CareerScreen(lang: _lang));
+                 });
             }),
             const Divider(color: Colors.white24),
             _drawerItem(Icons.grid_view, isTr ? "Kozmik Duvar" : "Cosmic Wall", () {
                  Navigator.pop(context);
                  Navigator.push(context, MaterialPageRoute(builder: (_) => SocialHubScreen(lang: _lang)));
             }, highlight: true),
+            
+            _drawerItem(Icons.local_library, isTr ? "Astro Kütüphane" : "Astro Library", () {
+                 Navigator.pop(context);
+                 Navigator.push(context, MaterialPageRoute(builder: (_) => LibraryScreen(lang: _lang)));
+            }),
             
             _drawerItem(Icons.article, isTr ? "Kozmik Yazılar" : "Cosmic Articles", () {
                  Navigator.pop(context);
@@ -546,7 +606,9 @@ class _InputScreenState extends State<InputScreen> {
           icon: Icons.fingerprint,
           title: _lang == 'tr' ? "Drakonik Ruh" : "Draconic Soul",
           color: Colors.deepPurple,
-          onTap: () => _checkDataAndNavigate(DraconicScreen(lang: _lang))
+          onTap: () => _checkPremiumAccess(() {
+             _checkDataAndNavigate(DraconicScreen(lang: _lang));
+          })
         ),
         _buildDashboardCard(
           icon: Icons.hub, 
@@ -558,9 +620,18 @@ class _InputScreenState extends State<InputScreen> {
           icon: Icons.work,
           title: _lang == 'tr' ? "Kariyer Yolu" : "Career Path",
           color: Colors.teal,
-          onTap: () => _checkDataAndNavigate(CareerScreen(lang: _lang))
+          onTap: () => _checkPremiumAccess(() {
+              _checkDataAndNavigate(CareerScreen(lang: _lang));
+          })
         ),
         
+        _buildDashboardCard(
+          icon: Icons.local_library,
+          title: _lang == 'tr' ? "Astro Kütüphane" : "Astro Library",
+          color: Colors.indigo,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LibraryScreen(lang: _lang)))
+        ),
+
         // Added Blog
         _buildDashboardCard(
           icon: Icons.article,
