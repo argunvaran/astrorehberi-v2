@@ -166,6 +166,14 @@ def calculate_chart(request):
                 if level in ['premium'] or request.user.is_superuser:
                     is_free_user = False
             except: pass
+        
+        # DEBUG/TESTING OVERRIDE
+        # If the client sends 'simulate_premium': True, respect it for testing
+        try:
+             req_body = json.loads(request.body)
+             if req_body.get('simulate_premium') == True:
+                 is_free_user = False
+        except: pass
 
         planets_enriched = []
         for p in natal_data['planets']:
