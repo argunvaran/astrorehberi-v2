@@ -4,6 +4,7 @@ class WallPost {
   final String content;
   final String createdAt;
   final int likes;
+  final bool isLiked; // Added
 
   WallPost({
     required this.id,
@@ -11,6 +12,7 @@ class WallPost {
     required this.content,
     required this.createdAt,
     required this.likes,
+    required this.isLiked, // Added
   });
 
   factory WallPost.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class WallPost {
       content: json['content'] ?? '',
       createdAt: json['created_at'] ?? '',
       likes: json['likes'] ?? 0,
+      isLiked: json['is_liked'] ?? false, // Added
     );
   }
 }

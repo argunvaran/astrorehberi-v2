@@ -158,13 +158,51 @@ class _WallFeedScreenState extends State<WallFeedScreen> {
                               const SizedBox(height: 10),
                               Text(post.content, style: const TextStyle(color: Colors.white70)),
                               const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  const Icon(Icons.favorite_border, size: 16, color: Colors.white54),
-                                  const SizedBox(width: 5),
-                                  Text("${post.likes}", style: const TextStyle(color: Colors.white54)),
-                                ],
-                              )
+                                Row(
+                                  children: [
+                                    InkWell(
+                                      onTap: () async {
+                                        // Optimistic Update
+                                        final oldState = post.isLiked;
+                                        final oldLikes = post.likes;
+                                        // We can't mutate 'final' fields of WallPost.
+                                        // We must replace the item in the list.
+                                        final index = _posts.indexOf(post);
+                                        if(index == -1) return;
+
+                                        setState(() {
+                                           _posts[index] = WallPost(
+                                              id: post.id, 
+                                              user: post.user, 
+                                              content: post.content, 
+                                              createdAt: post.createdAt, 
+                                              likes: oldState ? oldLikes - 1 : oldLikes + 1, 
+                                              isLiked: !oldState
+                                           );
+                                        });
+
+                                        try {
+                                          await _api.toggleLike(post.id);
+                                        } catch(e) {
+                                          // Revert if error
+                                          setState(() {
+                                            _posts[index] = WallPost(
+                                              id: post.id, user: post.user, content: post.content, createdAt: post.createdAt, likes: oldLikes, isLiked: oldState
+                                            );
+                                          });
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Hata oluştu"), duration: Duration(seconds: 1)));
+                                        }
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(post.isLiked ? Icons.favorite : Icons.favorite_border, size: 20, color: post.isLiked ? Colors.red : Colors.white54),
+                                          const SizedBox(width: 5),
+                                          Text("${post.likes}", style: const TextStyle(color: Colors.white54)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
                             ],
                           ),
                         );

@@ -811,6 +811,70 @@ def draw_tarot(request):
                 'score': int(total_score)
             }
         })
+
+# --- BLOG API FOR MOBILE ---
+@csrf_exempt
+def get_blog_posts_api(request):
+    """
+    JSON API for Mobile App to list Blog Posts.
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        limit = 10
+        
+        posts = BlogPost.objects.filter(is_published=True).order_by('-created_at')
+        paginator = Paginator(posts, limit)
+        page_obj = paginator.get_page(page)
+        
+        data = []
+        for p in page_obj:
+            img_url = p.image_url
+            if p.banner_image:
+                img_url = request.build_absolute_uri(p.banner_image.url)
+            
+            # Simple text preview from HTML
+            # Strip tags roughly or just send first 200 chars
+            preview = p.content[:200] + "..."
+            
+            data.append({
+                'id': p.id,
+                'title': p.title,
+                'slug': p.slug,
+                'image': img_url,
+                'date': p.created_at.strftime("%d %B %Y"),
+                'preview': preview,
+                'content': p.content # Optional: send full content if list is small, or fetch detail separately
+            })
+            
+        return JsonResponse({
+            'posts': data,
+            'has_next': page_obj.has_next()
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def get_blog_detail_api(request, slug):
+    """
+    JSON API for Mobile App to get full Blog Post.
+    """
+    try:
+        p = BlogPost.objects.get(slug=slug)
+        img_url = p.image_url
+        if p.banner_image:
+            img_url = request.build_absolute_uri(p.banner_image.url)
+            
+        return JsonResponse({
+            'id': p.id,
+            'title': p.title,
+            'slug': p.slug,
+            'image': img_url,
+            'date': p.created_at.strftime("%d %B %Y"),
+            'content': p.content
+        })
+    except BlogPost.DoesNotExist:
+        return JsonResponse({'error': 'Post not found'}, status=404)
+
     except Exception as e:
          return JsonResponse({'error': str(e)}, status=500)
 

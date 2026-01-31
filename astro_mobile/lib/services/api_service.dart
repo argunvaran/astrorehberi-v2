@@ -283,6 +283,12 @@ class ApiService {
     if (response.statusCode != 200) throw Exception('Failed to post');
   }
 
+  Future<void> toggleLike(int postId) async {
+    final url = Uri.parse('$rootUrl/interactive/wall/api/like/$postId/');
+    final response = await http.post(url, headers: _headers);
+    if (response.statusCode != 200) throw Exception('Failed to like');
+  }
+
   // 2. Following / Users
   Future<Map<String, dynamic>> toggleFollow(String username) async {
     final url = Uri.parse('$rootUrl/interactive/api/follow/');
@@ -439,12 +445,35 @@ class ApiService {
 
   // --- 7. Content / Blog API ---
   Future<Map<String, dynamic>> getBlogPosts({int page = 1}) async {
-    final url = Uri.parse('$rootUrl/cms/list/?page=$page'); // Uses content_manager endpoint
+    // UPDATED: Now fetches real "Cosmic Articles" (BlogPosts)
+    final url = Uri.parse('$baseUrl/api/blog/?page=$page'); 
     final response = await http.get(url, headers: _headers);
     if (response.statusCode == 200) {
       return jsonDecode(utf8.decode(response.bodyBytes));
     }
     throw Exception('Failed to load blog posts');
+  }
+
+  Future<Map<String, dynamic>> getBlogDetail(String slug) async {
+    final url = Uri.parse('$baseUrl/api/blog/$slug/');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Failed to load blog detail');
+  }
+
+  // --- 8. Moderation API ---
+  Future<void> banUser(int userId) async {
+    final url = Uri.parse('$rootUrl/cms/moderation/ban/$userId/');
+    final response = await http.post(url, headers: _headers);
+    if (response.statusCode != 200) throw Exception('Failed to ban user');
+  }
+
+  Future<void> deleteUserPosts(int userId) async {
+    final url = Uri.parse('$rootUrl/cms/moderation/delete-posts/$userId/');
+    final response = await http.post(url, headers: _headers);
+    if (response.statusCode != 200) throw Exception('Failed to delete posts');
   }
 }
 

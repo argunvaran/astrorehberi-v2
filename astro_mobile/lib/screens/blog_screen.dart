@@ -32,7 +32,7 @@ class _BlogScreenState extends State<BlogScreen> {
     try {
       final data = await _api.getBlogPosts(page: _page);
       final list = data['posts'] as List;
-      final pagination = data['pagination'];
+      final bool hasNext = data['has_next'] ?? false;
       
       if(mounted) {
         setState(() {
@@ -41,7 +41,7 @@ class _BlogScreenState extends State<BlogScreen> {
           } else {
             _posts = list;
           }
-          _hasNext = pagination['has_next'];
+          _hasNext = hasNext;
           _isLoading = false;
         });
       }
@@ -90,45 +90,62 @@ class _BlogScreenState extends State<BlogScreen> {
   }
 
   Widget _buildBlogPostCard(dynamic post) {
+    // New Structure: {id, title, slug, image, date, preview, content}
+    String imageUrl = post['image'] ?? "";
+    String date = post['date'] ?? "";
+    String preview = post['preview'] ?? "";
+
     return Card(
       color: Colors.white.withOpacity(0.05),
-      margin: const EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openFullPost(post),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_awesome, color: Colors.amber, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    post['title'], 
-                    style: GoogleFonts.cinzel(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(post['published_date'], style: const TextStyle(color: Colors.white30, fontSize: 12)),
-            const Divider(color: Colors.white10),
-            // Preview Content
-            Html(
-              data: post['preview'],
-              style: {
-                "body": Style(color: Colors.white70, fontSize: FontSize(14)),
-                "p": Style(color: Colors.white70),
-              }
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => _openFullPost(post),
-                child: const Text("Devamını Oku ->", style: TextStyle(color: Color(0xFFE94560))),
+            // Featured Image
+            if(imageUrl.isNotEmpty)
+              Image.network(
+                imageUrl, 
+                height: 180, 
+                width: double.infinity, 
+                fit: BoxFit.cover,
+                errorBuilder: (c,e,s) => Container(height:180, color:Colors.black26, child: const Icon(Icons.broken_image, color:Colors.white24)),
               ),
-            )
+            
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: Colors.amber, size: 14),
+                      const SizedBox(width: 5),
+                      Text(date, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    post['title'], 
+                    style: GoogleFonts.cinzel(fontSize: 19, color: Colors.white, fontWeight: FontWeight.bold, height: 1.3)
+                  ),
+                  const SizedBox(height: 10),
+                  Text(preview, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text("Devamını Oku", style: GoogleFonts.outfit(color: const Color(0xFFE94560), fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 5),
+                      const Icon(Icons.arrow_forward, color: Color(0xFFE94560), size: 16)
+                    ],
+                  )
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -136,30 +153,75 @@ class _BlogScreenState extends State<BlogScreen> {
   }
 
   void _openFullPost(dynamic post) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(
+    Navigator.push(context, MaterialPageRoute(builder: (_) => BlogDetailScreen(post: post)));
+  }
+}
+
+class BlogDetailScreen extends StatelessWidget {
+  final dynamic post;
+  const BlogDetailScreen({super.key, required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    // If content is missing in list view (optimized API), we might want to fetch detail
+    // For now assume full content is passed or fetchable
+    return Scaffold(
       backgroundColor: const Color(0xFF0F0C29),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text(post['title'], style: const TextStyle(fontSize: 16)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(post['date_range'], style: const TextStyle(color: Colors.amber, fontStyle: FontStyle.italic)),
-            const SizedBox(height: 10),
-            Html(
-              data: post['content'],
-               style: {
-                "body": Style(color: Colors.white, fontSize: FontSize(16), lineHeight: LineHeight(1.6)),
-                "h2": Style(color: Colors.amber, fontSize: FontSize(20)),
-                "strong": Style(color: Color(0xFFE94560), fontWeight: FontWeight.bold),
-              }
+       body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 250.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F0C29),
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(post['title'], 
+                style: GoogleFonts.cinzel(
+                  fontSize: 16, 
+                  color: Colors.white, 
+                  shadows: [const Shadow(color: Colors.black, blurRadius: 10)]
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              background: post['image'] != null 
+                ? Image.network(post['image'], fit: BoxFit.cover)
+                : Container(color: Colors.black26),
             ),
-            const SizedBox(height: 40),
-          ],
-        ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: Colors.amber, size: 16),
+                      const SizedBox(width: 8),
+                      Text(post['date'], style: const TextStyle(color: Colors.white60)),
+                    ],
+                  ),
+                  const Divider(color: Colors.white10, height: 30),
+                  Html(
+                    data: post['content'],
+                    style: {
+                      "body": Style(color: Colors.white, fontSize: FontSize(16), lineHeight: LineHeight(1.8), fontFamily: 'Outfit'),
+                      "p": Style(marginBottom: Margins.only(bottom: 20)),
+                      "h2": Style(color: Colors.amber, fontSize: FontSize(22), fontFamily: 'Cinzel', marginTop: Margins.only(top: 20)),
+                      "h3": Style(color: const Color(0xFFE94560), fontSize: FontSize(19), fontFamily: 'Cinzel', marginTop: Margins.only(top: 15)),
+                      "li": Style(color: Colors.white70, marginBottom: Margins.only(bottom: 10)),
+                      "strong": Style(color: Colors.amber),
+                      "img": Style(width: Width(100, Unit.percent), height: Height.auto, margin: Margins.symmetric(vertical: 20)),
+                    }
+                  ),
+                  const SizedBox(height: 50),
+                ],
+              ),
+            ),
+          )
+        ],
       ),
-    )));
+    );
   }
 }

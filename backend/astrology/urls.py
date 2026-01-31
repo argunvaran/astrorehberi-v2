@@ -38,6 +38,9 @@ urlpatterns = [
     path('privacy-policy/', views.privacy_view, name='privacy_policy'),
     path('contact/', views.contact_view, name='contact'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
+    path('api/blog/', views.get_blog_posts_api, name='api_blog_list'),
+    path('api/blog/<slug:slug>/', views.get_blog_detail_api, name='api_blog_detail'),
+    
     path('submit-contact/', views.submit_contact_form, name='submit_contact'),
 ]
 # Force Reload Trigger (Auto)

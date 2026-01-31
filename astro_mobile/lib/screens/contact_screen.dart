@@ -129,6 +129,21 @@ class _ContactScreenState extends State<ContactScreen> with SingleTickerProvider
                                style: const TextStyle(color: Colors.white70),
                              ),
                              const SizedBox(height: 20),
+                             
+                             // Added Personal Info matches Web
+                             Container(
+                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                               decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
+                               child: Column(
+                                 children: [
+                                   Row(children: [Icon(Icons.email, color: Color(0xFFE94560), size: 18), SizedBox(width: 10), Text("ahiakin.can@gmail.com", style: TextStyle(color: Colors.white70))]),
+                                   SizedBox(height: 8),
+                                   Row(children: [Icon(Icons.camera_alt, color: Colors.purpleAccent, size: 18), SizedBox(width: 10), Text("@can_ahiakin", style: TextStyle(color: Colors.white70))]),
+                                 ],
+                               ),
+                             ),
+                             const SizedBox(height: 20),
+
                              _field(_cName, isTr ? "Ad Soyad" : "Name"),
                              const SizedBox(height: 10),
                              _field(_cEmail, isTr ? "E-posta" : "Email", type: TextInputType.emailAddress),

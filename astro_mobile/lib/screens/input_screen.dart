@@ -557,6 +557,23 @@ class _InputScreenState extends State<InputScreen> {
           color: Colors.teal,
           onTap: () => _checkDataAndNavigate(CareerScreen(lang: _lang))
         ),
+        
+        // Added Blog
+        _buildDashboardCard(
+          icon: Icons.article,
+          title: _lang == 'tr' ? "Kozmik Yazılar" : "Cosmic Articles",
+          color: Colors.amber,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlogScreen(lang: _lang)))
+        ),
+
+        // Added Admin Shortcut
+        if(_isAdmin)
+        _buildDashboardCard(
+          icon: Icons.admin_panel_settings,
+          title: "Kozmik Panel",
+          color: Colors.redAccent,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen(lang: _lang)))
+        ),
       ],
     );
   }

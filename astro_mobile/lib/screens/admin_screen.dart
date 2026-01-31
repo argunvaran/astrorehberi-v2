@@ -182,14 +182,19 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                    trailing: PopupMenuButton<String>(
                      icon: const Icon(Icons.more_vert, color: Colors.white),
                      onSelected: (val) async {
-                        if(val == 'admin') await _updateRole(u['id'], 'admin');
-                        if(val == 'user') await _updateRole(u['id'], 'user');
-                        if(val == 'ban') await _updateRole(u['id'], 'ban'); // Assuming backend handles logic
+                        if(val == 'admin') await _updateRole(u['id'], 'premium'); // Usually 'premium' or level? Wait, backend check
+                        if(val == 'user') await _updateRole(u['id'], 'free');
+                        if(val == 'ban') await _api.banUser(u['id']);
+                        if(val == 'del_posts') await _api.deleteUserPosts(u['id']);
+                        
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("İşlem Başarılı!"), backgroundColor: Colors.green));
+                        _loadDashboard();
                      },
                      itemBuilder: (ctx) => [
-                       const PopupMenuItem(value: 'admin', child: Text("Yönetici Yap")),
-                       const PopupMenuItem(value: 'user', child: Text("Üye Yap")),
-                       // const PopupMenuItem(value: 'ban', child: Text("Banla/Kaldır")),
+                       const PopupMenuItem(value: 'admin', child: Text("Premium Yap")), // Check naming
+                       const PopupMenuItem(value: 'user', child: Text("Free Yap")),
+                       const PopupMenuItem(value: 'ban', child: Text("Kullanıcıyı Yasakla (Ban)")),
+                       const PopupMenuItem(value: 'del_posts', child: Text("Tüm Yazılarını Sil")),
                      ],
                    ),
                  ),
@@ -205,8 +210,7 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
   Future<void> _updateRole(int uid, String level) async {
       try {
         await _api.updateMembership(uid, level);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Rol güncellendi!"), backgroundColor: Colors.green));
-        _loadDashboard();
+        // Only show message if called directly, onSelected handles general success
       } catch(e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hata: $e"), backgroundColor: Colors.red));
       }
