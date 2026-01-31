@@ -207,12 +207,12 @@ class BlogDetailScreen extends StatelessWidget {
                     data: post['content'],
                     style: {
                       "body": Style(color: Colors.white, fontSize: FontSize(16), lineHeight: LineHeight(1.8), fontFamily: 'Outfit'),
-                      "p": Style(marginBottom: Margins.only(bottom: 20)),
-                      "h2": Style(color: Colors.amber, fontSize: FontSize(22), fontFamily: 'Cinzel', marginTop: Margins.only(top: 20)),
-                      "h3": Style(color: const Color(0xFFE94560), fontSize: FontSize(19), fontFamily: 'Cinzel', marginTop: Margins.only(top: 15)),
-                      "li": Style(color: Colors.white70, marginBottom: Margins.only(bottom: 10)),
+                      "p": Style(margin: Margins.only(bottom: 20)),
+                      "h2": Style(color: Colors.amber, fontSize: FontSize(22), fontFamily: 'Cinzel', margin: Margins.only(top: 20)),
+                      "h3": Style(color: const Color(0xFFE94560), fontSize: FontSize(19), fontFamily: 'Cinzel', margin: Margins.only(top: 15)),
+                      "li": Style(color: Colors.white70, margin: Margins.only(bottom: 10)),
                       "strong": Style(color: Colors.amber),
-                      "img": Style(width: Width(100, Unit.percent), height: Height.auto, margin: Margins.symmetric(vertical: 20)),
+                      "img": Style(width: Width(100, Unit.percent), height: Height.auto(), margin: Margins.symmetric(vertical: 20)),
                     }
                   ),
                   const SizedBox(height: 50),
