@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 import json
 import random
 from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from interactive.models import WallPost, Appointment
+from django.db.models import Count, Q
 
 # Check if user is admin/staff
 def is_admin_user(user):
@@ -169,5 +172,56 @@ def get_forecast_list(request):
                 'total_pages': paginator.num_pages
             }
         })
-    except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@user_passes_test(is_admin_user)
+def moderation_dashboard(request):
+    # User Management
+    users = User.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__is_public=True))
+    ).order_by('-date_joined')
+    
+    # Post Management (Latest 50)
+    posts = WallPost.objects.select_related('user').order_by('-created_at')[:50]
+    
+    return render(request, 'content_manager/moderation.html', {
+        'users': users,
+        'posts': posts
+    })
+
+@user_passes_test(is_admin_user)
+def ban_user(request, user_id):
+    if request.method == 'POST':
+        try:
+            user = User.objects.get(id=user_id)
+            if user.is_superuser:
+                 return JsonResponse({'error': 'Cannot ban superuser'}, status=403)
+            
+            user.is_active = False
+            user.save()
+            return JsonResponse({'success': True})
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+    return JsonResponse({'error': 'POST only'}, status=405)
+
+@user_passes_test(is_admin_user)
+def delete_user_posts(request, user_id):
+    if request.method == 'POST':
+        try:
+            # Delete all posts by this user
+            count, _ = WallPost.objects.filter(user_id=user_id).delete()
+            return JsonResponse({'success': True, 'deleted': count})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'POST only'}, status=405)
+
+@user_passes_test(is_admin_user)
+def delete_single_post(request, post_id):
+    if request.method == 'POST':
+        try:
+            post = WallPost.objects.get(id=post_id)
+            post.delete()
+            return JsonResponse({'success': True})
+        except WallPost.DoesNotExist:
+             return JsonResponse({'error': 'Post not found'}, status=404)
+    return JsonResponse({'error': 'POST only'}, status=405)

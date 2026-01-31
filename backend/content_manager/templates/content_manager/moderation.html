@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kozmik Moderasyon</title>
+    <!-- Use FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #1a0b2e;
+            --container-bg: #2d1b4e;
+            --text: #ffffff;
+            --gold: #ffd700;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            color: var(--gold);
+            margin: 0;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-back {
+            background: #555;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-primary {
+            background: #3742fa;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .tab.active {
+            background: var(--gold);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--container-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--gold);
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .status-active {
+            background: var(--success);
+            color: #000;
+        }
+
+        .status-banned {
+            background: var(--danger);
+        }
+
+        .post-content {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            max-width: 400px;
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            background: #444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:15px">
+            <i class="fas fa-shield-alt" style="font-size:2rem; color:var(--gold)"></i>
+            <div>
+                <h1>Kozmik Moderasyon</h1>
+                <span style="color:#aaa; font-size:0.9rem">Kullanıcı Yönetimi ve İçerik Kontrolü</span>
+            </div>
+        </div>
+        <a href="/cms/editor/" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> Editöre Dön
+        </a>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('users')">
+            <i class="fas fa-users"></i> Kullanıcılar ({{ users.count }})
+        </div>
+        <div class="tab" onclick="switchTab('posts')">
+            <i class="fas fa-comments"></i> Son Gönderiler
+        </div>
+    </div>
+
+    <!-- Users Panel -->
+    <div id="users" class="panel active">
+        <table>
+            <thead>
+                <tr>
+                    <th>Kullanıcı</th>
+                    <th>Durum</th>
+                    <th>E-posta</th>
+                    <th>Kayıt Tarihi</th>
+                    <th>Gönderi Sayısı</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr id="user-row-{{ u.id }}">
+                    <td>
+                        <div class="user-info">
+                            <div class="avatar">{{ u.username|first|upper }}</div>
+                            <strong>{{ u.username }}</strong>
+                            {% if u.is_superuser %}
+                            <i class="fas fa-crown" style="color:var(--gold)" title="Yönetici"></i>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge status-active">Aktif</span>
+                        {% else %}
+                        <span class="badge status-banned">Yasaklı</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.date_joined|date:"d M Y" }}</td>
+                    <td>{{ u.post_count }}</td>
+                    <td>
+                        {% if not u.is_superuser %}
+                        {% if u.is_active %}
+                        <button onclick="banUser({{ u.id }})" class="btn btn-danger"
+                            style="padding:5px 10px; font-size:0.8rem">
+                            <i class="fas fa-ban"></i> Yasakla
+                        </button>
+                        {% else %}
+                        <span style="color:#888; font-size:0.8rem">Zaten Yasaklı</span>
+                        {% endif %}
+
+                        {% if u.post_count > 0 %}
+                        <button onclick="deleteUserPosts({{ u.id }})" class="btn btn-primary"
+                            style="padding:5px 10px; font-size:0.8rem; background:#444; margin-left:5px">
+                            <i class="fas fa-trash-alt"></i> Yazıları Sil
+                        </button>
+                        {% endif %}
+                        {% else %}
+                        <span style="opacity:0.5">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">Kullanıcı bulunamadı.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Posts Panel -->
+    <div id="posts" class="panel">
+        <p style="color:#aaa; margin-bottom:15px"><i class="fas fa-info-circle"></i> Son 50 gönderi listeleniyor.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Yazar</th>
+                    <th>İçerik</th>
+                    <th>Tarih</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                <tr id="post-row-{{ post.id }}">
+                    <td>
+                        <span style="color:var(--gold)">{{ post.user.username }}</span>
+                    </td>
+                    <td>
+                        <div class="post-content">
+                            {{ post.content|truncatechars:100 }}
+                        </div>
+                    </td>
+                    <td>{{ post.created_at|date:"d M H:i" }}</td>
+                    <td>
+                        <button onclick="deletePost({{ post.id }})" class="btn btn-danger" style="padding:5px 10px">
+                            <i class="fas fa-trash"></i> Sil
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">Henüz gönderi yok.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            // Find tab element manually or use common parent logic, simpler here:
+            const tabs = document.querySelectorAll('.tab');
+            if (tabName === 'users') tabs[0].classList.add('active');
+            if (tabName === 'posts') tabs[1].classList.add('active');
+        }
+
+        // CSRF Helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function banUser(userId) {
+            if (!confirm("Bu kullanıcıyı yasaklamak istediğinize emin misiniz? Giriş yapamayacak.")) return;
+
+            try {
+                const res = await fetch(`/cms/moderation/ban/${userId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Kullanıcı yasaklandı.");
+                    location.reload();
+                } else {
+                    alert("Hata: " + data.error);
+                }
+            } catch (e) {
+                alert("Sunucu hatası");
+            }
+        }
+
+        async function deleteUserPosts(userId) {
+            if (!confirm("Bu kullanıcının TÜM yazılarını silmek istediğinize emin misiniz? Geri alınamaz!")) return;
+
+            try {
+                const res = await fetch(`/cms/moderation/delete-posts/${userId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.deleted + " adet gönderi silindi.");
+                    location.reload();
+                } else {
+                    alert("Hata: " + data.error);
+                }
+            } catch (e) {
+                alert("Sunucu hatası");
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm("Bu gönderiyi silmek istediğinize emin misiniz?")) return;
+
+            try {
+                const res = await fetch(`/cms/moderation/delete-post/${postId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('post-row-' + postId).remove();
+                } else {
+                    alert("Hata: " + data.error);
+                }
+            } catch (e) {
+                alert("Sunucu hatası");
+            }
+        }
+    </script>
+
+</body>
+
+</html>
