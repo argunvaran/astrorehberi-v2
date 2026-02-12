@@ -1275,17 +1275,29 @@ def get_cities(request):
     # Priority 1: Check TR_DATA for detailed districts
     # If admin_code is NOT digits (e.g. "İstanbul"), try to find code from name
     if country_code == 'TR' and admin_code and not admin_code.isdigit():
+        def normalize_tr(text):
+            """Normalize Turkish characters to ASCII lower for robust matching"""
+            if not text: return ""
+            replacements = {
+                'İ': 'i', 'I': 'i', 'ı': 'i', 'Ğ': 'g', 'ğ': 'g', 
+                'Ü': 'u', 'ü': 'u', 'Ş': 's', 'ş': 's', 
+                'Ö': 'o', 'ö': 'o', 'Ç': 'c', 'ç': 'c'
+            }
+            res = ""
+            for char in text:
+                res += replacements.get(char, char)
+            return res.lower()
+
         # Reverse lookup: Name -> Code
-        # PROVINCE_NAMES is { "34": "İstanbul", ... }
         found_code = None
-        search_name = admin_code.lower().strip()
-        # Handle Turkish chars roughly if needed, but direct match is better first
+        search_norm = normalize_tr(admin_code)
+        
         for code, name in PROVINCE_NAMES.items():
-            if name.lower() == search_name:
+            if normalize_tr(name) == search_norm:
                 found_code = code
                 break
         
-        # If found, use it
+        # If found, use the code
         if found_code:
             admin_code = found_code
 
