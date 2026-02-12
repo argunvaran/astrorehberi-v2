@@ -1,11 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import 'input_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({Key? key}) : super(key: key);
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -13,7 +12,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final ApiService _api = ApiService();
+  final _api = ApiService();
   bool _isLoading = false;
 
   // Login Controllers
@@ -24,19 +23,19 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   final _regUserCtrl = TextEditingController();
   final _regEmailCtrl = TextEditingController();
   final _regPassCtrl = TextEditingController();
+  
   DateTime _regDate = DateTime(1990, 1, 1);
   TimeOfDay _regTime = const TimeOfDay(hour: 12, minute: 0);
   
-  // Location Data
-  List<String> _countries = [];
-  List<String> _provinces = [];
-  List<String> _cities = []; // Just names or full objects? Web sends "lat,lon" in value.
-  // The API returns dict of city_name -> {lat, lon}.
-  Map<String, dynamic> _cityData = {}; 
+  // Location Data (All Maps now)
+  List<Map<String, dynamic>> _countries = [];
+  List<Map<String, dynamic>> _provinces = [];
+  List<Map<String, dynamic>> _cities = []; 
 
-  String? _selectedCountry;
-  String? _selectedProvince;
-  String? _selectedCity; // "City Name"
+  String? _selectedCountryCode; 
+  String? _selectedProvinceCode; 
+  String? _selectedCityName; 
+  Map<String, dynamic>? _selectedCityData; 
 
   @override
   void initState() {
@@ -44,28 +43,55 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     _tabController = TabController(length: 2, vsync: this);
     _loadCountries();
   }
+  
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _loginUserCtrl.dispose();
+    _loginPassCtrl.dispose();
+    _regUserCtrl.dispose();
+    _regEmailCtrl.dispose();
+    _regPassCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _loadCountries() async {
     final list = await _api.getCountries();
-    setState(() {
-      _countries = list;
-    });
+    if(mounted) setState(() => _countries = list);
   }
 
-  Future<void> _loadProvinces(String country) async {
-    setState(() { _provinces = []; _cities = []; _selectedProvince = null; _selectedCity = null; });
-    final list = await _api.getProvinces(country);
-    setState(() { _provinces = list; });
+  Future<void> _loadProvinces(String countryCode) async {
+    print("DEBUG: Loading provinces for: $countryCode");
+    setState(() { _provinces = []; _cities = []; _selectedProvinceCode = null; _selectedCityName = null; _selectedCityData = null; });
+    
+    // API returns [{code: "34", name: "İstanbul"}, ...]
+    final list = await _api.getProvinces(countryCode);
+    print("DEBUG: Loaded ${list.length} provinces.");
+
+    if(mounted) {
+      setState(() => _provinces = list);
+      
+      // If NO provinces found (small country like AI), load ALL cities for that country directly
+      if (list.isEmpty) {
+        print("DEBUG: No provinces found, loading all cities for $countryCode");
+        _loadCities(countryCode, ''); // Empty province code for direct city fetch
+      }
+    }
   }
 
-  Future<void> _loadCities(String country, String province) async {
-    setState(() { _cities = []; _cityData = {}; _selectedCity = null; });
-    final data = await _api.getCities(country, province);
-    // data is { "CityName": {lat:..., lon:...}, ... }
-    setState(() {
-      _cityData = data;
-      _cities = data.keys.toList()..sort();
-    });
+  Future<void> _loadCities(String countryCode, String provinceCode) async {
+    print("DEBUG: Loading cities for Country: $countryCode, ProvinceCode: '$provinceCode'");
+    setState(() { _cities = []; _selectedCityName = null; _selectedCityData = null; });
+
+    try {
+      // Sending Code (e.g. "34") or empty string
+      final list = await _api.getCities(countryCode, provinceCode);
+      print("DEBUG: Loaded ${list.length} cities.");
+      
+      if(mounted) setState(() => _cities = list);
+    } catch (e) {
+      print("DEBUG: Cities Error: $e");
+    }
   }
 
   Future<void> _doLogin() async {
@@ -83,17 +109,24 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _doRegister() async {
-    if (_selectedCity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please select a city")));
+    if (_selectedCityData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Lütfen bir şehir seçin")));
       return;
     }
     
     setState(() => _isLoading = true);
     try {
-      final cityInfo = _cityData[_selectedCity];
+      final cityInfo = _selectedCityData!;
       final dateStr = "${_regDate.day}/${_regDate.month}/${_regDate.year}";
       final timeStr = "${_regTime.hour.toString().padLeft(2,'0')}:${_regTime.minute.toString().padLeft(2,'0')}";
       
+      // Find province name for display if needed
+      String provName = _selectedProvinceCode ?? "";
+      if (_provinces.isNotEmpty && _selectedProvinceCode != null) {
+         final provObj = _provinces.firstWhere((e) => e['code'] == _selectedProvinceCode, orElse: () => {});
+         if (provObj.isNotEmpty) provName = provObj['name'];
+      }
+
       await _api.register({
         'username': _regUserCtrl.text,
         'email': _regEmailCtrl.text,
@@ -102,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         'birth_time': timeStr,
         'lat': cityInfo['lat'],
         'lon': cityInfo['lon'],
-        'place': "$_selectedProvince, $_selectedCity", // Keeping web format "Prov, City" ? Web uses "Prov / City"
+        'place': "$provName, ${cityInfo['name']}",
       });
       
       if(mounted) {
@@ -209,22 +242,32 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           ),
           const SizedBox(height: 15),
 
-          // Location Selectors
-          LayoutBuilder(builder: (ctx, constraints) { return Column(children: [
-            _buildDropdown("Ülke", _countries, _selectedCountry, (v) {
-              setState(() => _selectedCountry = v);
-              if(v != null) _loadProvinces(v);
+          // Location Selectors (All using Map Dropdown)
+          // 1. Country
+          _buildMapDropdown("Ülke", _countries, _selectedCountryCode, 'code', 'name', (val) {
+             setState(() => _selectedCountryCode = val);
+             if(val != null) _loadProvinces(val);
+          }),
+
+          const SizedBox(height: 15),
+          
+          // 2. Province (Only show if provinces exist, or if country is selected)
+          if (_selectedCountryCode != null && _provinces.isNotEmpty) ...[
+            _buildMapDropdown("İl / Eyalet", _provinces, _selectedProvinceCode, 'code', 'name', (val) {
+               setState(() => _selectedProvinceCode = val);
+               if(val != null && _selectedCountryCode != null) _loadCities(_selectedCountryCode!, val);
             }),
             const SizedBox(height: 15),
-            _buildDropdown("İl / Eyalet", _provinces, _selectedProvince, (v) {
-              setState(() => _selectedProvince = v);
-              if(v != null && _selectedCountry != null) _loadCities(_selectedCountry!, v);
-            }),
-            const SizedBox(height: 15),
-            _buildDropdown("Şehir / İlçe", _cities, _selectedCity, (v) {
-              setState(() => _selectedCity = v);
-            }),
-          ]); }),
+          ],
+          
+          // 3. City
+          _buildMapDropdown("Şehir / İlçe", _cities, _selectedCityName, 'name', 'name', (val) {
+             final cityObj = _cities.firstWhere((e) => e['name'] == val, orElse: () => {});
+             setState(() {
+                _selectedCityName = val;
+                _selectedCityData = cityObj;
+             });
+          }),
 
           const SizedBox(height: 40),
           _buildBtn("KAYIT OL & GİRİŞ", _doRegister),
@@ -285,7 +328,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
   
-  Widget _buildDropdown(String hint, List<String> items, String? value, ValueChanged<String?> onChanged) {
+  // Generic Map Dropdown
+  Widget _buildMapDropdown(String hint, List<Map<String, dynamic>> items, String? value, String valueKey, String labelKey, ValueChanged<String?> onChanged) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -297,9 +341,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           value: value,
           hint: Text(hint, style: const TextStyle(color: Colors.white54)),
           isExpanded: true,
-          dropdownColor: const Color(0xFF1E1E2E), // Dark bg for dropdown
+          dropdownColor: const Color(0xFF1E1E2E),
           style: const TextStyle(color: Colors.white),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          items: items.map((e) {
+             return DropdownMenuItem<String>(
+               value: e[valueKey].toString(), 
+               child: Text(e[labelKey].toString()), 
+             );
+          }).toList(),
           onChanged: onChanged,
         ),
       ),

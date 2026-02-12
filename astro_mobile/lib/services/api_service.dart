@@ -13,7 +13,10 @@ class ApiService {
       return "https://astrorehberi.com/api";
     }
 
-    // 2. Development (Debug Mode)
+    // 2. Debug Mode - Force AWS (Temporary for Testing without Local Backend)
+    return "https://astrorehberi.com/api"; 
+    
+    /* Local Dev Backup
     if (kIsWeb) return "http://127.0.0.1:8000/api";
     try {
       if (Platform.isAndroid) return "http://10.0.2.2:8000/api";
@@ -21,6 +24,7 @@ class ApiService {
       return "http://127.0.0.1:8000/api";
     }
     return "http://127.0.0.1:8000/api";
+    */
   }
 
   String get rootUrl {
@@ -260,29 +264,59 @@ class ApiService {
     }
   }
   
-  Future<List<String>> getCountries() async {
+  Future<List<Map<String, dynamic>>> getCountries() async {
       try {
         final url = Uri.parse('$baseUrl/countries/');
         final res = await http.get(url, headers: _headers);
-        if(res.statusCode == 200) return List<String>.from(jsonDecode(utf8.decode(res.bodyBytes))['countries']);
-      } catch(_) {}
+        if(res.statusCode == 200) {
+           final data = jsonDecode(utf8.decode(res.bodyBytes));
+           return List<Map<String, dynamic>>.from(data['countries']);
+        }
+      } catch(e) {
+        if (kDebugMode) print("getCountries Error: $e");
+      }
       return [];
   }
-  Future<List<String>> getProvinces(String c) async {
+  Future<List<Map<String, dynamic>>> getProvinces(String c) async {
        try {
-        final url = Uri.parse('$baseUrl/provinces/?country=$c');
+        // Backend expects 'code' for country code
+        final url = Uri.parse('$baseUrl/provinces/?code=$c');
+        if (kDebugMode) print("getProvinces URL: $url");
         final res = await http.get(url, headers: _headers);
-        if(res.statusCode == 200) return List<String>.from(jsonDecode(utf8.decode(res.bodyBytes))['provinces']);
-      } catch(_) {}
+        if(res.statusCode == 200) {
+            final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+            return List<Map<String, dynamic>>.from(decoded['provinces']);
+        } else {
+             if (kDebugMode) print("getProvinces Error Status: ${res.statusCode} Body: ${res.body}");
+        }
+      } catch(e) {
+        if (kDebugMode) print("getProvinces Err: $e");
+      }
       return [];
   }
-  Future<Map<String, dynamic>> getCities(String c, String p) async {
+  
+  Future<List<Map<String, dynamic>>> getCities(String c, String p) async {
         try {
-        final url = Uri.parse('$baseUrl/cities/?country=$c&province=$p');
+        // Backend expects 'code' and 'admin_code'
+        final url = Uri.parse('$baseUrl/cities/?code=$c&admin_code=$p'); 
+        if (kDebugMode) print("getCities URL: $url");
         final res = await http.get(url, headers: _headers);
-        if(res.statusCode == 200) return jsonDecode(utf8.decode(res.bodyBytes));
-      } catch(_) {}
-      return {};
+        if(res.statusCode == 200) {
+           final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+           
+           if (decoded['cities'] is List) {
+             return List<Map<String, dynamic>>.from(decoded['cities']);
+           } else if (decoded is Map) {
+             List<Map<String, dynamic>> list = [];
+             decoded.forEach((k, v) => list.add({'name': k, ...v}));
+             list.sort((a,b) => (a['name'] as String).compareTo(b['name']));
+             return list;
+           }
+        }
+      } catch(e) {
+        if (kDebugMode) print("getCities Err: $e");
+      }
+      return [];
   }
 
   Future<List<dynamic>?> getCelestialEvents(String risingSign, String lang) async {
