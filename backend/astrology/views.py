@@ -1270,7 +1270,25 @@ def get_cities(request):
     if not country_code:
         return JsonResponse({'error': 'Country code required'}, status=400)
     
+    today = dt.now().date()
+    
     # Priority 1: Check TR_DATA for detailed districts
+    # If admin_code is NOT digits (e.g. "İstanbul"), try to find code from name
+    if country_code == 'TR' and admin_code and not admin_code.isdigit():
+        # Reverse lookup: Name -> Code
+        # PROVINCE_NAMES is { "34": "İstanbul", ... }
+        found_code = None
+        search_name = admin_code.lower().strip()
+        # Handle Turkish chars roughly if needed, but direct match is better first
+        for code, name in PROVINCE_NAMES.items():
+            if name.lower() == search_name:
+                found_code = code
+                break
+        
+        # If found, use it
+        if found_code:
+            admin_code = found_code
+
     if country_code == 'TR' and admin_code and admin_code in TR_DATA:
         return JsonResponse({'cities': TR_DATA[admin_code]['districts']})
         

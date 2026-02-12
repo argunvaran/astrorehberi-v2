@@ -133,7 +133,20 @@ class _BlogScreenState extends State<BlogScreen> {
                     style: GoogleFonts.cinzel(fontSize: 19, color: Colors.white, fontWeight: FontWeight.bold, height: 1.3)
                   ),
                   const SizedBox(height: 10),
-                  Text(preview, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5)),
+                  Html(
+                    data: preview,
+                    style: {
+                      "body": Style(
+                        color: Colors.white70, 
+                        fontSize: FontSize(14), 
+                        maxLines: 3, 
+                        textOverflow: TextOverflow.ellipsis,
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero
+                      ),
+                      "p": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+                    }
+                  ),
                   const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,

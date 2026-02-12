@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_html/flutter_html.dart';
 import '../services/api_service.dart';
 
 class SynastryScreen extends StatefulWidget {
@@ -221,13 +222,28 @@ class _SynastryScreenState extends State<SynastryScreen> {
                ),
                child: Column(
                  children: [
-                    Text(text.toString(), style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5), textAlign: TextAlign.center),
+                    Html(
+                      data: text.toString(),
+                      style: {
+                        "body": Style(
+                          color: Colors.white,
+                          fontSize: FontSize(16),
+                          textAlign: TextAlign.center,
+                          lineHeight: LineHeight(1.5)
+                        ),
+                      }
+                    ),
                     if (_result?['aspects'] != null)
                       ...(_result!['aspects'] as List).map((a) => Padding(
                         padding: const EdgeInsets.only(top: 10),
                         child: ListTile(
                            leading: const Icon(Icons.star, color: Colors.amber, size: 16),
-                           title: Text(a['interpretation'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                           title: Html(
+                             data: a['interpretation'] ?? '',
+                             style: {
+                               "body": Style(color: Colors.white70, fontSize: FontSize(14), margin: Margins.zero, padding: HtmlPaddings.zero),
+                             }
+                           ),
                         ),
                       ))
                  ]
