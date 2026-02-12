@@ -860,7 +860,7 @@ def get_blog_posts_api(request):
                 'image': img_url,
                 'date': p.created_at.strftime("%d %B %Y"),
                 'preview': preview,
-                # 'content': p.content # Optimize payload
+                'content': p.content if p.content else ""
             })
             
         return JsonResponse({
