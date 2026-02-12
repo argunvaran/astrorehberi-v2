@@ -1,0 +1,43 @@
+{% extends 'astrology/base_static.html' %}
+{% load static %}
+
+{% block content %}
+<div class="main-content-wrapper" style="padding: 40px; max-width: 900px; margin: 0 auto; color: var(--text);">
+    <h1
+        style="font-family: 'Cinzel', serif; color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;">
+        Hesap Silme Talebi</h1>
+
+    <div
+        style="background: var(--card-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border); font-size: 0.9rem; line-height: 1.6;">
+        <p><strong>Son Güncelleme:</strong> 12 Şubat 2026</p>
+
+        <p>AstroRehberi hesabınızı ve ilgili verilerinizi silmek isterseniz, aşağıdaki adımları takip edebilirsiniz.</p>
+
+        <h3 style="color: var(--accent); margin-top: 20px;">1. Uygulama Üzerinden Silme</h3>
+        <p>Mobil uygulamamız içerisinden:</p>
+        <ul>
+            <li><strong>Ayarlar</strong> menüsüne gidin.</li>
+            <li>En altta bulunan <strong>"Hesabımı Sil"</strong> butonuna tıklayın.</li>
+            <li>Onay verdiğinizde tüm kişisel verileriniz (doğum bilgileri, haritalar vb.) sunucularımızdan kalıcı
+                olarak silinir.</li>
+        </ul>
+
+        <h3 style="color: var(--accent); margin-top: 20px;">2. E-posta Yoluyla Talep</h3>
+        <p>Uygulamaya erişiminiz yoksa, kayıtlı e-posta adresinizden bize bir e-posta göndererek hesap silme talebinde
+            bulunabilirsiniz:</p>
+        <p><strong>E-posta:</strong> <a href="mailto:support@astrorehberi.com"
+                style="color: var(--gold);">support@astrorehberi.com</a></p>
+        <p>Konu satırına "Hesap Silme Talebi - [Kullanıcı Adınız]" yazmanız işlemleri hızlandıracaktır.</p>
+
+        <h3 style="color: var(--accent); margin-top: 20px;">3. Silinen Veriler</h3>
+        <p>Talep işlemi tamamlandığında aşağıdaki veriler silinir:</p>
+        <ul>
+            <li>Kullanıcı profili ve kimlik bilgileri.</li>
+            <li>Kaydedilen tüm doğum haritaları ve analiz geçmişi.</li>
+            <li>Mesajlaşmalar ve sosyal etkileşimler.</li>
+        </ul>
+        <p><em>Not: Yasal zorunluluk gereği tutulması gereken bazı işlem kayıtları (varsa) anonimleştirilerek
+                saklanabilir.</em></p>
+    </div>
+</div>
+{% endblock %}

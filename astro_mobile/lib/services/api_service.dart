@@ -41,8 +41,42 @@ class ApiService {
   void _updateCookie(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
     if (rawCookie != null) {
-      int index = rawCookie.indexOf(';');
-      _headers['cookie'] = (index == -1) ? rawCookie : rawCookie.substring(0, index);
+      if (kDebugMode) print("DEBUG: Raw Set-Cookie: $rawCookie");
+
+      // Initialize with existing cookies
+      Map<String, String> cookies = {};
+      
+      // Parse existing cookies from _headers
+      if (_headers['cookie'] != null && _headers['cookie']!.isNotEmpty) {
+        _headers['cookie']!.split(';').forEach((c) {
+          int idx = c.indexOf('=');
+          if (idx != -1) {
+            String key = c.substring(0, idx).trim();
+            String val = c.substring(idx + 1).trim();
+            if (key.isNotEmpty) cookies[key] = val;
+          }
+        });
+      }
+
+      // Regex to find specific auth cookies (astro_session, csrftoken) 
+      // Handling the comma-separated merge from http package
+      // Matches: key=value followed by ; or , or end of string
+      // Improved Regex to handle attributes better
+      RegExp regExp = RegExp(r'(astro_session|csrftoken|messages)=([^;,\s]+)');
+      
+      // Split rawCookie by comma NOT inside a date
+      // However, a simpler approch for our specific keys is to just regex search the whole string
+      for (Match m in regExp.allMatches(rawCookie)) {
+        String key = m.group(1)!;
+        String val = m.group(2)!;
+        cookies[key] = val;
+        if (kDebugMode) print("DEBUG: Extracted Cookie: $key=$val");
+      }
+
+      // Reconstruct header
+      if (cookies.isNotEmpty) {
+        _headers['cookie'] = cookies.entries.map((e) => "${e.key}=${e.value}").join('; ');
+      }
     }
   }
 

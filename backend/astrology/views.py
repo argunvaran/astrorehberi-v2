@@ -2124,11 +2124,21 @@ def get_general_weekly_horoscopes(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+
 def about_view(request):
     return render(request, 'astrology/index.html', {'initial_section': 'about', 'user': request.user})
 
 def privacy_view(request):
-    return render(request, 'astrology/index.html', {'initial_section': 'privacy', 'user': request.user})
+    """
+    Renders Static Privacy Policy for Google compliance.
+    """
+    return render(request, 'astrology/pages/privacy_policy.html', {'user': request.user})
+
+def delete_account_view(request):
+    """
+    Renders Static Delete Account Instructions for Google compliance.
+    """
+    return render(request, 'astrology/pages/delete_account.html', {'user': request.user})
 
 def contact_view(request):
     return render(request, 'astrology/index.html', {'initial_section': 'contact', 'user': request.user})
