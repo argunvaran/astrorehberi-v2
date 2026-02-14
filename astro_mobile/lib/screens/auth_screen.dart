@@ -117,8 +117,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     setState(() => _isLoading = true);
     try {
       final cityInfo = _selectedCityData!;
-      final dateStr = "${_regDate.day}/${_regDate.month}/${_regDate.year}";
-      final timeStr = "${_regTime.hour.toString().padLeft(2,'0')}:${_regTime.minute.toString().padLeft(2,'0')}";
+      final isoDate = "${_regDate.year}-${_regDate.month.toString().padLeft(2, '0')}-${_regDate.day.toString().padLeft(2, '0')}";
+      final timeStr = "${_regTime.hour.toString().padLeft(2, '0')}:${_regTime.minute.toString().padLeft(2, '0')}";
       
       // Find province name for display if needed
       String provName = _selectedProvinceCode ?? "";
@@ -131,8 +131,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         'username': _regUserCtrl.text,
         'email': _regEmailCtrl.text,
         'password': _regPassCtrl.text,
-        'birth_date': dateStr,
-        'birth_time': timeStr,
+        'date': isoDate, // Changed from birth_date to date
+        'time': timeStr, // Changed from birth_time to time
         'lat': cityInfo['lat'],
         'lon': cityInfo['lon'],
         'place': "$provName, ${cityInfo['name']}",

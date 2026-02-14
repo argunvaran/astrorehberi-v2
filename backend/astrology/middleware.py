@@ -1,6 +1,32 @@
 
 import json
 from .models import UserActivityLog
+from django.contrib.sessions.models import Session
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+class HeaderAuthMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # 1. Check if user is already authenticated (via Cookies)
+        if not hasattr(request, 'user') or not request.user.is_authenticated:
+            # 2. Try Authorization Header (Bearer Token)
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                try:
+                    # Session store contains session data if key exists and NOT expired
+                    s = Session.objects.get(session_key=token, expire_date__gt=timezone.now())
+                    uid = s.get_decoded().get('_auth_user_id')
+                    if uid:
+                        # Success: Manual Auth
+                        request.user = User.objects.get(pk=uid)
+                except Exception:
+                    pass
+
+        return self.get_response(request)
 
 class ActivityMiddleware:
     def __init__(self, get_response):

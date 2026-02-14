@@ -19,7 +19,9 @@ import 'landing_screen.dart';
 import 'contact_screen.dart';
 import 'admin_screen.dart';
 import 'blog_screen.dart'; 
-import 'library_screen.dart'; // Added Import
+import 'library_screen.dart'; 
+import 'settings_screen.dart'; 
+import 'rectification_screen.dart'; // Added Import // Added Import
 
 import '../theme/strings.dart';
 
@@ -515,9 +517,25 @@ class _InputScreenState extends State<InputScreen> {
                  Navigator.push(context, MaterialPageRoute(builder: (_) => TarotScreen(lang: _lang)));
             }, highlight: true),
             
-            _drawerItem(Icons.headset_mic, isTr ? "İletişim & Randevu" : "Contact & Appointment", () {
+             _drawerItem(Icons.headset_mic, isTr ? "İletişim & Randevu" : "Contact & Appointment", () {
                  Navigator.pop(context);
                  Navigator.push(context, MaterialPageRoute(builder: (_) => ContactScreen(lang: _lang)));
+            }),
+
+             _drawerItem(Icons.timelapse, isTr ? "Rektifikasyon (Doğum Saati)" : "Rectification (Birth Time)", () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => RectificationScreen(lang: _lang)));
+                  if (result == true) {
+                    _checkAuth(); // Refresh profile if time was saved
+                  }
+             }, highlight: true),
+            
+            _drawerItem(Icons.settings, isTr ? "Kozmik Ayarlar" : "Cosmic Settings", () async {
+                 Navigator.pop(context);
+                 final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                 if (result == true) {
+                   _checkAuth(); // Refresh profile after return
+                 }
             }),
             
             if (_isAdmin)
@@ -525,16 +543,6 @@ class _InputScreenState extends State<InputScreen> {
                  Navigator.pop(context);
                  Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen(lang: _lang)));
               }, highlight: true),
-
-
-
-            const Spacer(),
-            if(_isAuth)
-             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: Text(isTr ? "Çıkış Yap" : "Logout", style: const TextStyle(color: Colors.redAccent)),
-              onTap: _logout,
-            ),
           ],
         ),
       ),

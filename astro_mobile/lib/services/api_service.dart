@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
@@ -13,44 +14,64 @@ class ApiService {
       return "https://astrorehberi.com/api";
     }
 
-    // 2. Debug Mode - Force AWS (Temporary for Testing without Local Backend)
-    return "https://astrorehberi.com/api"; 
-    
-    /* Local Dev Backup
+    // 2. Debug Mode - Local Testing
     if (kIsWeb) return "http://127.0.0.1:8000/api";
     try {
       if (Platform.isAndroid) return "http://10.0.2.2:8000/api";
-    } catch (e) {
-      return "http://127.0.0.1:8000/api";
-    }
+      if (Platform.isIOS) return "http://127.0.0.1:8000/api";
+    } catch (e) {}
     return "http://127.0.0.1:8000/api";
-    */
   }
 
   String get rootUrl {
-     if (!kDebugMode) {
+    if (!kDebugMode) {
       return "https://astrorehberi.com";
     }
     if (kIsWeb) return "http://127.0.0.1:8000";
     try {
       if (Platform.isAndroid) return "http://10.0.2.2:8000";
-    } catch(e){
-       return "http://127.0.0.1:8000";
-    }
+      if (Platform.isIOS) return "http://127.0.0.1:8000";
+    } catch (e) {}
     return "http://127.0.0.1:8000";
   }
 
   static Map<String, String> _headers = {'Content-Type': 'application/json'};
+  String? get debugToken => _headers['Authorization'];
+
+  // Persistent Cookie Storage
+  static Future<void> _saveToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_headers['cookie'] != null) {
+      prefs.setString('auth_cookie', _headers['cookie']!);
+    }
+    if (_headers['Authorization'] != null) {
+      prefs.setString('auth_token', _headers['Authorization']!);
+    }
+  }
+
+  static Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 1. Load Cookie
+    final cookie = prefs.getString('auth_cookie');
+    if (cookie != null && cookie.isNotEmpty) {
+      _headers['cookie'] = cookie;
+    }
+
+    // 2. Load Token (Priority for Web)
+    final token = prefs.getString('auth_token');
+    if (token != null && token.isNotEmpty) {
+      _headers['Authorization'] = token;
+    }
+  }
 
   void _updateCookie(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
     if (rawCookie != null) {
       if (kDebugMode) print("DEBUG: Raw Set-Cookie: $rawCookie");
 
-      // Initialize with existing cookies
       Map<String, String> cookies = {};
       
-      // Parse existing cookies from _headers
       if (_headers['cookie'] != null && _headers['cookie']!.isNotEmpty) {
         _headers['cookie']!.split(';').forEach((c) {
           int idx = c.indexOf('=');
@@ -62,29 +83,28 @@ class ApiService {
         });
       }
 
-      // Regex to find specific auth cookies (astro_session, csrftoken) 
-      // Handling the comma-separated merge from http package
-      // Matches: key=value followed by ; or , or end of string
-      // Improved Regex to handle attributes better
       RegExp regExp = RegExp(r'(astro_session|csrftoken|messages)=([^;,\s]+)');
-      
-      // Split rawCookie by comma NOT inside a date
-      // However, a simpler approch for our specific keys is to just regex search the whole string
       for (Match m in regExp.allMatches(rawCookie)) {
         String key = m.group(1)!;
         String val = m.group(2)!;
         cookies[key] = val;
-        if (kDebugMode) print("DEBUG: Extracted Cookie: $key=$val");
       }
 
-      // Reconstruct header
       if (cookies.isNotEmpty) {
         _headers['cookie'] = cookies.entries.map((e) => "${e.key}=${e.value}").join('; ');
+        
+        // Also set Authorization header for Web/Cross-Origin Fallback
+        if (cookies.containsKey('astro_session')) {
+            _headers['Authorization'] = 'Bearer ${cookies['astro_session']}';
+        }
+        
+        _saveToken(); 
       }
     }
   }
 
   Future<Map<String, dynamic>> checkAuth() async {
+    await _loadToken(); 
     final url = Uri.parse('$baseUrl/check-auth/');
     try {
       final response = await http.get(url, headers: _headers);
@@ -103,8 +123,14 @@ class ApiService {
       body: jsonEncode({'username': username, 'password': password}),
     );
     _updateCookie(response);
+    
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      if (data['token'] != null) {
+         _headers['Authorization'] = 'Bearer ${data['token']}';
+         _saveToken();
+      }
+      return data;
     } else {
       throw Exception('Login Failed');
     }
@@ -119,7 +145,12 @@ class ApiService {
     );
     _updateCookie(response);
      if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final resData = jsonDecode(response.body);
+      if (resData['token'] != null) {
+         _headers['Authorization'] = 'Bearer ${resData['token']}';
+         _saveToken();
+      }
+      return resData;
     } else {
       throw Exception('Registration Failed');
     }
@@ -448,14 +479,82 @@ class ApiService {
   }
 
   Future<void> submitAppointment(String topic, String message, String contact) async {
-    // Correct URL in Interactive App
+    // Determine URL based on app (Assuming mobile uses contact form mostly)
+    // But keeping original logic attempt:
     final url = Uri.parse('$rootUrl/interactive/appointment/create/');
     final res = await http.post(
-      url,
-      headers: _headers,
-      body: jsonEncode({'topic': topic, 'message': message, 'contact': contact}) // 'contact' key matches view logic
+      url, 
+      headers: _headers, 
+      body: jsonEncode({'topic': topic, 'message': message, 'contact_info': contact})
     );
-    if(res.statusCode != 200) throw Exception('Failed to submit request');
+    if(res.statusCode != 200 && res.statusCode != 201) throw Exception('Failed to submit appointment');
+  }
+
+  // --- Rectification ---
+  Future<Map<String, dynamic>> rectifyBirthTime({
+    required String date, required double lat, required double lon, 
+    required String lang, required List<Map<String, dynamic>> events
+  }) async {
+    if (kDebugMode) print("DEBUG Headers: $_headers");
+    try {
+      final url = Uri.parse('$baseUrl/rectify-time/');
+      if (kDebugMode) print("Rectify URL: $url");
+      
+      final body = jsonEncode({
+        'date': date,
+        'lat': lat,
+        'lon': lon,
+        'lang': lang,
+        'events': events
+      });
+      
+      final res = await http.post(url, headers: _headers, body: body);
+      
+      if(res.statusCode == 200) {
+        return jsonDecode(utf8.decode(res.bodyBytes));
+      } else {
+        if (kDebugMode) print("Rectify Failed: ${res.statusCode} Body: ${res.body}");
+        try {
+             final errJson = jsonDecode(utf8.decode(res.bodyBytes));
+             if (errJson.containsKey('error')) return errJson;
+        } catch(e) {}
+        return {'error': 'Server Error: ${res.statusCode}. Body: ${res.body}'};
+      }
+    } catch (e) {
+      if (kDebugMode) print("Rectify Err: $e");
+      return {'error': 'Connection Error: $e'};
+    }
+  }
+
+  // --- Profile Update ---
+  Future<Map<String, dynamic>> updateProfile({
+    String? username, String? birth_date, String? birth_time, 
+    String? birth_city, String? bio, double? lat, double? lon
+  }) async {
+    final url = Uri.parse('$baseUrl/update-profile/');
+     try {
+       final body = jsonEncode({
+         if (username != null) 'username': username,
+         if (birth_date != null) 'birth_date': birth_date,
+         if (birth_time != null) 'birth_time': birth_time,
+         if (birth_city != null) 'birth_city': birth_city,
+         if (bio != null) 'bio': bio,
+         if (lat != null) 'lat': lat,
+         if (lon != null) 'lon': lon,
+       });
+
+       final res = await http.post(url, headers: _headers, body: body);
+       
+       if (res.statusCode == 200) {
+          final data = jsonDecode(utf8.decode(res.bodyBytes));
+          _updateCookie(res); // Important if session is refreshed
+          return data;
+       } else {
+         return {'error': 'Update failed: ${res.statusCode}'};
+       }
+     } catch (e) {
+       return {'error': 'Connection Error: $e'};
+     }
   }
 
   // 6. Admin Panel API

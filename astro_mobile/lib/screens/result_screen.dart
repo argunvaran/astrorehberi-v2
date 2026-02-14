@@ -172,6 +172,7 @@ class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key, required this.data, required this.lang});
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -181,64 +182,75 @@ class ResultScreen extends StatelessWidget {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E)],
+      body: Stack(
+        children: [
+          // 1. Sabit Arkaplan (Gradient) - Hiçbir zaman kaymaz veya bitmez
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF0F0C29), Color(0xFF302B63), Color(0xFF24243E)],
+              ),
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-               // Chart Area - FIX: Sabit boyutlu kare kutu
-               Center(
-                 child: Container(
-                   height: 320, // Sabit yükseklik
-                   width: 320,  // Sabit genişlik (Kare)
-                   decoration: BoxDecoration(
-                     shape: BoxShape.circle,
-                     boxShadow: [
-                       BoxShadow(color: Colors.blueAccent.withOpacity(0.1), blurRadius: 20, spreadRadius: 5)
-                     ]
-                   ),
-                   child: CustomPaint(
-                     painter: ChartPainter(data.planets),
+          
+          // 2. Kaydırılabilir İçerik
+          SingleChildScrollView(
+            physics: const ClampingScrollPhysics(), // Yaylanmayı engeller (Sıkı kaydırma)
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                 // Chart Area - FIX: Sabit boyutlu kare kutu
+                 Center(
+                   child: Container(
+                     height: 320, 
+                     width: 320,  
+                     decoration: BoxDecoration(
+                       shape: BoxShape.circle,
+                       boxShadow: [
+                         BoxShadow(color: Colors.blueAccent.withOpacity(0.1), blurRadius: 20, spreadRadius: 5)
+                       ]
+                     ),
+                     child: CustomPaint(
+                       painter: ChartPainter(data.planets),
+                     ),
                    ),
                  ),
-               ),
-               
-               const SizedBox(height: 30),
-               
-               // Cosmic Fingerprint (Planets)
-               Text(lang == 'tr' ? "Kozmik Parmak İzi" : "Your Cosmic Fingerprint", style: GoogleFonts.cinzel(fontSize: 22, color: const Color(0xFFFFD700))),
-               const SizedBox(height: 10),
-               ...data.planets.map((p) => _buildPlanetTile(p)).toList(),
-               
-               const SizedBox(height: 30),
-               
-               // Aspects
-               Text(AppStrings.get('aspects_title', lang), style: GoogleFonts.cinzel(fontSize: 22, color: const Color(0xFFFFD700))),
-               const SizedBox(height: 10),
-               ...data.aspects.map((a) => Container(
-                 margin: const EdgeInsets.only(bottom: 10),
-                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(10)),
-                 child: ListTile(
-                   title: Text("${_translatePlanet(a.p1)} - ${_translatePlanet(a.p2)}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                   subtitle: Text(
-                     lang == 'tr' 
-                       ? "${_translatePlanet(a.p1)} ${_translateAspectType(a.type)} ${_translatePlanet(a.p2)}"
-                       : a.interpretation, 
-                     style: const TextStyle(color: Colors.white70)
+                 
+                 const SizedBox(height: 30),
+                 
+                 // Cosmic Fingerprint (Planets)
+                 Text(lang == 'tr' ? "Kozmik Parmak İzi" : "Your Cosmic Fingerprint", style: GoogleFonts.cinzel(fontSize: 22, color: const Color(0xFFFFD700))),
+                 const SizedBox(height: 10),
+                 ...data.planets.map((p) => _buildPlanetTile(p)).toList(),
+                 
+                 const SizedBox(height: 30),
+                 
+                 // Aspects
+                 Text(AppStrings.get('aspects_title', lang), style: GoogleFonts.cinzel(fontSize: 22, color: const Color(0xFFFFD700))),
+                 const SizedBox(height: 10),
+                 ...data.aspects.map((a) => Container(
+                   margin: const EdgeInsets.only(bottom: 10),
+                   decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(10)),
+                   child: ListTile(
+                     title: Text("${_translatePlanet(a.p1)} - ${_translatePlanet(a.p2)}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                     subtitle: Text(
+                       lang == 'tr' 
+                         ? "${_translatePlanet(a.p1)} ${_translateAspectType(a.type)} ${_translatePlanet(a.p2)}"
+                         : a.interpretation, 
+                       style: const TextStyle(color: Colors.white70)
+                     ),
+                     leading: const Icon(Icons.compare_arrows, color: Colors.amber),
                    ),
-                   leading: const Icon(Icons.compare_arrows, color: Colors.amber),
-                 ),
-               )).toList()
-            ],
+                 )).toList(),
+                 
+                 // En alta güvenli boşluk (Safe Area Padding)
+                 const SizedBox(height: 50),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

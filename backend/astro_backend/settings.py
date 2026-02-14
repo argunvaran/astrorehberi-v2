@@ -82,6 +82,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'astrology.middleware.HeaderAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'astrology.middleware.ActivityMiddleware',
@@ -89,10 +90,11 @@ MIDDLEWARE = [
 
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
 else:
     # DEBUG=False olsa bile CORS'u açıyoruz (Web/Mobil testleri için)
     CORS_ALLOW_ALL_ORIGINS = True 
-    CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    CORS_ALLOW_CREDENTIALS = True
 
 
 ROOT_URLCONF = 'astro_backend.urls'
@@ -192,4 +194,4 @@ SESSION_COOKIE_NAME = 'astro_session'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_DOMAIN = None # Allow localhost
 SESSION_COOKIE_PATH = '/'
-FREE_PREMIUM_MODE = False
+FREE_PREMIUM_MODE = True

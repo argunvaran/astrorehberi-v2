@@ -1154,12 +1154,27 @@ def rectify_birth_time(request):
              test_c = engine.calculate_natal(birth_date_str, "12:00", lat, lon)
              debug_msg += f"Test 12:00 Asc: {test_c.get('ascendant', '?')} ({test_c.get('ascendant_deg', 0):.2f}). <br>"
              
-             return JsonResponse({'candidates': [], 'debug_error': debug_msg})
+             return JsonResponse({
+                 'error': 'Belirttiğiniz olaylarla uyumlu bir doğum saati bulunamadı. Lütfen olayları veya doğum yerini kontrol edin.', 
+                 'candidates': [], 
+                 'debug_error': debug_msg
+             })
 
-        # Filter top 3 distinct Ascendant Signs if possible, or just top 3 times
+        # Filter top 3
         top_candidates = scores[:3]
         
-        return JsonResponse({'candidates': top_candidates})
+        # Format for Mobile App (which expects best_time and confidence directly)
+        best = top_candidates[0]
+        max_possible = len(event_transits) * 10
+        confidence = min(99, int((best['score'] / max_possible) * 100)) if max_possible > 0 else 75
+
+        return JsonResponse({
+            'candidates': top_candidates,
+            'best_time': best['time'],
+            'confidence': confidence,
+            'asc_sign': best['asc_sign'],
+            'hits': best['hits']
+        })
 
     except Exception as e:
         import traceback
@@ -1389,23 +1404,46 @@ def register_api(request):
         profile = UserProfile.objects.create(user=user)
         
         # Save Birth Data if provided
-        if data.get('date'):
-            profile.birth_date = dt.strptime(data['date'], "%Y-%m-%d").date()
-        if data.get('time'):
-            profile.birth_time = dt.strptime(data['time'], "%H:%M").time()
+        date_str = data.get('date') or data.get('birth_date')
+        time_str = data.get('time') or data.get('birth_time')
+
+        if date_str:
+            d_clean = str(date_str).replace('/', '-').replace('.', '-')
+            try:
+                # Standard YYYY-MM-DD
+                profile.birth_date = dt.strptime(d_clean, "%Y-%m-%d").date()
+            except ValueError:
+                try:
+                    # Fallback DD-MM-YYYY
+                    profile.birth_date = dt.strptime(d_clean, "%d-%m-%Y").date()
+                except:
+                    pass
+
+        if time_str:
+            t_clean = str(time_str).strip()
+            try:
+                if len(t_clean) == 5:
+                    profile.birth_time = dt.strptime(t_clean, "%H:%M").time()
+                elif len(t_clean) == 8:
+                    profile.birth_time = dt.strptime(t_clean, "%H:%M:%S").time()
+            except:
+                pass
+
         if data.get('place'):
             profile.birth_place = data['place']
         if data.get('lat'):
-            profile.lat = float(data['lat'])
+            profile.lat = float(str(data['lat']).replace(',', '.'))
         if data.get('lon'):
-            profile.lon = float(data['lon'])
+            profile.lon = float(str(data['lon']).replace(',', '.'))
             
         profile.save()
         
         # Auto-Login (Force Backend)
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        if not request.session.session_key:
+            request.session.save()
         
-        return JsonResponse({'success': True, 'username': user.username})
+        return JsonResponse({'success': True, 'username': user.username, 'token': request.session.session_key})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -1422,9 +1460,9 @@ def login_api(request):
         if user is not None:
             login(request, user)
             request.session.set_expiry(1209600)
-            request.session.save() # Force save
-            print(f"DEBUG: Login successful for {user.username}. Session: {request.session.session_key}")
-            return JsonResponse({'success': True, 'username': user.username})
+            request.session.save()
+            print(f"DEBUG: Login successful. Token: {request.session.session_key}")
+            return JsonResponse({'success': True, 'username': user.username, 'token': request.session.session_key})
         else:
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
     except Exception as e:
@@ -1464,7 +1502,8 @@ def check_auth_api(request):
                     'time': p.birth_time.strftime("%H:%M") if p.birth_time else "",
                     'lat': p.lat,
                     'lon': p.lon,
-                    'place': p.birth_place
+                    'place': p.birth_place,
+                    'bio': p.bio or ""
                 }
             })
         except Exception as e:
@@ -1487,36 +1526,31 @@ def update_profile_api(request):
         p, created = UserProfile.objects.get_or_create(user=request.user)
         
         # Update Fields
-        if 'date' in data and data['date']: 
-            d_str = data['date'].replace('/', '-').replace('.', '-') # Normalize to -
-            try:
-                # Try standard ISO first
-                p.birth_date = dt.strptime(d_str, "%Y-%m-%d").date()
-            except ValueError:
-                 # Try DD-MM-YYYY (common in TR)
-                 try:
-                     # Split and reverse if it looks like DD-MM-YYYY
-                     parts = d_str.split('-')
-                     if len(parts) == 3 and len(parts[0]) == 2 and len(parts[2]) == 4:
-                          p.birth_date = dt.strptime(d_str, "%d-%m-%Y").date()
-                     else:
-                          # Try single digits?
-                          pass # Keep old date or fail gently
-                 except:
-                     pass
+        # Save Birth Data if provided
+        date_str = data.get('date') or data.get('birth_date')
+        time_str = data.get('time') or data.get('birth_time')
 
-        if 'time' in data and data['time']:
-            t_str = data['time']
-            # Simple Cleaning
-            t_str = t_str.strip()
-            
+        if date_str:
+            d_clean = str(date_str).replace('/', '-').replace('.', '-')
             try:
-                if len(t_str) == 5: # HH:MM
-                     p.birth_time = dt.strptime(t_str, "%H:%M").time()
-                elif len(t_str) == 8: # HH:MM:SS
-                     p.birth_time = dt.strptime(t_str, "%H:%M:%S").time()
+                # Standard YYYY-MM-DD
+                p.birth_date = dt.strptime(d_clean, "%Y-%m-%d").date()
             except ValueError:
-                 pass
+                try:
+                    # Fallback DD-MM-YYYY
+                    p.birth_date = dt.strptime(d_clean, "%d-%m-%Y").date()
+                except:
+                    pass
+
+        if time_str:
+            t_clean = str(time_str).strip()
+            try:
+                if len(t_clean) == 5:
+                    p.birth_time = dt.strptime(t_clean, "%H:%M").time()
+                elif len(t_clean) == 8:
+                    p.birth_time = dt.strptime(t_clean, "%H:%M:%S").time()
+            except:
+                pass
 
         # Robust Float Conversion
         if 'lat' in data: 
@@ -1531,11 +1565,18 @@ def update_profile_api(request):
                 if val.strip(): p.lon = float(val)
             except: pass
 
-        if 'place' in data and data['place']: 
-            p.birth_place = data['place']
+        # Handle place/birth_city
+        place_str = data.get('place') or data.get('birth_city')
+        if place_str: 
+            p.birth_place = place_str
+
+        # Handle Bio
+        if 'bio' in data:
+            p.bio = data['bio']
         
         p.save()
         print(f"DEBUG: Profile updated for {request.user.username}. Date: {p.birth_date}, Time: {p.birth_time}")
+        return JsonResponse({'success': True})
     except Exception as e:
         import traceback
         traceback.print_exc()

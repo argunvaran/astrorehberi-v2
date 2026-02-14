@@ -116,6 +116,7 @@ class UserProfile(models.Model):
     birth_place = models.CharField(max_length=100, default="Unknown")
     lat = models.FloatField(default=0.0)
     lon = models.FloatField(default=0.0)
+    bio = models.TextField(blank=True, null=True)
     
     # Store calculated sign for quick access?
     sun_sign = models.CharField(max_length=20, blank=True)
