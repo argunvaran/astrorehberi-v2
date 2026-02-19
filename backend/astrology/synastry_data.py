@@ -87,11 +87,22 @@ SYNASTRY_DATA = {
 def get_generic_text(p1, p2, aspect, lang):
     is_harmony = aspect in ['Trine', 'Sextile', 'Conjunction']
     
+    # Simple Translation Map for Planets/Points
+    PLANET_NAMES = {
+        'tr': {
+            'Sun': 'Güneş', 'Moon': 'Ay', 'Mercury': 'Merkür', 'Venus': 'Venüs', 'Mars': 'Mars',
+            'Jupiter': 'Jüpiter', 'Saturn': 'Satürn', 'Uranus': 'Uranüs', 'Neptune': 'Neptün',
+            'Pluto': 'Plüton', 'Ascendant': 'Yükselen', 'North Node': 'Kuzey Ay Düğümü'
+        }
+    }
+
     if lang == 'tr':
+        p1_tr = PLANET_NAMES['tr'].get(p1, p1)
+        p2_tr = PLANET_NAMES['tr'].get(p2, p2)
         if is_harmony:
-            return f"<p><strong>{p1} ve {p2} Uyumu.</strong> Bu iki gezegenin enerjisi birbirini destekliyor. İlişkinizde {p1} ve {p2} konularında (İletişim, Sevgi, Disiplin vb.) doğal bir akış var. Zorlanmadan anlaşabiliyorsunuz.</p>"
+            return f"<p><strong>{p1_tr} ve {p2_tr} Uyumu.</strong> Bu iki gezegenin enerjisi birbirini destekliyor. İlişkinizde {p1_tr} ve {p2_tr} konularında (İletişim, Sevgi, Disiplin vb.) doğal bir akış var. Zorlanmadan anlaşabiliyorsunuz.</p>"
         else:
-            return f"<p><strong>{p1} ve {p2} Gerilimi.</strong> Bu alan biraz çalışma gerektiriyor. {p1}'in istekleri ile {p2}'nin doğası zaman zaman çatışabilir. Bu bir engel değil, büyümeniz için bir fırsattır.</p>"
+            return f"<p><strong>{p1_tr} ve {p2_tr} Gerilimi.</strong> Bu alan biraz çalışma gerektiriyor. {p1_tr}'in istekleri ile {p2_tr}'nin doğası zaman zaman çatışabilir. Bu bir engel değil, büyümeniz için bir fırsattır.</p>"
     else:
         if is_harmony:
             return f"<p><strong>{p1} and {p2} Harmony.</strong> The energies of these planets support each other nicely. There is a natural flow in your relationship regarding matters of {p1} and {p2}. You understand each other without effort.</p>"
