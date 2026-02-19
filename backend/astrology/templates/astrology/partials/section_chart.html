@@ -41,7 +41,6 @@
                 <input type="text" id="date" value="{{ profile.birth_date|date:'Y/m/d'|default:'' }}" {% if profile
                     %}readonly style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent"
                     {% endif %} placeholder="YYYY-MM-DD">
-
             </div>
             <div>
                 <label data-i18n="label_time"
@@ -49,9 +48,7 @@
                 <input type="text" id="time" value="{{ profile.birth_time|time:'H:i'|default:'' }}" {% if profile
                     %}readonly style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent"
                     {% endif %} placeholder="HH:MM">
-
             </div>
-
             <!-- Coordinates (Read Only) -->
             <div>
                 <label data-i18n="label_lat"
@@ -59,9 +56,6 @@
                 <input type="number" id="lat" value="{{ profile.lat|default:'' }}" {% if profile %}readonly
                     style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent" {% endif
                     %}>
-
-
-
             </div>
             <div>
                 <label data-i18n="label_lon"
@@ -69,8 +63,6 @@
                 <input type="number" id="lon" value="{{ profile.lon|default:'' }}" {% if profile %}readonly
                     style="opacity:0.6; cursor:default; background:rgba(0,0,0,0.3); border-color:transparent" {% endif
                     %}>
-
-
             </div>
         </div>
 
