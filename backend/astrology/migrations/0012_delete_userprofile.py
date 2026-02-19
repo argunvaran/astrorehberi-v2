@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('astrology', '0011_blogpost_banner_image'),
+        ('astrology', '0012_userprofile_bio'),
     ]
 
     operations = [
