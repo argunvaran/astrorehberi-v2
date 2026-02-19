@@ -533,7 +533,7 @@
 <body>
     <script>
         // SERVER-SIDE TRUTH INJECTION (Moved to Body Top)
-        const SERVER_AUTH_STATUS = {{ user.is_authenticated| yesno: "true,false" }};
+        const SERVER_AUTH_STATUS = {% if user.is_authenticated %}true{% else %} false{% endif %};
         const SERVER_USER_NAME = "{{ user.username }}";
         console.log("SERVER AUTH STATUS:", SERVER_AUTH_STATUS);
     </script>
@@ -548,7 +548,8 @@
 
     <!-- SSR: App Visibility -->
     <!-- SSR: App Visibility -->
-    <div class="app-container" id="app-root" style="display: {{ user.is_authenticated|yesno:'flex,none' }};">
+    <div class="app-container" id="app-root"
+        style="display: {% if user.is_authenticated %}flex{% else %}none{% endif %};">
 
         <!-- SIDEBAR -->
         {% include 'astrology/partials/sidebar.html' %}
