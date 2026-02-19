@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import PlanetInterpretation, AspectInterpretation, Celebrity, DailyTip, ContactMessage
+from .models import PlanetInterpretation, AspectInterpretation, Celebrity, DailyTip, ContactMessage, DailyHoroscope
 
 @admin.register(PlanetInterpretation)
 class PlanetAdmin(admin.ModelAdmin):
@@ -26,6 +26,14 @@ class CelebrityAdmin(admin.ModelAdmin):
 class TipAdmin(admin.ModelAdmin):
     list_display = ('phase', 'category')
     list_filter = ('phase', 'category')
+@admin.register(DailyHoroscope)
+class DailyHoroAdmin(admin.ModelAdmin):
+    list_display = ('date', 'summary_tr_preview')
+    ordering = ('-date',)
+    
+    def summary_tr_preview(self, obj):
+        return (obj.summary_tr or "")[:50]
+
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'created_at', 'is_read')

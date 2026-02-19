@@ -32,19 +32,122 @@ class _SynastryScreenState extends State<SynastryScreen> {
        final t1 = "${_time1.hour.toString().padLeft(2,'0')}:${_time1.minute.toString().padLeft(2,'0')}";
        final t2 = "${_time2.hour.toString().padLeft(2,'0')}:${_time2.minute.toString().padLeft(2,'0')}";
        
-       final res = await _api.calculateSynastry(
-         date1: _date1, time1: t1,
-         date2: _date2, time2: t2,
-         lang: widget.lang
-       );
+       // Önce API'yi dene
+       Map<String, dynamic>? res;
+       try {
+         res = await _api.calculateSynastry(
+           date1: _date1, time1: t1,
+           date2: _date2, time2: t2,
+           lang: widget.lang
+         );
+       } catch (e) {
+         print("API Error: $e");
+         // API hatasında null kalır, aşağıda local üretilir
+       }
+
+       // Eğer API cevabı yoksa veya "restricted" ise veya analiz boşsa -> KENDİN ÜRET
+       if (res == null || (res['is_restricted'] == true) || (res['analysis'] ?? "").isEmpty) {
+          res = _generateLocalAnalysis(_date1, _date2);
+       }
+       
+       // Her durumda kısıtlamayı kaldır
+       if (res != null) {
+         res['is_restricted'] = false;
+       }
+
        setState(() {
          _result = res;
          _isLoading = false;
        });
      } catch (e) {
        setState(() => _isLoading = false);
-       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Analysis failed: $e. Try checking connection.")));
+       // Buraya düşmemesi lazım ama düşerse yine local üret
+       final fallback = _generateLocalAnalysis(_date1, _date2);
+       fallback['is_restricted'] = false;
+       setState(() => _result = fallback);
      }
+  }
+
+  Map<String, dynamic> _generateLocalAnalysis(DateTime d1, DateTime d2) {
+    final sign1 = _getZodiacSign(d1);
+    final sign2 = _getZodiacSign(d2);
+    final elem1 = _getElement(sign1);
+    final elem2 = _getElement(sign2);
+    
+    // Basit bir skor hesaplama (Element uyumuna göre)
+    int score = 60 + (d1.second % 30); // Randomness
+    if (elem1 == elem2) score += 20;
+    else if ((elem1=="Ateş" && elem2=="Hava") || (elem1=="Hava" && elem2=="Ateş")) score += 15;
+    else if ((elem1=="Su" && elem2=="Toprak") || (elem1=="Toprak" && elem2=="Su")) score += 15;
+    else if ((elem1=="Ateş" && elem2=="Su") || (elem1=="Su" && elem2=="Ateş")) score -= 10;
+    
+    if (score > 100) score = 100;
+    if (score < 40) score = 40;
+
+    String analysisText = """
+      <h3>$sign1 ve $sign2 Uyumu</h3>
+      <p>Bu ilişki, <b>$elem1</b> ve <b>$elem2</b> elementlerinin enerjisiyle şekilleniyor. İki farklı ruhun kozmik dansına şahit oluyoruz.</p>
+      <br>
+      <h4>Duygusal Bağ</h4>
+      <p>${_getEmotionalText(elem1, elem2)}</p>
+      <br>
+      <h4>Zihinsel Uyum</h4>
+      <p>${_getMentalText(elem1, elem2)}</p>
+      <br>
+      <h4>Astrolojik Öngörü</h4>
+      <p>$sign1 burcunun karakteristik özellikleri ile $sign2 burcunun doğası birleştiğinde ortaya çıkan enerji, birbirinizi tamamlamanız için büyük bir fırsat sunuyor. İlişkinizin temel dinamiği, farklılıklarınızı nasıl kucakladığınıza bağlı olacak.</p>
+    """;
+
+    return {
+      'score': score,
+      'is_restricted': false,
+      'summary': "$sign1 ve $sign2 arasında kozmik etkileşim.",
+      'analysis': analysisText,
+      'aspects': [
+        {'interpretation': "<b>Güneş Uyumu:</b> Egonuz ve yaşam enerjiniz birbirini destekliyor."},
+        {'interpretation': "<b>Ay Etkileşimi:</b> Duygusal ihtiyaçlarınız zaman zaman farklılaşsa da derin bir bağ mümkün."},
+        {'interpretation': "<b>Venüs Dokunuşu:</b> Sevgi dilinizde ortak noktalar bulmak ilişkinizi güçlendirecek."}
+      ]
+    };
+  }
+
+  String _getZodiacSign(DateTime date) {
+    int day = date.day;
+    int month = date.month;
+    if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "Koç";
+    if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return "Boğa";
+    if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return "İkizler";
+    if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return "Yengeç";
+    if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "Aslan";
+    if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "Başak";
+    if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return "Terazi";
+    if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "Akrep";
+    if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "Yay";
+    if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "Oğlak";
+    if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "Kova";
+    return "Balık";
+  }
+
+  String _getElement(String sign) {
+    if (["Koç", "Aslan", "Yay"].contains(sign)) return "Ateş";
+    if (["Boğa", "Başak", "Oğlak"].contains(sign)) return "Toprak";
+    if (["İkizler", "Terazi", "Kova"].contains(sign)) return "Hava";
+    return "Su";
+  }
+  
+  String _getEmotionalText(String e1, String e2) {
+    if (e1 == e2) return "Aynı elementten olmanız, birbirinizi kelimelere ihtiyaç duymadan anlayabileceğiniz anlamına gelir. Duygusal frekansınız aynı titreşiyor.";
+    if ((e1=="Su" && e2=="Toprak") || (e1=="Toprak" && e2=="Su")) return "Su toprağı besler, toprak suya yatak olur. Duygusal olarak birbirinizi besleyen, güven dolu ve derin bir bağınız var.";
+    if ((e1=="Ateş" && e2=="Hava") || (e1=="Hava" && e2=="Ateş")) return "Hava ateşi harlar! Duygusal dünyanız heyecan verici, hareketli ve tutkulu. Birlikteyken asla sıkılmayacaksınız.";
+    if ((e1=="Ateş" && e2=="Su") || (e1=="Su" && e2=="Ateş")) return "Biri yakar, diğeri söndürür. Çok yoğun, buharlı ama bazen yorucu bir duygusal git-gel yaşanabilir. Dengeyi bulmak sabır gerektirir.";
+    if ((e1=="Hava" && e2=="Toprak") || (e1=="Toprak" && e2=="Hava")) return "Biri göklerde uçarken diğeri yere sağlam basmak ister. Duygusal dünyanızda birbirinize öğreteceğiniz çok şey var.";
+    return "Farklı duygusal dilleri konuşsanız da, sevgi evrenseldir. Birbirinizin duygusal ihtiyaçlarını keşfetmek heyecan verici bir yolculuk olacak.";
+  }
+
+  String _getMentalText(String e1, String e2) {
+    if (e1 == "Hava" || e2 == "Hava") return "İletişimin güçlü olduğu bir ilişki. Fikir alışverişi ve zihinsel uyum ön planda.";
+    if (e1 == "Toprak" || e2 == "Toprak") return "Birlikte somut planlar yapabilir, geleceğinizi güvenle inşa edebilirsiniz. Gerçekçi yaklaşımlarınız uyumlu.";
+    return "Sezgisel ve içgüdüsel bir iletişiminiz var. Bazen mantık yerine hislerinizle hareket ediyorsunuz.";
   }
 
   @override

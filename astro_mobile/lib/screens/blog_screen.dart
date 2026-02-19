@@ -5,7 +5,8 @@ import '../../services/api_service.dart';
 
 class BlogScreen extends StatefulWidget {
   final String lang;
-  const BlogScreen({super.key, required this.lang});
+  final bool embed; // New parameter
+  const BlogScreen({super.key, required this.lang, this.embed = false});
 
   @override
   State<BlogScreen> createState() => _BlogScreenState();
@@ -52,6 +53,18 @@ class _BlogScreenState extends State<BlogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embed) {
+       return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+            colors: [Color(0xFF0F0C29), Color(0xFF302B63)]
+          )
+        ),
+        child: _buildList(),
+       );
+    }
+
     bool isTr = widget.lang == 'tr';
     return Scaffold(
       backgroundColor: const Color(0xFF0F0C29),
@@ -68,7 +81,13 @@ class _BlogScreenState extends State<BlogScreen> {
             colors: [Color(0xFF0F0C29), Color(0xFF302B63)]
           )
         ),
-        child: _isLoading && _posts.isEmpty 
+        child: _buildList(),
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    return _isLoading && _posts.isEmpty 
           ? const Center(child: CircularProgressIndicator()) 
           : ListView.builder(
               padding: const EdgeInsets.all(10),
@@ -84,9 +103,7 @@ class _BlogScreenState extends State<BlogScreen> {
                 final p = _posts[i];
                 return _buildBlogPostCard(p);
               },
-            ),
-      ),
-    );
+            );
   }
 
   Widget _buildBlogPostCard(dynamic post) {

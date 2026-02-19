@@ -44,12 +44,16 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
   String? _userSearch;
   int _userPage = 1;
 
+  // Library Data
+  List<dynamic> _libraryCategories = [];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this); // Increased to 5
+    _tabController = TabController(length: 6, vsync: this); // Increased to 6
     _loadDashboard();
     _loadAppointments();
+    _loadLibrary();
   }
   
   Future<void> _loadDashboard() async {
@@ -91,6 +95,15 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
     }
   }
 
+  Future<void> _loadLibrary() async {
+    try {
+      final items = await _api.getLibraryItems();
+      setState(() => _libraryCategories = items);
+    } catch(e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading library: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,10 +119,11 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
           unselectedLabelColor: Colors.white60,
           tabs: const [
              Tab(text: "İstatistikler", icon: Icon(Icons.bar_chart)),
-             Tab(text: "Kullanıcılar", icon: Icon(Icons.people)), // Added
+             Tab(text: "Kullanıcılar", icon: Icon(Icons.people)), 
+             Tab(text: "Kütüphane", icon: Icon(Icons.menu_book)), // Added
              Tab(text: "Mesajlar", icon: Icon(Icons.mail_outline)),
              Tab(text: "Randevular", icon: Icon(Icons.calendar_today)),
-             Tab(text: "Loglar", icon: Icon(Icons.list_alt)), // Moved Logs to end
+             Tab(text: "Loglar", icon: Icon(Icons.list_alt)), 
           ],
         ),
       ),
@@ -119,7 +133,8 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
         controller: _tabController,
         children: [
           _buildStatsTab(),
-          _buildUsersTab(), // Added
+          _buildUsersTab(), 
+          _buildLibraryTab(), // Added
           _buildMessagesTab(),
           _buildAppointmentsTab(),
           _buildLogsTab(),
@@ -128,81 +143,400 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
     );
   }
 
+  // --- LIBRARY TAB ---
+  Widget _buildLibraryTab() {
+     return ListView(
+       padding: const EdgeInsets.all(16),
+       children: [
+         // 1. Daily Horoscope Editor Section
+         Card(
+           color: Colors.white.withOpacity(0.05),
+           margin: const EdgeInsets.only(bottom: 20),
+           child: ExpansionTile(
+             initiallyExpanded: false,
+             leading: const Icon(Icons.today, color: Colors.orangeAccent),
+             title: Text("Günlük Burç Yorumları (${DateTime.now().toString().split(' ')[0]})", style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+             children: [
+               _buildDailyHoroscopeEditor()
+             ],
+           ),
+         ),
+
+         // 2. Static Library Content
+         const Padding(
+           padding: EdgeInsets.only(bottom: 10, left: 5),
+           child: Text("Kütüphane İçeriği", style: TextStyle(color: Colors.white, fontSize: 18, fontFamily: 'Cinzel')),
+         ),
+         ..._libraryCategories.map((cat) {
+            final items = (cat['items'] ?? []) as List;
+            return Card(
+              color: Colors.white.withOpacity(0.05),
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ExpansionTile(
+                title: Text(cat['name'] ?? 'Kategori', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                children: items.map((item) {
+                    return ListTile(
+                      title: Text(item['title'], style: const TextStyle(color: Colors.white)),
+                      subtitle: Text(
+                        (item['short_desc'] ?? '').toString().length > 50 
+                        ? "${(item['short_desc'] ?? '').toString().substring(0,50)}..." 
+                        : (item['short_desc'] ?? ''),
+                        style: const TextStyle(color: Colors.white54, fontSize: 12)
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blueAccent),
+                        onPressed: () => _editLibraryItem(item),
+                      ),
+                    );
+                }).toList(),
+              ),
+            );
+         }).toList()
+       ],
+     );
+  }
+
+  // DAILY HOROSCOPE EDITOR
+  List<dynamic> _dailyHoros = [];
+  bool _dailyLoading = false;
+
+  Widget _buildDailyHoroscopeEditor() {
+    if (_dailyLoading) return const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator()));
+    
+    if (_dailyHoros.isEmpty) {
+       return Padding(
+         padding: const EdgeInsets.all(20),
+         child: ElevatedButton(
+           onPressed: _loadDailyHoroscopes, 
+           child: const Text("Yorumları Yükle / Olsun")
+         ),
+       );
+    }
+
+    return Column(
+      children: [
+        ..._dailyHoros.map((h) {
+           return ListTile(
+             title: Text(h['sign'], style: const TextStyle(color: Colors.white)),
+             subtitle: Text(h['text'], maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54)),
+             trailing: IconButton(
+               icon: const Icon(Icons.edit, color: Colors.white),
+               onPressed: () => _editDailyHoroDialog(h),
+             ),
+           );
+        }).toList(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: _saveAllDailyHoroscopes, 
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text("Tümünü Kaydet (Server)")
+          ),
+        )
+      ],
+    );
+  }
+
+  Future<void> _loadDailyHoroscopes() async {
+    setState(() => _dailyLoading = true);
+    try {
+      final res = await _api.getDailyHoroscopes('tr');
+      if (res['horoscopes'] != null) {
+        setState(() => _dailyHoros = res['horoscopes']);
+      }
+    } catch(e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hata: $e")));
+    } finally {
+      setState(() => _dailyLoading = false);
+    }
+  }
+
+  void _editDailyHoroDialog(Map<String, dynamic> item) {
+    final ctrl = TextEditingController(text: item['text']);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2E),
+        title: Text("${item['sign']} - Düzenle", style: const TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: ctrl, 
+          maxLines: 5, 
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Yorum giriniz...")
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("İptal")),
+          ElevatedButton(
+            onPressed: () {
+               setState(() {
+                 item['text'] = ctrl.text;
+               });
+               Navigator.pop(ctx);
+            },
+            child: const Text("Tamam (Geçici Kaydet)")
+          )
+        ],
+      )
+    );
+  }
+
+  Future<void> _saveAllDailyHoroscopes() async {
+     try {
+       await _api.saveDailyHoroscopes(_dailyHoros);
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Başarıyla Kaydedildi!"), backgroundColor: Colors.green));
+     } catch(e) {
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Kaydetme Hatası: $e"), backgroundColor: Colors.red));
+     }
+  }
+
+  void _editLibraryItem(Map<String, dynamic> item) {
+     final titleCtrl = TextEditingController(text: item['title']);
+     final descCtrl = TextEditingController(text: item['short_desc']);
+     final contentCtrl = TextEditingController(text: item['content']); // Needs API update to ensure content is here
+     
+     showDialog(
+       context: context,
+       builder: (ctx) => AlertDialog(
+         backgroundColor: const Color(0xFF1E1E2E),
+         title: const Text("İçerik Düzenle", style: TextStyle(color: Colors.white)),
+         content: SizedBox(
+           width: double.maxFinite,
+           child: SingleChildScrollView(
+             child: Column(
+               mainAxisSize: MainAxisSize.min,
+               children: [
+                 TextField(controller: titleCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Başlık", labelStyle: TextStyle(color: Colors.white70))),
+                 const SizedBox(height: 10),
+                 TextField(controller: descCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Kısa Açıklama", labelStyle: TextStyle(color: Colors.white70)), maxLines: 2),
+                 const SizedBox(height: 10),
+                 TextField(controller: contentCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "İçerik (Detay)", labelStyle: TextStyle(color: Colors.white70)), maxLines: 10),
+               ],
+             ),
+           ),
+         ),
+         actions: [
+           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("İptal")),
+           ElevatedButton(
+             onPressed: () async {
+               Navigator.pop(ctx);
+               try {
+                 await _api.editLibraryItem(item['id'], {
+                   'title': titleCtrl.text,
+                   'short_desc': descCtrl.text,
+                   'content': contentCtrl.text
+                 });
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Güncellendi!"), backgroundColor: Colors.green));
+                 _loadLibrary();
+               } catch(e) {
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hata: $e"), backgroundColor: Colors.red));
+               }
+             },
+             child: const Text("Kaydet")
+           )
+         ],
+       )
+     );
+  }
+
   // --- 1.5 USERS TAB ---
   Widget _buildUsersTab() {
-    if(_dashboardData == null) return const SizedBox();
+    if (_dashboardData == null) return const SizedBox();
+    
     final usersRaw = _dashboardData!['users'];
     List usersList = [];
-    int totalPages = 1;
-    // Handle Page object serialization if needed, similar to logs/messages
-    // Assuming backend sends {users: [...List of users...], ...} or Page list directly
-    if(usersRaw is Map && usersRaw.containsKey('users')) {
-      // If it has pagination metadata inside
-      usersList = usersRaw['users'] ?? []; // Adjust based on actual API
+
+    // Safe extraction of user list
+    if (usersRaw is Map && usersRaw.containsKey('users')) {
+      usersList = usersRaw['users'] ?? [];
     } else if (usersRaw is List) {
       usersList = usersRaw;
-    } else {
-       // Fallback if it's the Page object serialized as list of dicts
-       // In Web view context: 'users': user_page_obj
-       // JsonResponse usually serializes Page as list of items unless custom encoder used.
-       // Let's assume list of user dicts.
-       // If pagination metadata is missing in JSON, we rely on "has_next" not being easily available without custom response.
-       // But we have "userPage" state.
-       // Just showing list.
-       // If we want total pages, backend JSON needs to send it.
-       // Let's assume infinite scroll style or just Next/Prev based on list not empty.
-       if(usersRaw != null) usersList = usersRaw as List; 
     }
 
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            style: const TextStyle(color: Colors.white),
-            decoration: _searchDec("Kullanıcı Ara..."),
-            onSubmitted: (v) { _userSearch = v; _userPage=1; _loadDashboard(); },
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _searchDec("Kullanıcı Ara..."),
+                  onSubmitted: (v) { 
+                    setState(() {
+                      _userSearch = v; 
+                      _userPage = 1;
+                    });
+                    _loadDashboard(); 
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.broadcast_on_home, size: 16),
+                label: const Text("Tümüne Bildirim"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE94560),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                onPressed: () => _sendNotificationDialog('all', 'Tüm Kullanıcılar'),
+              )
+            ],
           ),
         ),
         Expanded(
-          child: ListView.builder(
+          child: usersList.isEmpty 
+          ? const Center(child: Text("Kullanıcı bulunamadı", style: TextStyle(color: Colors.white54)))
+          : ListView.builder(
             itemCount: usersList.length,
             itemBuilder: (ctx, i) {
-               final u = usersList[i]; // {id, username, email, is_staff, ...}
-               // Note: fields depend on User model serialization.
-               // Default Django serializers might not expose everything.
-               // Assuming custom_admin_data provided enriched user objects or values.
-               // Backed view: values('id', 'username', 'email', 'is_staff', 'is_active', 'date_joined')
+               final u = usersList[i];
+               // Safe Accessors
+               final username = u['username'] ?? 'User';
+               final email = u['email'] ?? 'No Email';
+               final isStaff = u['is_staff'] == true;
+               final id = u['id'];
+               
+               // Safe Dates
+               String joined = "-";
+               if (u['date_joined'] != null) {
+                  try {
+                    joined = u['date_joined'].toString().split('T')[0];
+                  } catch(_) { joined = u['date_joined'].toString(); }
+               }
+               
+               String lastLogin = "-";
+               if (u['last_login'] != null) {
+                  try {
+                    lastLogin = u['last_login'].toString().split('T')[0];
+                  } catch(_) { lastLogin = u['last_login'].toString(); }
+               }
+
+               // Detailed Info
+               String details = "";
+               String sunSign = "";
+               
+               if (u['profile'] != null) {
+                  final p = u['profile'];
+                  // Check both key variants
+                  final dateStr = p['birth_date'] ?? p['date'];
+                  final timeStr = p['birth_time'] ?? p['time'];
+                  final city = p['birth_city'] ?? p['city'] ?? p['place'] ?? '-';
+                  
+                  // Prioritize Stored Signs
+                  final storedSun = p['sun_sign'] ?? p['sign']; // 'sign' might be legacy key
+                  final storedRising = p['rising_sign'] ?? p['rising'];
+                  
+                  if (storedSun != null && storedSun.toString().isNotEmpty) {
+                    sunSign = storedSun;
+                  } else if (dateStr != null) {
+                    try {
+                      // Parse Date YYYY-MM-DD or DD/MM/YYYY or YYYY-MM-DDT...
+                      String d = dateStr.toString().split('T')[0];
+                      // If format is DD/MM/YYYY? 
+                      // Let's rely on standard ISO or parts
+                      List<String> parts = d.split('-');
+                      if (parts.length < 3) parts = d.split('/'); // fallback
+                      
+                      if(parts.length == 3) {
+                         // Check order. If YYYY is first (4 chars)
+                         if (parts[0].length == 4) {
+                            final dt = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+                            sunSign = _getSunSign(dt);
+                         } else {
+                            // Assume DD-MM-YYYY
+                            final dt = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+                            sunSign = _getSunSign(dt);
+                         }
+                      }
+                    } catch(_) {}
+                  }
+
+                  if (dateStr != null) details = "$dateStr $timeStr\n$city";
+                  if (sunSign.isNotEmpty) details += "\nBurç: $sunSign";
+                  if (storedRising != null && storedRising.toString().isNotEmpty) {
+                    details += "\nYükselen: $storedRising";
+                  }
+               }
+
                return Card(
                  color: Colors.white.withOpacity(0.05),
-                 child: ListTile(
-                   leading: Icon(Icons.person, color: u['is_staff'] ? Colors.amber : Colors.white54),
-                   title: Text(u['username'] ?? 'User', style: const TextStyle(color: Colors.white)),
-                   subtitle: Text(u['email'] ?? '', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                 child: ExpansionTile(
+                   leading: CircleAvatar(
+                      backgroundColor: isStaff ? Colors.amber : const Color(0xFFE94560),
+                      child: Text(username.isNotEmpty ? username[0].toUpperCase() : "?", style: const TextStyle(color: Colors.white)),
+                   ),
+                   title: Text(username, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                   subtitle: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                       Text(email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                       if(sunSign.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.wb_sunny, size: 12, color: Colors.orangeAccent),
+                                const SizedBox(width: 4),
+                                Text(sunSign, style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          )
+                     ],
+                   ),
                    trailing: PopupMenuButton<String>(
-                     icon: const Icon(Icons.more_vert, color: Colors.white),
-                     onSelected: (val) async {
-                        if(val == 'admin') await _updateRole(u['id'], 'premium'); // Usually 'premium' or level? Wait, backend check
-                        if(val == 'user') await _updateRole(u['id'], 'free');
-                        if(val == 'ban') await _api.banUser(u['id']);
-                        if(val == 'del_posts') await _api.deleteUserPosts(u['id']);
+                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                      onSelected: (val) async {
+                        if (id == null) return;
+                        if (val == 'notif') {
+                          _sendNotificationDialog(id, username);
+                          return;
+                        }
+                        if(val == 'admin') await _updateRole(id, 'premium');
+                        if(val == 'user') await _updateRole(id, 'free');
+                        if(val == 'ban') await _api.banUser(id);
+                        if(val == 'del_posts') await _api.deleteUserPosts(id);
                         
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("İşlem Başarılı!"), backgroundColor: Colors.green));
                         _loadDashboard();
-                     },
-                     itemBuilder: (ctx) => [
-                       const PopupMenuItem(value: 'admin', child: Text("Premium Yap")), // Check naming
-                       const PopupMenuItem(value: 'user', child: Text("Free Yap")),
-                       const PopupMenuItem(value: 'ban', child: Text("Kullanıcıyı Yasakla (Ban)")),
-                       const PopupMenuItem(value: 'del_posts', child: Text("Tüm Yazılarını Sil")),
-                     ],
-                   ),
+                      },
+                      itemBuilder: (ctx) => [
+                        const PopupMenuItem(value: 'notif', child: Row(children: [Icon(Icons.send, size: 16, color: Colors.blue), SizedBox(width: 8), Text("Bildirim Gönder")])),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(value: 'admin', child: Text("Premium Yap")), 
+                        const PopupMenuItem(value: 'user', child: Text("Free Yap")),
+                        const PopupMenuItem(value: 'ban', child: Text("Kullanıcıyı Yasakla (Ban)")),
+                        const PopupMenuItem(value: 'del_posts', child: Text("Tüm Yazılarını Sil")),
+                      ],
+                    ),
+                   children: [
+                      // Detailed View inside Expansion
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        color: Colors.black12,
+                        alignment: Alignment.centerLeft,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                             _rowDetail(Icons.badge, "ID", "$id"),
+                             _rowDetail(Icons.calendar_today, "Kayıt", joined),
+                             _rowDetail(Icons.login, "Son Giriş", lastLogin),
+                             const Divider(color: Colors.white24),
+                             _rowDetail(Icons.cake, "Doğum", details.replaceAll('\n', ', ')),
+                          ],
+                        ),
+                      )
+                   ],
                  ),
                );
             },
           ),
         ),
-        _paginationControls(_userPage, 10, (p) { _userPage = p; _loadDashboard(); }),// Mock max pages if not returned
+        _paginationControls(_userPage, 10, (p) { 
+          setState(() => _userPage = p); 
+          _loadDashboard(); 
+        }),
       ],
     );
   }
@@ -554,6 +888,100 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
       fillColor: Colors.white10,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
       suffixIcon: const Icon(Icons.search, color: Colors.white54)
+    );
+  }
+
+  String _getSunSign(DateTime date) {
+    if ((date.month == 3 && date.day >= 21) || (date.month == 4 && date.day <= 19)) return "Koç (Aries)";
+    if ((date.month == 4 && date.day >= 20) || (date.month == 5 && date.day <= 20)) return "Boğa (Taurus)";
+    if ((date.month == 5 && date.day >= 21) || (date.month == 6 && date.day <= 20)) return "İkizler (Gemini)";
+    if ((date.month == 6 && date.day >= 21) || (date.month == 7 && date.day <= 22)) return "Yengeç (Cancer)";
+    if ((date.month == 7 && date.day >= 23) || (date.month == 8 && date.day <= 22)) return "Aslan (Leo)";
+    if ((date.month == 8 && date.day >= 23) || (date.month == 9 && date.day <= 22)) return "Başak (Virgo)";
+    if ((date.month == 9 && date.day >= 23) || (date.month == 10 && date.day <= 22)) return "Terazi (Libra)";
+    if ((date.month == 10 && date.day >= 23) || (date.month == 11 && date.day <= 21)) return "Akrep (Scorpio)";
+    if ((date.month == 11 && date.day >= 22) || (date.month == 12 && date.day <= 21)) return "Yay (Sagittarius)";
+    if ((date.month == 12 && date.day >= 22) || (date.month == 1 && date.day <= 19)) return "Oğlak (Capricorn)";
+    if ((date.month == 1 && date.day >= 20) || (date.month == 2 && date.day <= 18)) return "Kova (Aquarius)";
+    return "Balık (Pisces)";
+  }
+
+  Widget _rowDetail(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: Colors.white54),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 80, 
+            child: Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13))
+          ),
+          Expanded(
+            child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500))
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _sendNotificationDialog(dynamic userId, String name) {
+    final titleCtrl = TextEditingController(text: "Kozmik Mesaj ✨");
+    final msgCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Text("$name - Bildirim Gönder", style: const TextStyle(color: Colors.amber, fontSize: 16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: "Başlık", labelStyle: TextStyle(color: Colors.white54)),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: msgCtrl,
+              style: const TextStyle(color: Colors.white),
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: "Mesaj İçeriği", 
+                labelStyle: TextStyle(color: Colors.white54),
+                hintText: "Kullanıcıya iletmek istediğiniz mesaj...",
+                hintStyle: TextStyle(color: Colors.white24, fontSize: 12),
+                border: OutlineInputBorder()
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("İptal", style: TextStyle(color: Colors.white38))),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.send, size: 16),
+            label: const Text("Gönder"),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE94560)),
+            onPressed: () async {
+              if (msgCtrl.text.trim().isEmpty) return;
+              Navigator.pop(ctx);
+              try {
+                await _api.sendNotification(
+                  userId: userId, 
+                  title: titleCtrl.text, 
+                  message: msgCtrl.text
+                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Bildirim başarıyla gönderildi!"), backgroundColor: Colors.green));
+              } catch(e) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hata: $e"), backgroundColor: Colors.red));
+              }
+            },
+          )
+        ],
+      )
     );
   }
 }

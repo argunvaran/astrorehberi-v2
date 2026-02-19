@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../services/api_service.dart';
 import 'result_screen.dart'; // To show generated chart
 import 'package:flutter/cupertino.dart';
+import 'input_screen.dart';
 
 class RectificationScreen extends StatefulWidget {
   final String lang;
@@ -336,55 +337,15 @@ class _RectificationScreenState extends State<RectificationScreen> {
                                style: const TextStyle(color: Colors.greenAccent),
                              ),
                              const SizedBox(height: 20),
-                              ElevatedButton.icon(
-                                icon: const Icon(Icons.visibility),
-                                label: Text(isTr ? "Haritamı Göster" : "View Chart"),
-                                onPressed: () async {
-                                  if (_result == null || _result!['best_time'] == null) return;
-                                  
-                                  setState(() => _isLoading = true);
-                                  try {
-                                    // 1. Update Profile with the new rectified time
-                                    await _api.updateProfile(
-                                      birth_date: "${_birthDate.year}-${_birthDate.month.toString().padLeft(2,'0')}-${_birthDate.day.toString().padLeft(2,'0')}",
-                                      birth_time: _result!['best_time'],
-                                    );
-
-                                    // 2. Calculate the full chart using the best time found
-                                    final chartData = await _api.calculateChart(
-                                      date: _birthDate,
-                                      time: _result!['best_time'],
-                                      lat: double.tryParse(_latCtrl.text) ?? 41.0,
-                                      lon: double.tryParse(_lonCtrl.text) ?? 28.0,
-                                      lang: widget.lang,
-                                    );
-                                    
-                                    if (mounted) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ResultScreen(
-                                            data: chartData,
-                                            lang: widget.lang,
-                                          ),
-                                        ),
-                                      ).then((_) {
-                                        // When returning from chart, we can pop back to main screen
-                                        // so the user sees the updated time on the main form.
-                                        Navigator.pop(context, true); 
-                                      });
-                                    }
-                                  } catch (e) {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text("Harita hesaplanırken hata oluştu: $e"))
-                                      );
-                                    }
-                                  } finally {
-                                    if (mounted) setState(() => _isLoading = false);
-                                  }
-                                },
-                              )
+                             ElevatedButton.icon(
+                               icon: const Icon(Icons.check),
+                               label: Text(isTr ? "Bu Saati Kaydet & Devam Et" : "Save Time & Continue"),
+                               style: ElevatedButton.styleFrom(
+                                 backgroundColor: Colors.amberAccent,
+                                 foregroundColor: Colors.black,
+                               ),
+                               onPressed: () => _updateProfileAndContinue(),
+                             ),
                           ],
                         ),
                       ),
@@ -397,6 +358,33 @@ class _RectificationScreenState extends State<RectificationScreen> {
       ),
     );
   }
+
+  Future<void> _updateProfileAndContinue() async {
+    if (_result == null) return;
+    
+    setState(() => _isLoading = true);
+    try {
+      final bestTime = _result!['best_time'].toString(); // e.g., "14:30"
+      
+      // Call Update Profile
+      final res = await _api.updateProfile(birth_time: bestTime);
+      
+      if (res.containsKey('error')) {
+         if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'])));
+      } else {
+         if(mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profil güncellendi!")));
+           // Navigate to Input Screen (which will reload profile)
+           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const InputScreen()));
+         }
+      }
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hata: $e")));
+    } finally {
+      if(mounted) setState(() => _isLoading = false);
+    }
+  }
+
 
   Widget _buildGlassContainer({required Widget child, EdgeInsets? padding, EdgeInsets? margin}) {
     return Container(

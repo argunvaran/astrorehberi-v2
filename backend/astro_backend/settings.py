@@ -25,11 +25,12 @@ import os
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-tdy0306^oap05lli8+)z@2#3%9=h81#(yv^p=97yt)^tl#!dt)')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1,http://127.0.0.1:8080,http://localhost:8080,http://10.0.2.2:8080').split(',')
 
 # Production Security
 # Production Security
@@ -73,6 +74,7 @@ INSTALLED_APPS = [
     'content_manager', # New CMS App
     'library',
     'interactive',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -95,6 +97,8 @@ else:
     # DEBUG=False olsa bile CORS'u açıyoruz (Web/Mobil testleri için)
     CORS_ALLOW_ALL_ORIGINS = True 
     CORS_ALLOW_CREDENTIALS = True
+    allowed_list = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    CORS_ALLOWED_ORIGINS = [origin for origin in allowed_list if origin]
 
 
 ROOT_URLCONF = 'astro_backend.urls'

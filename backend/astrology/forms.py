@@ -1,9 +1,9 @@
 from django import forms
-from .models import UserProfile
+from users.models import Profile
 
 class UserSettingsForm(forms.ModelForm):
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = ['birth_date', 'birth_time', 'lat', 'lon']
         widgets = {
             'birth_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),

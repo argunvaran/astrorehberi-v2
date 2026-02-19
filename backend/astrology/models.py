@@ -84,9 +84,10 @@ class DailyTip(models.Model):
 
 class DailyHoroscope(models.Model):
     date = models.DateField(unique=True)
-    summary_en = models.TextField()
-    summary_tr = models.TextField()
-    aspects = models.JSONField(default=list) 
+    summary_en = models.TextField(blank=True) # made blank=True for flexibility
+    summary_tr = models.TextField(blank=True)
+    aspects = models.JSONField(default=list, blank=True) 
+    signs_data = models.JSONField(default=dict, blank=True, help_text="{'aries': 'text', ...}")
 
     def __str__(self):
         return f"Horoscope for {self.date}"
@@ -109,34 +110,7 @@ class WeeklyHoroscope(models.Model):
     def __str__(self):
         return f"{self.sign} - {self.start_date}"
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    birth_date = models.DateField(null=True, blank=True)
-    birth_time = models.TimeField(null=True, blank=True)
-    birth_place = models.CharField(max_length=100, default="Unknown")
-    lat = models.FloatField(default=0.0)
-    lon = models.FloatField(default=0.0)
-    bio = models.TextField(blank=True, null=True)
-    
-    # Store calculated sign for quick access?
-    sun_sign = models.CharField(max_length=20, blank=True)
-    rising_sign = models.CharField(max_length=20, blank=True)
 
-    MEMBERSHIP_CHOICES = [
-        ('free', 'Free'),
-        ('premium', 'Premium'),
-    ]
-    membership_level = models.CharField(max_length=10, choices=MEMBERSHIP_CHOICES, default='free')
-
-    def __str__(self):
-        return f"{self.user.username} Profile ({self.membership_level})"
-
-    @property
-    def effective_membership(self):
-        from django.conf import settings
-        if getattr(settings, 'FREE_PREMIUM_MODE', False) and self.membership_level == 'free':
-            return 'premium'
-        return self.membership_level
 
 class UserActivityLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

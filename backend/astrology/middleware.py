@@ -33,6 +33,21 @@ class ActivityMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # 1. Bearer Token Auth (Fallback for Mobile)
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            if token and not request.user.is_authenticated:
+                from django.contrib.sessions.models import Session
+                from django.contrib.auth.models import User
+                try:
+                    session = Session.objects.get(session_key=token)
+                    uid = session.get_decoded().get('_auth_user_id')
+                    user = User.objects.get(pk=uid)
+                    request.user = user
+                except Exception as e:
+                    print(f"DEBUG: Bearer Auth Error: {e}")
+
         # Process request
         response = self.get_response(request)
         

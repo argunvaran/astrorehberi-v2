@@ -88,51 +88,178 @@ def user_profile_view(request, username):
     }
     return render(request, 'interactive/user_profile.html', context)
 
+# --- COMPATIBILITY ALGORITHM ---
+ELEMENTS = {
+    'Fire': ['Aries', 'Leo', 'Sagittarius'],
+    'Earth': ['Taurus', 'Virgo', 'Capricorn'],
+    'Air': ['Gemini', 'Libra', 'Aquarius'],
+    'Water': ['Cancer', 'Scorpio', 'Pisces'],
+}
+
+def get_element(sign):
+    for el, signs in ELEMENTS.items():
+        if sign in signs: return el
+    return None
+
+def calculate_compatibility(sign1, sign2):
+    if not sign1 or not sign2: return 50
+    # Extract English name from format "Burç (Sign)"
+    def extract_en(s):
+        if '(' in s and ')' in s:
+            return s.split('(')[1].split(')')[0].strip().capitalize()
+        return s.strip().capitalize()
+    
+    s1 = extract_en(sign1)
+    s2 = extract_en(sign2)
+    
+    el1 = get_element(s1)
+    el2 = get_element(s2)
+    
+    if el1 == el2: return 95
+    if (el1 == 'Fire' and el2 == 'Air') or (el1 == 'Air' and el2 == 'Fire'): return 88
+    if (el1 == 'Earth' and el2 == 'Water') or (el1 == 'Water' and el2 == 'Earth'): return 88
+    
+    return 65
+
 def get_posts_api(request):
     filter_type = request.GET.get('filter', 'all')
     target_username = request.GET.get('username', None)
     search_query = request.GET.get('q', '').strip()
     
-    posts = WallPost.objects.filter(is_public=True)
+    posts = WallPost.objects.filter(is_public=True).select_related('user', 'user__profile')
     
     # 1. Scope Filter
     if filter_type == 'following' and request.user.is_authenticated:
         following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-        posts = posts.filter(user__in=following_ids)
-    elif filter_type == 'user' and target_username:
+        posts = posts.filter(user_id__in=following_ids)
+    elif target_username:
         posts = posts.filter(user__username=target_username)
-    elif filter_type == 'self' and request.user.is_authenticated:
-        posts = posts.filter(user=request.user)
-        
-    # 2. Text Search Filter
-    if search_query:
-        posts = posts.filter(
-            Q(content__icontains=search_query) | 
-            Q(user__username__icontains=search_query)
-        )
-        
-    posts = posts.order_by('-created_at')
-    
-    paginator = Paginator(posts, 10)
-    page = request.GET.get('page', 1)
-    
-    data = []
-    # Handle page out of range
-    try:
-        page_obj = paginator.get_page(page)
-    except:
-        page_obj = paginator.get_page(1)
 
-    for p in page_obj:
+    if search_query:
+        posts = posts.filter(content__icontains=search_query)
+
+    # Calculate scores if user is logged in
+    user_sign = None
+    if request.user.is_authenticated:
+        try:
+            user_sign = request.user.profile.sun_sign
+        except: pass
+
+    post_list = []
+    for p in posts:
+        score = 50
+        if user_sign and p.user.id != request.user.id:
+            try:
+                author_sign = p.user.profile.sun_sign
+                score = calculate_compatibility(user_sign, author_sign)
+            except: pass
+            
+        post_list.append({
+            'post': p,
+            'score': score
+        })
+
+    # Sort by compatibility score then by date
+    if user_sign and not target_username:
+        post_list.sort(key=lambda x: (x['score'], x['post'].created_at), reverse=True)
+    else:
+        post_list.sort(key=lambda x: x['post'].created_at, reverse=True)
+
+    # Pagination manually on the list
+    paginator = Paginator(post_list, 15)
+    page_num = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.get_page(page_num)
+    except:
+        page_obj = []
+
+    data = []
+    for item in page_obj:
+        p = item['post']
         data.append({
             'id': p.id,
             'user': p.user.username,
             'content': p.content,
-            'created_at': p.created_at.strftime("%d %b %H:%M"),
-            'likes': p.like_count
+            'created_at': p.created_at.strftime("%Y-%m-%d %H:%M"),
+            'likes': p.like_count,
+            'is_liked': request.user in p.likes.all() if request.user.is_authenticated else False,
+            'compatibility': item['score'],
+            'comment_count': p.comment_count
         })
-        
-    return JsonResponse({'posts': data, 'has_next': page_obj.has_next()})
+
+    return JsonResponse({'posts': data, 'has_next': page_obj.has_next() if hasattr(page_obj, 'has_next') else False})
+
+@csrf_exempt
+@login_required
+def toggle_like_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            post = get_object_or_404(WallPost, id=data.get('post_id'))
+            if request.user in post.likes.all():
+                post.likes.remove(request.user)
+                liked = False
+            else:
+                post.likes.add(request.user)
+                liked = True
+                
+                # Notify author
+                if post.user != request.user:
+                    Notification.objects.create(
+                        user=post.user,
+                        title="Kozmik Beğeni!",
+                        message=f"{request.user.username} senin yazını beğendi ✨"
+                    )
+                    
+            return JsonResponse({'success': True, 'liked': liked, 'count': post.like_count})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'POST required'})
+
+@csrf_exempt
+@login_required
+def add_comment_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            post = get_object_or_404(WallPost, id=data.get('post_id'))
+            content = data.get('content', '').strip()
+            
+            if not content:
+                return JsonResponse({'error': 'Mesaj boş olamaz'}, status=400)
+                
+            comment = PostComment.objects.create(post=post, user=request.user, content=content)
+            
+            # Notify author
+            if post.user != request.user:
+                Notification.objects.create(
+                    user=post.user,
+                    title="Yeni Yorum!",
+                    message=f"{request.user.username} yazına yorum yaptı: {content[:30]}..."
+                )
+                
+            return JsonResponse({
+                'success': True, 
+                'comment': {
+                    'id': comment.id,
+                    'user': comment.user.username,
+                    'content': comment.content,
+                    'created_at': comment.created_at.strftime("%H:%M")
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'POST required'})
+
+def get_comments_api(request, post_id):
+    comments = PostComment.objects.filter(post_id=post_id).order_by('created_at')
+    data = [{
+        'id': c.id,
+        'user': c.user.username,
+        'content': c.content,
+        'created_at': c.created_at.strftime("%Y-%m-%d %H:%M")
+    } for c in comments]
+    return JsonResponse({'comments': data})
 
 @csrf_exempt
 @login_required
@@ -318,7 +445,8 @@ def send_message_api(request):
 
 @csrf_exempt
 def get_admin_appointments(request):
-    if not (request.user.is_staff or request.user.is_superuser): return JsonResponse({'error': 'Unauthorized'}, status=403)
+    if not (request.user.is_staff or request.user.is_superuser): 
+        return JsonResponse({'error': f'Unauthorized (User: {request.user}, IsStaff: {request.user.is_staff}, IsSuper: {request.user.is_superuser})'}, status=403)
     
     status_filter = request.GET.get('status')
     apps = Appointment.objects.all().order_by('-created_at')
@@ -345,7 +473,8 @@ def get_admin_appointments(request):
 
 @csrf_exempt
 def review_appointment(request):
-    if not (request.user.is_staff or request.user.is_superuser): return JsonResponse({'error': 'Unauthorized'}, status=403)
+    if not (request.user.is_staff or request.user.is_superuser): 
+        return JsonResponse({'error': f'Unauthorized (User: {request.user})'}, status=403)
     if request.method == 'POST':
         data = json.loads(request.body)
         app = Appointment.objects.get(id=data.get('id'))
@@ -356,3 +485,37 @@ def review_appointment(request):
         Notification.objects.create(user=app.user, title=f"Randevu Durumu: {app.status}", message=f"Yönetici notu: {app.admin_response}")
         return JsonResponse({'success': True})
     return JsonResponse({'error': 'Invalid'})
+
+@csrf_exempt
+def admin_send_notification(request):
+    """
+    API for admin to send notifications to users.
+    Can send to a specific ID or 'all' for broadcast.
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            target = data.get('user_id') # 'all' or int ID
+            title = data.get('title', 'Kozmik Bildirim')
+            message = data.get('message')
+            
+            if not message:
+                return JsonResponse({'error': 'Mesaj boş olamaz'}, status=400)
+                
+            if target == 'all':
+                users = User.objects.all()
+                notifs = [Notification(user=u, title=title, message=message) for u in users]
+                Notification.objects.bulk_create(notifs)
+                return JsonResponse({'success': True, 'count': len(notifs)})
+            else:
+                user = User.objects.get(id=target)
+                Notification.objects.create(user=user, title=title, message=message)
+                return JsonResponse({'success': True})
+                
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return JsonResponse({'error': 'POST required'}, status=405)

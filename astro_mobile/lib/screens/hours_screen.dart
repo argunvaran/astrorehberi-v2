@@ -5,8 +5,9 @@ import '../services/api_service.dart';
 
 class HoursScreen extends StatefulWidget {
   final String lang;
+  final bool embed; // New parameter
 
-  const HoursScreen({super.key, required this.lang});
+  const HoursScreen({super.key, required this.lang, this.embed = false});
 
   @override
   State<HoursScreen> createState() => _HoursScreenState();
@@ -24,7 +25,6 @@ class _HoursScreenState extends State<HoursScreen> {
     super.initState();
     _fetchHours();
   }
-
   Future<void> _fetchHours() async {
     final chart = DataManager.instance.currentChart;
     if (chart == null || chart.meta == null) {
@@ -77,6 +77,18 @@ class _HoursScreenState extends State<HoursScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.embed) {
+      return Container(
+         decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)]
+            )
+         ),
+         child: _buildBody(),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(

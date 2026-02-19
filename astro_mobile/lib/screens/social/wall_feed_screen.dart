@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/interactive_models.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'chat_screen.dart';
 
 class WallFeedScreen extends StatefulWidget {
   const WallFeedScreen({super.key});
@@ -149,60 +150,86 @@ class _WallFeedScreenState extends State<WallFeedScreen> {
                                     radius: 16,
                                     child: Text(post.user[0].toUpperCase()),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Text(post.user, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                  const Spacer(),
-                                  Text(post.createdAt, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(post.content, style: const TextStyle(color: Colors.white70)),
-                              const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    InkWell(
-                                      onTap: () async {
-                                        // Optimistic Update
-                                        final oldState = post.isLiked;
-                                        final oldLikes = post.likes;
-                                        // We can't mutate 'final' fields of WallPost.
-                                        // We must replace the item in the list.
-                                        final index = _posts.indexOf(post);
-                                        if(index == -1) return;
-
-                                        setState(() {
-                                           _posts[index] = WallPost(
-                                              id: post.id, 
-                                              user: post.user, 
-                                              content: post.content, 
-                                              createdAt: post.createdAt, 
-                                              likes: oldState ? oldLikes - 1 : oldLikes + 1, 
-                                              isLiked: !oldState
-                                           );
-                                        });
-
-                                        try {
-                                          await _api.toggleLike(post.id);
-                                        } catch(e) {
-                                          // Revert if error
+                                    const SizedBox(width: 10),
+                                    Text(post.user, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    if (post.compatibility > 50) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: post.compatibility > 80 ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: post.compatibility > 80 ? Colors.green : Colors.orange, width: 0.5),
+                                        ),
+                                        child: Text(
+                                          "Uyum: %${post.compatibility}",
+                                          style: TextStyle(
+                                            color: post.compatibility > 80 ? Colors.green : Colors.orange,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    const Spacer(),
+                                    Text(post.createdAt, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(post.content, style: const TextStyle(color: Colors.white70)),
+                                const SizedBox(height: 15),
+                                  Row(
+                                    children: [
+                                      // Like Button
+                                      _actionButton(
+                                        icon: post.isLiked ? Icons.favorite : Icons.favorite_border,
+                                        label: "${post.likes}",
+                                        color: post.isLiked ? Colors.red : Colors.white54,
+                                        onTap: () async {
+                                          final int idx = _posts.indexOf(post);
+                                          if (idx == -1) return;
+                                          final bool oldLiked = post.isLiked;
+                                          final int oldLikes = post.likes;
+                                          
                                           setState(() {
-                                            _posts[index] = WallPost(
-                                              id: post.id, user: post.user, content: post.content, createdAt: post.createdAt, likes: oldLikes, isLiked: oldState
+                                            _posts[idx] = WallPost(
+                                              id: post.id, user: post.user, content: post.content, createdAt: post.createdAt,
+                                              likes: oldLiked ? oldLikes - 1 : oldLikes + 1,
+                                              isLiked: !oldLiked,
+                                              compatibility: post.compatibility,
+                                              commentCount: post.commentCount
                                             );
                                           });
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Hata oluştu"), duration: Duration(seconds: 1)));
-                                        }
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Icon(post.isLiked ? Icons.favorite : Icons.favorite_border, size: 20, color: post.isLiked ? Colors.red : Colors.white54),
-                                          const SizedBox(width: 5),
-                                          Text("${post.likes}", style: const TextStyle(color: Colors.white54)),
-                                        ],
+
+                                          try {
+                                            await _api.toggleLike(post.id);
+                                          } catch(e) {
+                                            setState(() { _posts[idx] = post; });
+                                          }
+                                        },
                                       ),
-                                    ),
-                                  ],
-                                )
+                                      const SizedBox(width: 20),
+                                      // Comment Button
+                                      _actionButton(
+                                        icon: Icons.chat_bubble_outline,
+                                        label: "${post.commentCount}",
+                                        color: Colors.white54,
+                                        onTap: () => _showCommentsBottomSheet(post),
+                                      ),
+                                      const Spacer(),
+                                      // DM Button for compatibility
+                                      if (post.compatibility >= 75 && post.user != "Ben")
+                                        TextButton.icon(
+                                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(targetUsername: post.user))),
+                                          icon: const Icon(Icons.flash_on, size: 16, color: Colors.amber),
+                                          label: const Text("Sohbet Et", style: TextStyle(color: Colors.amber, fontSize: 12)),
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: Colors.amber.withOpacity(0.1),
+                                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                                          ),
+                                        ),
+                                    ],
+                                  )
                             ],
                           ),
                         );
@@ -211,6 +238,110 @@ class _WallFeedScreenState extends State<WallFeedScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _actionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  void _showCommentsBottomSheet(WallPost post) {
+    final TextEditingController _commentCtrl = TextEditingController();
+    List<PostComment>? _comments;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E2E),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          if (_comments == null) {
+            _api.getComments(post.id).then((value) => setModalState(() => _comments = value));
+          }
+
+          return Container(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 15, right: 15, top: 15),
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              children: [
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 15),
+                const Text("Yorumlar", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+                const Divider(color: Colors.white10),
+                Expanded(
+                  child: _comments == null 
+                  ? const Center(child: CircularProgressIndicator())
+                  : _comments!.isEmpty 
+                    ? const Center(child: Text("Henüz yorum yok. İlk sen yaz!", style: TextStyle(color: Colors.white54)))
+                    : ListView.builder(
+                        itemCount: _comments!.length,
+                        itemBuilder: (c, i) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(_comments![i].user, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                          subtitle: Text(_comments![i].content, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                          trailing: Text(_comments![i].createdAt.split(' ')[1], style: const TextStyle(color: Colors.white24, fontSize: 10)),
+                        ),
+                      ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commentCtrl,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: "Yorum yaz...",
+                            hintStyle: TextStyle(color: Colors.white30),
+                            border: InputBorder.none
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: Color(0xFFE94560)),
+                        onPressed: () async {
+                          if (_commentCtrl.text.trim().isEmpty) return;
+                          final txt = _commentCtrl.text.trim();
+                          _commentCtrl.clear();
+                          try {
+                            await _api.addComment(post.id, txt);
+                            // Refresh
+                            final updated = await _api.getComments(post.id);
+                            setModalState(() => _comments = updated);
+                            setState(() {
+                               final idx = _posts.indexOf(post);
+                               if(idx != -1) {
+                                  _posts[idx] = WallPost(
+                                    id: post.id, user: post.user, content: post.content, createdAt: post.createdAt,
+                                    likes: post.likes, isLiked: post.isLiked, compatibility: post.compatibility,
+                                    commentCount: post.commentCount + 1
+                                  );
+                               }
+                            });
+                          } catch(e) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Yorum gönderilemedi")));
+                          }
+                        },
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
+        }
       ),
     );
   }

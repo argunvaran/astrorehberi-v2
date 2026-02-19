@@ -15,24 +15,25 @@ class ApiService {
     }
 
     // 2. Debug Mode - Local Testing
-    if (kIsWeb) return "http://127.0.0.1:8000/api";
+    if (kIsWeb) return "http://127.0.0.1:8080/api";
     try {
-      if (Platform.isAndroid) return "http://10.0.2.2:8000/api";
-      if (Platform.isIOS) return "http://127.0.0.1:8000/api";
+      if (Platform.isAndroid) return "http://10.0.2.2:8080/api";
+      if (Platform.isIOS) return "http://127.0.0.1:8080/api";
     } catch (e) {}
-    return "http://127.0.0.1:8000/api";
+    return "http://127.0.0.1:8080/api";
   }
 
   String get rootUrl {
     if (!kDebugMode) {
       return "https://astrorehberi.com";
     }
-    if (kIsWeb) return "http://127.0.0.1:8000";
+    
+    if (kIsWeb) return "http://127.0.0.1:8080";
     try {
-      if (Platform.isAndroid) return "http://10.0.2.2:8000";
-      if (Platform.isIOS) return "http://127.0.0.1:8000";
+      if (Platform.isAndroid) return "http://10.0.2.2:8080";
+      if (Platform.isIOS) return "http://127.0.0.1:8080";
     } catch (e) {}
-    return "http://127.0.0.1:8000";
+    return "http://127.0.0.1:8080";
   }
 
   static Map<String, String> _headers = {'Content-Type': 'application/json'};
@@ -65,7 +66,7 @@ class ApiService {
     }
   }
 
-  void _updateCookie(http.Response response) {
+  Future<void> _updateCookie(http.Response response) async {
     String? rawCookie = response.headers['set-cookie'];
     if (rawCookie != null) {
       if (kDebugMode) print("DEBUG: Raw Set-Cookie: $rawCookie");
@@ -98,7 +99,11 @@ class ApiService {
             _headers['Authorization'] = 'Bearer ${cookies['astro_session']}';
         }
         
+<<<<<<< HEAD
         _saveToken(); 
+=======
+        await _saveToken(); 
+>>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
       }
     }
   }
@@ -108,7 +113,7 @@ class ApiService {
     final url = Uri.parse('$baseUrl/check-auth/');
     try {
       final response = await http.get(url, headers: _headers);
-      _updateCookie(response);
+      await _updateCookie(response);
       return jsonDecode(utf8.decode(response.bodyBytes));
     } catch (e) {
       return {'authenticated': false};
@@ -122,6 +127,7 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'username': username, 'password': password}),
     );
+<<<<<<< HEAD
     _updateCookie(response);
     
     if (response.statusCode == 200) {
@@ -129,6 +135,15 @@ class ApiService {
       if (data['token'] != null) {
          _headers['Authorization'] = 'Bearer ${data['token']}';
          _saveToken();
+=======
+    await _updateCookie(response);
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      if (data['token'] != null) {
+         _headers['Authorization'] = 'Bearer ${data['token']}';
+         await _saveToken();
+>>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
       }
       return data;
     } else {
@@ -143,16 +158,31 @@ class ApiService {
       headers: _headers,
       body: jsonEncode(data),
     );
-    _updateCookie(response);
+    await _updateCookie(response);
      if (response.statusCode == 200) {
+<<<<<<< HEAD
       final resData = jsonDecode(response.body);
       if (resData['token'] != null) {
          _headers['Authorization'] = 'Bearer ${resData['token']}';
          _saveToken();
+=======
+      final resData = jsonDecode(utf8.decode(response.bodyBytes));
+      if (resData['token'] != null) {
+         _headers['Authorization'] = 'Bearer ${resData['token']}';
+         await _saveToken();
+>>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
       }
       return resData;
     } else {
-      throw Exception('Registration Failed');
+      String errorMessage = 'Registration Failed';
+      try {
+        final errData = jsonDecode(response.body);
+        if (errData['error'] != null) errorMessage = errData['error'];
+        else if (errData['detail'] != null) errorMessage = errData['detail'];
+        else if (errData['username'] != null) errorMessage = "Username taken: ${errData['username'][0]}";
+      } catch(_) {}
+      
+      throw Exception(errorMessage);
     }
   }
   
@@ -396,9 +426,33 @@ class ApiService {
   }
 
   Future<void> toggleLike(int postId) async {
-    final url = Uri.parse('$rootUrl/interactive/wall/api/like/$postId/');
-    final response = await http.post(url, headers: _headers);
+    final url = Uri.parse('$rootUrl/interactive/wall/api/like/');
+    final response = await http.post(
+      url, 
+      headers: _headers,
+      body: jsonEncode({'post_id': postId})
+    );
     if (response.statusCode != 200) throw Exception('Failed to like');
+  }
+
+  Future<void> addComment(int postId, String content) async {
+    final url = Uri.parse('$rootUrl/interactive/wall/api/comment/');
+    final response = await http.post(
+      url,
+      headers: _headers,
+      body: jsonEncode({'post_id': postId, 'content': content}),
+    );
+    if (response.statusCode != 200) throw Exception('Failed to comment');
+  }
+
+  Future<List<PostComment>> getComments(int postId) async {
+    final url = Uri.parse('$rootUrl/interactive/wall/api/comments/$postId/');
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return (data['comments'] as List).map((e) => PostComment.fromJson(e)).toList();
+    }
+    return [];
   }
 
   // 2. Following / Users
@@ -529,7 +583,12 @@ class ApiService {
   // --- Profile Update ---
   Future<Map<String, dynamic>> updateProfile({
     String? username, String? birth_date, String? birth_time, 
+<<<<<<< HEAD
     String? birth_city, String? bio, double? lat, double? lon
+=======
+    String? birth_city, String? bio, double? lat, double? lon,
+    String? sun_sign, String? rising_sign,
+>>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
   }) async {
     final url = Uri.parse('$baseUrl/update-profile/');
      try {
@@ -541,6 +600,11 @@ class ApiService {
          if (bio != null) 'bio': bio,
          if (lat != null) 'lat': lat,
          if (lon != null) 'lon': lon,
+<<<<<<< HEAD
+=======
+         if (sun_sign != null) 'sun_sign': sun_sign,
+         if (rising_sign != null) 'rising_sign': rising_sign,
+>>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
        });
 
        final res = await http.post(url, headers: _headers, body: body);
@@ -561,15 +625,23 @@ class ApiService {
   
   // Fetch Appointments (Filtered & Paginated)
   Future<Map<String, dynamic>> getAdminAppointments({String status = 'all', int page = 1}) async {
+    await _loadToken();
     final url = Uri.parse('$rootUrl/interactive/admin/appointments/?status=$status&page=$page');
     final response = await http.get(url, headers: _headers);
     if (response.statusCode == 200) {
        return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+       String errMsg = 'Admin appointments error: ${response.statusCode}';
+       try {
+         final body = jsonDecode(utf8.decode(response.bodyBytes));
+         if (body['error'] != null) errMsg = body['error'];
+       } catch(_) {}
+       throw Exception(errMsg);
     }
-    throw Exception('Failed to load appointments');
   }
 
   Future<void> reviewAppointment(int id, String action, String note) async {
+    await _loadToken();
     final url = Uri.parse('$rootUrl/interactive/admin/review-appointment/');
     final res = await http.post(
       url, headers: _headers,
@@ -579,12 +651,34 @@ class ApiService {
   }
 
   Future<void> updateMembership(int userId, String level) async {
+    await _loadToken();
     final url = Uri.parse('$baseUrl/custom-admin/update-membership/'); // Correct in Astrology App
     final res = await http.post(
       url, headers: _headers,
       body: jsonEncode({'user_id': userId, 'level': level})
     );
     if(res.statusCode != 200) throw Exception('Update failed');
+  }
+
+  Future<void> sendNotification({dynamic userId, required String title, required String message}) async {
+    await _loadToken();
+    final url = Uri.parse('$rootUrl/interactive/admin/send-notification/');
+    final res = await http.post(
+      url, headers: _headers,
+      body: jsonEncode({
+        'user_id': userId, // can be int or 'all'
+        'title': title,
+        'message': message
+      })
+    );
+    if (res.statusCode != 200) {
+       String err = 'Gönderim başarısız';
+       try {
+         final body = jsonDecode(utf8.decode(res.bodyBytes));
+         if(body['error'] != null) err = body['error'];
+       } catch(_) {}
+       throw Exception(err);
+    }
   }
 
   // Fetch Dashboard Data (Stats, Logs, Messages)
@@ -600,27 +694,30 @@ class ApiService {
       int logPage = 1,
       int userPage = 1, 
   }) async {
-    String query = '?msg_page=$msgPage&page=$logPage&user_page=$userPage'; 
+    await _loadToken();
+    String query = '?msgPage=$msgPage&logPage=$logPage&userPage=$userPage'; 
+    
     if(startDate != null && startDate.isNotEmpty) query += '&start_date=$startDate';
     if(endDate != null && endDate.isNotEmpty) query += '&end_date=$endDate';
-    if(logSearch != null && logSearch.isNotEmpty) query += '&log_search=$logSearch';
-    
-    if(msgSearch != null && msgSearch.isNotEmpty) query += '&msg_search=$msgSearch';
+    if(logSearch != null && logSearch.isNotEmpty) query += '&logSearch=$logSearch';
+    if(msgSearch != null && msgSearch.isNotEmpty) query += '&msgSearch=$msgSearch';
     if(msgStart != null && msgStart.isNotEmpty) query += '&msg_start=$msgStart';
     if(msgEnd != null && msgEnd.isNotEmpty) query += '&msg_end=$msgEnd';
-    
-    if(userSearch != null && userSearch.isNotEmpty) query += '&user_search=$userSearch';
+    if(userSearch != null && userSearch.isNotEmpty) query += '&userSearch=$userSearch';
 
-    // Correct URL for Custom Admin Data
     final url = Uri.parse('$baseUrl/custom-admin/data/$query');
     final response = await http.get(url, headers: _headers);
     
     if (response.statusCode == 200) {
       return jsonDecode(utf8.decode(response.bodyBytes));
-    } else if (response.statusCode == 403) {
-      throw Exception('Unauthorized');
+    } else {
+       String errMsg = 'Admin data error: ${response.statusCode}';
+       try {
+         final body = jsonDecode(utf8.decode(response.bodyBytes));
+         if (body['error'] != null) errMsg = body['error'];
+       } catch(_) {}
+       throw Exception(errMsg);
     }
-    throw Exception('Failed to load admin data');
   }
 
   // --- 7. Content / Blog API ---
@@ -683,6 +780,39 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error loading item: $e');
+    }
+  }
+
+  Future<void> editLibraryItem(int id, Map<String, dynamic> data) async {
+    final url = Uri.parse('$baseUrl/api/library/edit/');
+    final body = jsonEncode({'id': id, ...data});
+    final response = await http.post(
+      url, 
+      headers: _headers, 
+      body: body
+    );
+    
+    if (response.statusCode == 200) {
+      return; 
+    } else {
+      throw Exception('Failed to update: ${response.statusCode}');
+    }
+  }
+
+  Future<void> saveDailyHoroscopes(List<dynamic> items) async {
+    final url = Uri.parse('$baseUrl/api/daily-horoscopes/save/');
+    final body = jsonEncode({'horoscopes': items});
+    
+    final response = await http.post(
+      url, 
+      headers: _headers, 
+      body: body
+    );
+    
+    if (response.statusCode == 200) {
+      return; 
+    } else {
+      throw Exception('Failed to save horoscopes: ${response.statusCode}');
     }
   }
 }

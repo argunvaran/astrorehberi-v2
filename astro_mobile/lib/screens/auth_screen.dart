@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
 import 'input_screen.dart';
+import 'rectification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -26,6 +27,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   
   DateTime _regDate = DateTime(1990, 1, 1);
   TimeOfDay _regTime = const TimeOfDay(hour: 12, minute: 0);
+  bool _isBirthTimeUnknown = false;
   
   // Location Data (All Maps now)
   List<Map<String, dynamic>> _countries = [];
@@ -97,9 +99,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   Future<void> _doLogin() async {
     setState(() => _isLoading = true);
     try {
-      await _api.login(_loginUserCtrl.text, _loginPassCtrl.text);
+      final res = await _api.login(_loginUserCtrl.text, _loginPassCtrl.text);
       if(mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const InputScreen()));
+        Navigator.pushReplacement(
+          context, 
+          MaterialPageRoute(builder: (_) => InputScreen(initialAuthData: res))
+        );
       }
     } catch (e) {
       if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -117,8 +122,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     setState(() => _isLoading = true);
     try {
       final cityInfo = _selectedCityData!;
-      final isoDate = "${_regDate.year}-${_regDate.month.toString().padLeft(2, '0')}-${_regDate.day.toString().padLeft(2, '0')}";
-      final timeStr = "${_regTime.hour.toString().padLeft(2, '0')}:${_regTime.minute.toString().padLeft(2, '0')}";
+      final dateStr = "${_regDate.year}-${_regDate.month.toString().padLeft(2, '0')}-${_regDate.day.toString().padLeft(2, '0')}";
+      final timeStr = _isBirthTimeUnknown 
+          ? "12:00" 
+          : "${_regTime.hour.toString().padLeft(2,'0')}:${_regTime.minute.toString().padLeft(2,'0')}";
       
       // Find province name for display if needed
       String provName = _selectedProvinceCode ?? "";
@@ -139,7 +146,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       });
       
       if(mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const InputScreen()));
+        if (_isBirthTimeUnknown) {
+          // Redirect to Rectification
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (_) => const RectificationScreen(lang: 'tr')) // Defaulting TR for now
+          );
+        } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const InputScreen()));
+        }
       }
     } catch (e) {
       if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -229,16 +244,33 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _buildGlassBtn(
-                  "${_regTime.hour}:${_regTime.minute.toString().padLeft(2,'0')}", 
-                  Icons.access_time,
-                  () async {
-                    final t = await showTimePicker(context: context, initialTime: _regTime);
-                    if(t != null) setState(() => _regTime = t);
-                  }
+                child: Opacity(
+                  opacity: _isBirthTimeUnknown ? 0.5 : 1.0,
+                  child: _buildGlassBtn(
+                    _isBirthTimeUnknown ? "--:--" : "${_regTime.hour}:${_regTime.minute.toString().padLeft(2,'0')}", 
+                    Icons.access_time,
+                    _isBirthTimeUnknown ? () {} : () async {
+                      final t = await showTimePicker(context: context, initialTime: _regTime);
+                      if(t != null) setState(() => _regTime = t);
+                    }
+                  ),
                 )
               ),
             ],
+          ),
+          
+          // Unknown Time Checkbox
+          Theme(
+            data: ThemeData(unselectedWidgetColor: Colors.white54),
+            child: CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text("Doğum saatimi bilmiyorum", style: TextStyle(color: Colors.white70, fontSize: 14)),
+              value: _isBirthTimeUnknown, 
+              activeColor: const Color(0xFFE94560),
+              checkColor: Colors.white,
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (val) => setState(() => _isBirthTimeUnknown = val ?? false)
+            ),
           ),
           const SizedBox(height: 15),
 

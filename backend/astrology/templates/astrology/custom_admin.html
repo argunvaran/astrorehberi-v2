@@ -322,7 +322,7 @@
                                 <td style="opacity:0.8">{{ u.email }}</td>
                                 <td style="font-size:0.85rem">{{ u.date_joined|date:"d M Y" }}</td>
                                 <td>
-                                    {% if u.profile.membership_level == 'premium' %}
+                                    {% if u.safe_membership == 'premium' %}
                                     <span class="badge"
                                         style="background:linear-gradient(45deg, #FFD700, #FDB931); color:black">PREMIUM</span>
                                     {% else %}

@@ -36,6 +36,7 @@ urlpatterns = [
     # Static Pages (For AdSense)
     path('about-us/', views.about_view, name='about_us'),
     path('privacy-policy/', views.privacy_view, name='privacy_policy'),
+    path('terms/', views.terms_view, name='terms'),
     path('delete-account/', views.delete_account_view, name='delete_account'),
     path('contact/', views.contact_view, name='contact'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
@@ -43,6 +44,8 @@ urlpatterns = [
     path('api/blog/<slug:slug>/', views.get_blog_detail_api, name='api_blog_detail'),
     
     path('api/library/', views.get_library_api, name='api_library_list'),
+    path('api/library/edit/', views.edit_library_item_api, name='edit_library_item_api'),
+    path('api/daily-horoscopes/save/', views.save_daily_horoscopes_api, name='save_daily_horoscopes_api'),
     path('api/library/<slug:slug>/', views.get_library_detail_api, name='api_library_detail'),
     
     path('submit-contact/', views.submit_contact_form, name='submit_contact'),

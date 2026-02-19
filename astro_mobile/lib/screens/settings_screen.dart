@@ -17,7 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final ApiService _api = ApiService();
   bool _isLoading = false;
   Map<String, dynamic>? _userProfile;
-  bool _didRefresh = false; // Track if profile was updated
 
   @override
   void initState() {
@@ -89,11 +88,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _openUrl(String url) async {
+  Future<void> _openLegalUrl(String path) async {
+    final url = "${_api.rootUrl}$path";
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Link açılamadı")));
     }
+  }
+
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2E),
+        title: const Text("Dil Seçeneği", style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text("Türkçe", style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.check, color: Colors.green),
+              onTap: () => Navigator.pop(ctx),
+            ),
+            ListTile(
+              title: const Text("English (Soon)", style: TextStyle(color: Colors.white54)),
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNotificationSettings() {
+    bool dailyHoro = true;
+    bool celestialEvents = true;
+    bool appUpdates = false;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E2E),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Bildirim Ayarları", style: TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              SwitchListTile(
+                title: const Text("Günlük Burç Yorumları", style: TextStyle(color: Colors.white)),
+                subtitle: const Text("Her sabah burç yorumun gelsin", style: TextStyle(color: Colors.white38, fontSize: 12)),
+                value: dailyHoro,
+                activeColor: const Color(0xFFE94560),
+                onChanged: (v) => setModalState(() => dailyHoro = v),
+              ),
+              SwitchListTile(
+                title: const Text("Gökyüzü Olayları", style: TextStyle(color: Colors.white)),
+                subtitle: const Text("Önemli transitlerden haberdar ol", style: TextStyle(color: Colors.white38, fontSize: 12)),
+                value: celestialEvents,
+                activeColor: const Color(0xFFE94560),
+                onChanged: (v) => setModalState(() => celestialEvents = v),
+              ),
+              SwitchListTile(
+                title: const Text("Uygulama Duyuruları", style: TextStyle(color: Colors.white)),
+                value: appUpdates,
+                activeColor: const Color(0xFFE94560),
+                onChanged: (v) => setModalState(() => appUpdates = v),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE94560)),
+                  child: const Text("Kaydet"),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAboutModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E2E),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.auto_awesome, size: 50, color: Color(0xFFFFD700)),
+            const SizedBox(height: 15),
+            Text("Deep Cosmos", style: GoogleFonts.cinzel(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text("v1.0.3", style: TextStyle(color: Colors.white38)),
+            const SizedBox(height: 20),
+            const Text(
+              "Deep Cosmos, gökyüzünün mesajlarını size ulaştırmak için tasarlanmış modern bir astroloji rehberidir. Yıldızların konumundan, kadim tarot kartlarına kadar evrenin rehberliğini yanınızda taşıyın.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, height: 1.6),
+            ),
+            const SizedBox(height: 30),
+            const Text("© 2024 Deep Cosmos Astrorehberi", style: TextStyle(color: Colors.white24, fontSize: 11)),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -103,10 +210,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text("Ayarlar", style: GoogleFonts.cinzel(color: const Color(0xFFFFD700))),
         backgroundColor: const Color(0xFF0F0C29),
         iconTheme: const IconThemeData(color: Colors.white),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context, _didRefresh),
-        ),
       ),
       body: Stack(
         children: [
@@ -175,7 +278,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 MaterialPageRoute(builder: (_) => EditProfileScreen(userProfile: _userProfile!))
                               );
                               if (result == true) {
-                                _didRefresh = true; // Mark as updated
                                 _loadProfile();
                               }
                            },
@@ -187,14 +289,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                  ],
 
 
-                 // DEBUG AUTH CHECK (For User's Issue)
-                 // if (kDebugMode) ...[
-                 //    _buildTile(Icons.bug_report, "Auth Check", null, () async {
-                 //       final res = await _api.checkAuth();
-                 //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Auth: ${res['authenticated']}")));
-                 //    }, color: Colors.orange),
-                 // ],
+                 // General Settings
+                 _buildSectionTitle("Uygulama"),
+                 _buildTile(Icons.language, "Dil Seçeneği", "Türkçe (Varsayılan)", _showLanguageDialog),
+                 _buildTile(Icons.notifications, "Bildirimler", "Ayarlar", _showNotificationSettings),
+                 
+                 const SizedBox(height: 20),
+                 
+                 // Legal
+                 _buildSectionTitle("Yasal"),
+                 _buildTile(Icons.privacy_tip, "Gizlilik Politikası", null, () => _openLegalUrl("/privacy-policy/")),
+                 _buildTile(Icons.description, "Kullanım Şartları", null, () => _openLegalUrl("/terms/")), // Note: Update backend if /terms/ is different
+                 _buildTile(Icons.info, "Hakkımızda", "v1.0.3", _showAboutModal),
 
+                 const SizedBox(height: 30),
 
                  // Danger Zone
                  _buildSectionTitle("Hesap İşlemleri"),
@@ -231,5 +339,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap: onTap,
       ),
     );
-  }
+    }
 }

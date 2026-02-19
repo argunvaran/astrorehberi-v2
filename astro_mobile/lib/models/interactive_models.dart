@@ -4,7 +4,9 @@ class WallPost {
   final String content;
   final String createdAt;
   final int likes;
-  final bool isLiked; // Added
+  final bool isLiked;
+  final int compatibility;
+  final int commentCount;
 
   WallPost({
     required this.id,
@@ -12,7 +14,9 @@ class WallPost {
     required this.content,
     required this.createdAt,
     required this.likes,
-    required this.isLiked, // Added
+    required this.isLiked,
+    required this.compatibility,
+    required this.commentCount,
   });
 
   factory WallPost.fromJson(Map<String, dynamic> json) {
@@ -22,7 +26,32 @@ class WallPost {
       content: json['content'] ?? '',
       createdAt: json['created_at'] ?? '',
       likes: json['likes'] ?? 0,
-      isLiked: json['is_liked'] ?? false, // Added
+      isLiked: json['is_liked'] ?? false,
+      compatibility: json['compatibility'] ?? 50,
+      commentCount: json['comment_count'] ?? 0,
+    );
+  }
+}
+
+class PostComment {
+  final int id;
+  final String user;
+  final String content;
+  final String createdAt;
+
+  PostComment({
+    required this.id,
+    required this.user,
+    required this.content,
+    required this.createdAt,
+  });
+
+  factory PostComment.fromJson(Map<String, dynamic> json) {
+    return PostComment(
+      id: json['id'] ?? 0,
+      user: json['user'] ?? '',
+      content: json['content'] ?? '',
+      createdAt: json['created_at'] ?? '',
     );
   }
 }

@@ -67,6 +67,19 @@ class WallPost(models.Model):
     def like_count(self):
         return self.likes.count()
 
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
+class PostComment(models.Model):
+    post = models.ForeignKey(WallPost, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.post.id}"
+
 class Follow(models.Model):
     follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
     following = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)

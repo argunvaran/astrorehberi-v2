@@ -6,12 +6,14 @@ import json
 import random
 from .engine import AstroEngine
 import datetime
+from datetime import datetime, timedelta
 from datetime import datetime as dt
 import geonamescache
 from .tarot_data import tarot_deck
 from .horoscope_data import SENTENCES, SIGNS_TR, SIGNS_EN
 from django.db.models import Q
-from .models import PlanetInterpretation, AspectInterpretation, DailyTip, DailyHoroscope, WeeklyHoroscope, UserProfile, UserActivityLog, BlogPost, ContactMessage
+from .models import PlanetInterpretation, AspectInterpretation, DailyTip, DailyHoroscope, WeeklyHoroscope, UserActivityLog, BlogPost, ContactMessage
+from users.models import Profile # Refactored Profile
 from .forms import UserSettingsForm
 from .celestial_engine import get_next_celestial_events, calculate_impact_house
 from .celestial_data import HOUSE_THEMES, EVENT_DESCRIPTIONS
@@ -161,7 +163,7 @@ def calculate_chart(request):
         is_free_user = True
         if request.user.is_authenticated:
             try:
-                p = UserProfile.objects.get(user=request.user)
+                p = Profile.objects.get(user=request.user)
                 level = str(p.effective_membership).lower().strip()
                 if level in ['premium'] or request.user.is_superuser:
                     is_free_user = False
@@ -327,7 +329,7 @@ def calculate_synastry_view(request):
         is_free = True
         if request.user.is_authenticated:
             try:
-                p = UserProfile.objects.get(user=request.user)
+                p = Profile.objects.get(user=request.user)
                 level = str(p.effective_membership).lower().strip()
                 if level == 'premium' or request.user.is_superuser:
                     is_free = False
@@ -363,10 +365,9 @@ def calculate_synastry_view(request):
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
 
-from datetime import datetime, timedelta
+# Imports moved to top
 from .models import DailyTip
 
-@csrf_exempt
 @csrf_exempt
 def get_weekly_forecast(request):
     """
@@ -427,7 +428,7 @@ def get_weekly_forecast(request):
     is_free = True
     if request.user.is_authenticated:
         try:
-             p = UserProfile.objects.get(user=request.user)
+             p = Profile.objects.get(user=request.user)
              level = str(p.effective_membership).lower().strip()
              if level == 'premium' or request.user.is_superuser:
                  is_free = False
@@ -911,7 +912,7 @@ def calculate_career_view(request):
         # Default to free if anything fails (secure by default)
         level = 'free' 
         try:
-             level = request.user.profile.effective_membership
+             level = Profile.objects.get(user=request.user).effective_membership
         except: 
              pass # Profile might be missing, treat as free
              
@@ -958,11 +959,28 @@ def rectify_birth_time(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST request required'}, status=405)
 
+    # --- FLUTTER WEB / MOBILE MANUAL AUTH SUPPORT ---
+    # Tarayıcılar cross-origin cookie'leri engellediği için Authorization header'ı da kontrol ediyoruz.
+    if not request.user.is_authenticated:
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                from django.contrib.sessions.models import Session
+                from django.contrib.auth.models import User
+                s = Session.objects.get(session_key=token)
+                uid = s.get_decoded().get('_auth_user_id')
+                if uid:
+                    request.user = User.objects.get(pk=uid)
+                    print(f"DEBUG: Manual Auth Success for User: {request.user.username}")
+            except Exception as e:
+                print(f"DEBUG: Manual Auth Failed: {e}")
+
     # --- PLATINUM ONLY ---
     if request.user.is_authenticated:
         try:
              # Robust check
-             p = UserProfile.objects.get(user=request.user)
+             p = Profile.objects.get(user=request.user)
              level = str(p.membership_level).lower().strip()
              print(f"DEBUG: rectify_birth_time User: {request.user.username}, Level: {level}")
              
@@ -1187,7 +1205,7 @@ def index(request):
     profile = None
     if request.user.is_authenticated:
         # Guaranteed Profile Loading
-        profile, created = UserProfile.objects.get_or_create(
+        profile, created = Profile.objects.get_or_create(
             user=request.user,
             defaults={
                 'birth_date': '1990-01-01',
@@ -1401,7 +1419,7 @@ def register_api(request):
         user = User.objects.create_user(username=username, password=password, email=email)
         
         # Init Profile with Data
-        profile = UserProfile.objects.create(user=user)
+        profile = Profile.objects.create(user=user)
         
         # Save Birth Data if provided
         date_str = data.get('date') or data.get('birth_date')
@@ -1461,8 +1479,23 @@ def login_api(request):
             login(request, user)
             request.session.set_expiry(1209600)
             request.session.save()
-            print(f"DEBUG: Login successful. Token: {request.session.session_key}")
-            return JsonResponse({'success': True, 'username': user.username, 'token': request.session.session_key})
+            # Profile Data for immediate UI update
+            membership = 'free'
+            try:
+                from .models import Profile
+                p = Profile.objects.get(user=user)
+                membership = p.effective_membership
+            except:
+                pass
+
+            print(f"DEBUG: Login successful for {user.username}. Superuser: {user.is_superuser}")
+            return JsonResponse({
+                'success': True, 
+                'username': user.username, 
+                'token': request.session.session_key,
+                'is_superuser': user.is_superuser,
+                'membership_level': membership
+            })
         else:
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
     except Exception as e:
@@ -1480,35 +1513,34 @@ def check_auth_api(request):
 
     if request.user.is_authenticated:
         # Get Profile Data
+        membership = 'free'
+        profile_data = None
+        
         try:
-            # Handle potential missing profile
-            try:
-                p = request.user.profile
-            except:
-                return JsonResponse({'authenticated': True, 'username': request.user.username, 'profile': None})
+            p = Profile.objects.get(user=request.user)
+            membership = p.effective_membership
+            profile_data = {
+                'date': p.birth_date.strftime("%Y-%m-%d") if p.birth_date else "",
+                'time': p.birth_time.strftime("%H:%M") if p.birth_time else "",
+                'lat': p.lat,
+                'lon': p.lon,
+                'place': p.birth_place
+            }
+        except:
+             pass
 
-            # Check Global Free Mode
-            from django.conf import settings
-            is_global_free = getattr(settings, 'FREE_PREMIUM_MODE', False)
+        # Check Global Free Mode
+        from django.conf import settings
+        is_global_free = getattr(settings, 'FREE_PREMIUM_MODE', False)
 
-            return JsonResponse({
-                'authenticated': True,
-                'username': request.user.username,
-                'is_superuser': request.user.is_superuser,
-                'membership_level': request.user.profile.effective_membership,
-                'is_global_free': is_global_free, 
-                'profile': {
-                    'date': p.birth_date.strftime("%Y-%m-%d") if p.birth_date else "",
-                    'time': p.birth_time.strftime("%H:%M") if p.birth_time else "",
-                    'lat': p.lat,
-                    'lon': p.lon,
-                    'place': p.birth_place,
-                    'bio': p.bio or ""
-                }
-            })
-        except Exception as e:
-            # Fallback if serialization fails
-            return JsonResponse({'authenticated': True, 'username': request.user.username, 'error': str(e)})
+        return JsonResponse({
+            'authenticated': True,
+            'username': request.user.username,
+            'is_superuser': request.user.is_superuser,
+            'membership_level': membership,
+            'is_global_free': is_global_free, 
+            'profile': profile_data
+        })
     else:
         # Check Global Free Mode even for Guests
         from django.conf import settings
@@ -1523,7 +1555,7 @@ def update_profile_api(request):
         
     try:
         data = json.loads(request.body)
-        p, created = UserProfile.objects.get_or_create(user=request.user)
+        p, created = Profile.objects.get_or_create(user=request.user)
         
         # Update Fields
         # Save Birth Data if provided
@@ -1603,7 +1635,7 @@ def apply_rectification_form(request):
         print(f"DEBUG: Form Post Rectify: {date_str} {time_str}")
         
         if request.user.is_authenticated:
-            p, created = UserProfile.objects.get_or_create(user=request.user)
+            p, created = Profile.objects.get_or_create(user=request.user)
             
             # Date Handling
             if date_str:
@@ -1666,7 +1698,7 @@ def apply_settings_form(request):
         if not request.user.is_authenticated:
             return JsonResponse({'error': 'Unauthorized'}, status=401)
 
-        p = UserProfile.objects.get(user=request.user)
+        p = Profile.objects.get(user=request.user)
         form = UserSettingsForm(request.POST, instance=p)
         
         if form.is_valid():
@@ -1735,14 +1767,20 @@ def custom_admin_dashboard(request):
     active_users = base_qs.filter(user__isnull=False).values('user__username').distinct()
 
     # 5. All Users Management
-    all_users = User.objects.exclude(is_superuser=True).select_related('profile').order_by('-date_joined')
+    all_users_qs = User.objects.exclude(is_superuser=True).select_related('profile').order_by('-date_joined')
+    all_users = []
+    for u in all_users_qs:
+        try:
+            u.safe_membership = u.profile.membership_level
+        except:
+             u.safe_membership = 'free'
+        all_users.append(u)
     
     user_search = request.GET.get('user_search')
     if user_search:
-        all_users = all_users.filter(
-            Q(username__icontains=user_search) | 
-            Q(email__icontains=user_search)
-        )
+        # Filter python list
+        term = user_search.lower()
+        all_users = [u for u in all_users if term in u.username.lower() or term in u.email.lower()]
 
     # 6. Contact Messages (Filtered & Paginated)
     msg_qs = ContactMessage.objects.all().order_by('-created_at')
@@ -1774,9 +1812,9 @@ def custom_admin_dashboard(request):
         'unique_visitors': unique_visitors,
         'total_requests': total_requests,
         'active_users': [u['user__username'] for u in active_users if u['user__username']],
-        'total_users_count': all_users.count(), 
+        'total_users_count': len(all_users), 
         'all_users': all_users,
-        'user_count_filtered': all_users.count(),
+        'user_count_filtered': len(all_users),
         # Pass back filter params to keep them in pagination links
         'start_date': start_date_str or '', 
         'end_date': end_date_str or '',
@@ -1795,6 +1833,36 @@ def custom_admin_dashboard(request):
 def get_daily_horoscopes_api(request):
     lang = request.GET.get('lang', 'tr')
     today = dt.now().date()
+    
+    # 1. Try to fetch from DB
+    try:
+        from .models import DailyHoroscope
+        daily_obj = DailyHoroscope.objects.filter(date=today).first()
+        
+        # If exists and has data for this language (or generic structure)
+        if daily_obj and daily_obj.signs_data:
+            # Check if data format is list or dict
+            # We stored it as list of dicts: [{'sign': 'Koç', ...}]
+            data = daily_obj.signs_data
+            if isinstance(data, list) and len(data) > 0:
+                # If language matches? The stored data might be in one lang (TR usually default).
+                # If we want multi-lang support in DB, we'd need signs_data_tr and signs_data_en.
+                # For now, let's assume it stores the request's lang or just TR default.
+                # If the user is requesting EN but DB has TR, we might need to regenerate? 
+                # Let's keep it simple: The generator below generates for 'lang'. 
+                # If we save it, we save that specific lang.
+                # Improved Logic: keys like 'tr' and 'en' in signs_data?
+                # Or just overwrite if missing?
+                
+                # Let's assume we save generic structure or language-keyed.
+                # For backward compatibility with the "generator", let's just save the list 
+                # and maybe add a 'lang' key field if we were strict.
+                # But users mostly use TR.
+                return JsonResponse({'horoscopes': data})
+    except Exception as e:
+        print(f"DB Read Error: {e}")
+
+    # 2. Generator Logic (Fallback or First Run)
     # Create a seed based on date
     seed_base = int(today.strftime("%Y%m%d"))
     
@@ -1808,13 +1876,11 @@ def get_daily_horoscopes_api(request):
 
     for idx, sign in enumerate(signs):
         # Deterministic Random Selection
-        # Seed = Date + Sign Index
         random.seed(seed_base + idx)
         
         # Pick 2 distinctive sentences
         s1 = random.choice(sentences)
         s2 = random.choice(sentences)
-        # Simple loop to ensure variety if list is large enough
         if len(sentences) > 1:
             while s1 == s2:
                 s2 = random.choice(sentences)
@@ -1832,6 +1898,20 @@ def get_daily_horoscopes_api(request):
             'date': today.strftime("%d.%m.%Y")
         })
 
+    # 3. Save to DB for persistence/admin editing
+    try:
+        from .models import DailyHoroscope
+        # Update or Create
+        obj, created = DailyHoroscope.objects.get_or_create(date=today)
+        # Only save if empty to avoid overwriting admin edits?
+        # But if we are here, it means we didn't find valid data above.
+        if not obj.signs_data: 
+            obj.signs_data = results
+            obj.save()
+            print(f"Generated and Saved Daily Horoscopes for {today}")
+    except Exception as e:
+        print(f"DB Save Error: {e}")
+
     return JsonResponse({'horoscopes': results})
 
 @csrf_exempt
@@ -1842,7 +1922,7 @@ def calculate_career_view(request):
     if request.user.is_authenticated:
         level = 'free'
         try: 
-            p = UserProfile.objects.get(user=request.user)
+            p = Profile.objects.get(user=request.user)
             level = str(p.membership_level).lower().strip()
         except: pass
         
@@ -1927,7 +2007,7 @@ def get_planetary_hours(request):
     is_free = True
     if request.user.is_authenticated:
         try:
-             p = UserProfile.objects.get(user=request.user)
+             p = Profile.objects.get(user=request.user)
              level = str(p.effective_membership).lower().strip()
              if level == 'premium' or request.user.is_superuser:
                  is_free = False
@@ -1951,68 +2031,144 @@ def get_planetary_hours(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
-@user_passes_test(lambda u: u.is_superuser)
 def custom_admin_data_api(request):
     """API for SPA Admin Dashboard"""
-    base_qs = UserActivityLog.objects.exclude(user__is_superuser=True)
+    print(f"DEBUG: admin_data_api - User: {request.user}, IsAuth: {request.user.is_authenticated}, IsSuper: {request.user.is_superuser}")
+    print(f"DEBUG: Headers: {request.headers.get('Cookie')}")
     
-    # Stats
-    unique_visitors = base_qs.values('ip_address').distinct().count()
-    total_requests = base_qs.count()
-    active_users = list(base_qs.filter(user__isnull=False).values_list('user__username', flat=True).distinct())
-
-    # Users
-    users = []
-    for u in User.objects.exclude(is_superuser=True).select_related('profile').order_by('-date_joined'):
-        # Ensure profile check is safe
-        try:
-             lvl = u.profile.membership_level
-        except:
-             lvl = 'free'
-             
-        users.append({
-            'id': u.id,
-            'username': u.username,
-            'email': u.email,
-            'level': lvl
-        })
-
-    # Recent Logs (Last 50)
-    logs = []
-    for l in base_qs.order_by('-timestamp')[:50]:
-        logs.append({
-            'time': l.timestamp.strftime("%H:%M:%S"),
-            'user': l.user.username if l.user else 'Visitor',
-            'action': l.action
-        })
-
-    # Contact Messages (Last 50)
-    messages = []
-    for m in ContactMessage.objects.all().order_by('-created_at')[:50]:
-        messages.append({
-            'id': m.id,
-            'name': m.name,
-            'email': m.email,
-            'message': m.message,
-            'date': m.created_at.strftime("%d.%m %H:%M"),
-            'is_read': m.is_read
-        })
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({'error': f'Unauthorized Access (User: {request.user}, Super: {request.user.is_superuser})'}, status=403)
         
-    return JsonResponse({
-        'stats': {
-            'unique_visitors': unique_visitors,
-            'total_requests': total_requests,
-            'total_users': len(users),
-            'active_users': active_users
-        },
-        'users': users,
-        'logs': logs,
-        'messages': messages
-    })
+    try:
+        base_qs = UserActivityLog.objects.exclude(user__is_superuser=True)
+        
+        # Stats
+        unique_visitors = base_qs.values('ip_address').distinct().count()
+        total_requests = base_qs.count()
+        active_users = list(base_qs.filter(user__isnull=False).values_list('user__username', flat=True).distinct())
+
+        # Users
+        user_search = request.GET.get('userSearch')
+        users_qs = User.objects.exclude(is_superuser=True).select_related('profile').order_by('-date_joined')
+        
+        if user_search:
+            term = user_search.lower()
+            users_qs = [u for u in users_qs if term in u.username.lower() or term in u.email.lower()]
+        
+        # Pagination for Users
+        try:
+            page_num = int(request.GET.get('userPage', 1))
+        except:
+            page_num = 1
+        per_page = 20
+        start = (page_num - 1) * per_page
+        end = start + per_page
+        
+        count_all = len(users_qs) if isinstance(users_qs, list) else users_qs.count()
+        current_page_users = users_qs[start:end]
+
+        users = []
+        for u in current_page_users:
+            profile_data = {}
+            lvl = 'free'
+            try:
+                 p = u.profile # Use select_related
+                 lvl = p.membership_level
+                 profile_data = {
+                     'birth_date': p.birth_date.isoformat() if p.birth_date else None,
+                     'birth_time': p.birth_time.strftime('%H:%M') if p.birth_time else None,
+                     'birth_city': p.birth_place,
+                     'sun_sign': p.sun_sign,
+                     'rising_sign': p.rising_sign,
+                     'lat': p.lat,
+                     'lon': p.lon
+                 }
+            except:
+                 pass
+                 
+            users.append({
+                'id': u.id,
+                'username': u.username,
+                'email': u.email,
+                'level': lvl,
+                'date_joined': u.date_joined.isoformat(),
+                'last_login': u.last_login.isoformat() if u.last_login else None,
+                'is_staff': u.is_staff,
+                'profile': profile_data
+            })
+
+        # Recent Logs (Last 50)
+        log_search = request.GET.get('logSearch')
+        logs_qs = base_qs.order_by('-timestamp')
+        if log_search:
+            logs_qs = logs_qs.filter(
+                Q(user__username__icontains=log_search) | 
+                Q(action__icontains=log_search) |
+                Q(ip_address__icontains=log_search)
+            )
+        
+        logs = []
+        try:
+            log_page = int(request.GET.get('logPage', 1))
+        except:
+            log_page = 1
+        limit = 50
+        l_start = (log_page - 1) * limit
+        for l in logs_qs[l_start : l_start + limit]:
+             logs.append({
+                'timestamp': l.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                'user': l.user.username if l.user else 'Visitor',
+                'action': l.action,
+                'ip': l.ip_address
+            })
+
+        # Contact Messages
+        msg_qs = ContactMessage.objects.all().order_by('-created_at')
+        msg_search = request.GET.get('msgSearch')
+        if msg_search:
+            msg_qs = msg_qs.filter(
+                Q(name__icontains=msg_search) | 
+                Q(email__icontains=msg_search) | 
+                Q(message__icontains=msg_search)
+            )
+            
+        messages = []
+        for m in msg_qs[:50]:
+            messages.append({
+                'id': m.id,
+                'name': m.name,
+                'email': m.email,
+                'message': m.message,
+                'date': m.created_at.strftime("%d.%m %H:%M"),
+                'is_read': m.is_read,
+                'created_at': m.created_at.isoformat()
+            })
+            
+        now = datetime.now()
+        day_ago = now - timedelta(hours=24)
+
+        return JsonResponse({
+            'stats': {
+                'unique_visitors': unique_visitors,
+                'total_requests': total_requests,
+                'total_users': count_all,
+                'active_users': active_users,
+                'active_24h': base_qs.filter(timestamp__gte=day_ago).values('user').distinct().count(),
+                'new_24h': User.objects.filter(date_joined__gte=day_ago).count()
+            },
+            'users': users,
+            'logs': logs,
+            'contact_messages': messages
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
-@user_passes_test(lambda u: u.is_superuser)
 def update_membership(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -2024,11 +2180,12 @@ def update_membership(request):
             
             user = User.objects.get(id=user_id)
             # Ensure profile exists
-            if not hasattr(user, 'profile'):
-                 UserProfile.objects.create(user=user)
+            if not Profile.objects.filter(user=user).exists():
+                 Profile.objects.create(user=user)
             
-            user.profile.membership_level = new_level
-            user.profile.save()
+            p = Profile.objects.get(user=user)
+            p.membership_level = new_level
+            p.save()
             
             return JsonResponse({'success': True, 'level': new_level})
         except Exception as e:
@@ -2052,7 +2209,7 @@ def get_celestial_events_view(request):
         is_free_user = True
         if request.user.is_authenticated:
             try:
-                p = UserProfile.objects.get(user=request.user)
+                p = Profile.objects.get(user=request.user)
                 level = str(p.effective_membership).lower().strip()
                 if level in ['premium'] or request.user.is_superuser:
                     is_free_user = False
@@ -2124,8 +2281,9 @@ def get_celestial_events_view(request):
 # --- WEEKLY GENERAL HOROSCOPE MANAGEMENT ---
 
 @csrf_exempt
-@user_passes_test(lambda u: u.is_superuser)
 def admin_save_weekly_horoscope(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     """
     Saves or updates a weekly horoscope for a specific sign and date.
     Input: { start_date: 'YYYY-MM-DD', sign: 'Aries', text_tr: '...', text_en: '...', theme_tr, theme_en }
@@ -2205,6 +2363,12 @@ def privacy_view(request):
     """
     return render(request, 'astrology/pages/privacy_policy.html', {'user': request.user})
 
+def terms_view(request):
+    """
+    Renders Static Terms of Use for Google compliance.
+    """
+    return render(request, 'astrology/pages/terms.html', {'user': request.user})
+
 def delete_account_view(request):
     """
     Renders Static Delete Account Instructions for Google compliance.
@@ -2218,6 +2382,7 @@ def contact_view(request):
 def get_library_api(request):
     """
     Public API to return all library categories and items for the mobile app.
+    Includes 'id' and 'content' for admin editing capabilities.
     """
     try:
         from library.models import LibraryCategory
@@ -2228,15 +2393,17 @@ def get_library_api(request):
             items = []
             for i in c.items.filter(is_active=True):
                 items.append({
+                    'id': i.id,
                     'title': i.title,
                     'slug': i.slug,
                     'short_desc': i.short_desc,
+                    'content': i.content, # Added for direct display/editing
                     'image_url': i.image_url,
                     'lookup_key': i.lookup_key
                 })
             
-            # Only add if has items? Or empty categories too? Let's keep all.
             data.append({
+                'id': c.id,
                 'name': c.name,
                 'slug': c.slug,
                 'icon': c.icon,
@@ -2256,8 +2423,11 @@ def get_library_detail_api(request, slug):
         from library.models import LibraryItem
         item = LibraryItem.objects.get(slug=slug, is_active=True)
         return JsonResponse({
+            'id': item.id,
             'title': item.title,
             'category': item.category.name,
+            'category_id': item.category.id,
+            'short_desc': item.short_desc,
             'content': item.content,
             'image_url': item.image_url,
             'updated_at': item.updated_at
@@ -2267,3 +2437,64 @@ def get_library_detail_api(request, slug):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@csrf_exempt
+def edit_library_item_api(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    """
+    Admin API to edit a library item.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+        
+    try:
+        from library.models import LibraryItem
+        data = json.loads(request.body)
+        
+        item_id = data.get('id')
+        if not item_id:
+             return JsonResponse({'error': 'Item ID required'}, status=400)
+             
+        item = LibraryItem.objects.get(id=item_id)
+        
+        # Update fields if provided
+        if 'title' in data:
+            item.title = data['title']
+        if 'content' in data:
+            item.content = data['content']
+        if 'short_desc' in data:
+            item.short_desc = data['short_desc']
+        
+        item.save()
+        
+        return JsonResponse({'success': True, 'message': 'Item updated successfully'})
+    except LibraryItem.DoesNotExist:
+        return JsonResponse({'error': 'Item not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def save_daily_horoscopes_api(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    """
+    Admin View to Save/Edit Daily Horoscopes.
+    Expects JSON: {'horoscopes': [{'sign': 'Koç', 'text': '...'}, ...]}
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            items = data.get('horoscopes', [])
+            
+            today = dt.now().date()
+            from .models import DailyHoroscope
+            
+            # Simple upsert
+            obj, created = DailyHoroscope.objects.get_or_create(date=today)
+            obj.signs_data = items
+            obj.save()
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'POST required'}, status=400)
