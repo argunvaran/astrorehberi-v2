@@ -526,14 +526,6 @@ class _InputScreenState extends State<InputScreen> {
               ),
             ),
 
-<<<<<<< HEAD
-            _drawerItem(Icons.style, isTr ? "Mistik Tarot" : "Mystic Tarot", () {
-                 Navigator.pop(context);
-                 Navigator.push(context, MaterialPageRoute(builder: (_) => TarotScreen(lang: _lang)));
-            }, highlight: true),
-            
-             _drawerItem(Icons.headset_mic, isTr ? "İletişim & Randevu" : "Contact & Appointment", () {
-=======
             // ADMIN DASHBOARD (Priority)
             if (_isAdmin)
               _drawerItem(
@@ -620,7 +612,6 @@ class _InputScreenState extends State<InputScreen> {
 
             // SABİT MENÜLER (GENEL)
             _drawerItem(Icons.headset_mic, isTr ? "İletişim & Randevu" : "Contact & Appointment", () {
->>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
                  Navigator.pop(context);
                  Navigator.push(context, MaterialPageRoute(builder: (_) => ContactScreen(lang: _lang)));
             }),

@@ -99,11 +99,7 @@ class ApiService {
             _headers['Authorization'] = 'Bearer ${cookies['astro_session']}';
         }
         
-<<<<<<< HEAD
-        _saveToken(); 
-=======
-        await _saveToken(); 
->>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
+      await _saveToken(); 
       }
     }
   }
@@ -127,15 +123,6 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'username': username, 'password': password}),
     );
-<<<<<<< HEAD
-    _updateCookie(response);
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['token'] != null) {
-         _headers['Authorization'] = 'Bearer ${data['token']}';
-         _saveToken();
-=======
     await _updateCookie(response);
     
     if (response.statusCode == 200) {
@@ -143,7 +130,6 @@ class ApiService {
       if (data['token'] != null) {
          _headers['Authorization'] = 'Bearer ${data['token']}';
          await _saveToken();
->>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
       }
       return data;
     } else {
@@ -160,17 +146,10 @@ class ApiService {
     );
     await _updateCookie(response);
      if (response.statusCode == 200) {
-<<<<<<< HEAD
-      final resData = jsonDecode(response.body);
-      if (resData['token'] != null) {
-         _headers['Authorization'] = 'Bearer ${resData['token']}';
-         _saveToken();
-=======
       final resData = jsonDecode(utf8.decode(response.bodyBytes));
       if (resData['token'] != null) {
          _headers['Authorization'] = 'Bearer ${resData['token']}';
          await _saveToken();
->>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
       }
       return resData;
     } else {
@@ -583,12 +562,8 @@ class ApiService {
   // --- Profile Update ---
   Future<Map<String, dynamic>> updateProfile({
     String? username, String? birth_date, String? birth_time, 
-<<<<<<< HEAD
-    String? birth_city, String? bio, double? lat, double? lon
-=======
     String? birth_city, String? bio, double? lat, double? lon,
     String? sun_sign, String? rising_sign,
->>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
   }) async {
     final url = Uri.parse('$baseUrl/update-profile/');
      try {
@@ -600,11 +575,8 @@ class ApiService {
          if (bio != null) 'bio': bio,
          if (lat != null) 'lat': lat,
          if (lon != null) 'lon': lon,
-<<<<<<< HEAD
-=======
          if (sun_sign != null) 'sun_sign': sun_sign,
          if (rising_sign != null) 'rising_sign': rising_sign,
->>>>>>> a3db2cd (Social interactions, admin notifications, and UI improvements)
        });
 
        final res = await http.post(url, headers: _headers, body: body);
