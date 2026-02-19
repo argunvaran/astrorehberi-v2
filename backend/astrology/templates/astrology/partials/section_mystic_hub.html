@@ -1,0 +1,57 @@
+<div id="view-mystic_hub" class="view" style="display:none">
+    <div class="glass-card animate-in">
+        <div style="text-align:center; margin-bottom: 40px;">
+            <h1 style="color:var(--accent); font-size: 2rem; letter-spacing: 2px;">MİSTİK ODA</h1>
+            <p style="color:var(--text-muted); font-style: italic;">"Zamanın ötesindeki sırları keşfet..."</p>
+        </div>
+
+        <div class="hub-grid">
+            <!-- Mistik Tarot -->
+            <div class="hub-card mystic-card" onclick="nav('tarot')">
+                <div class="hub-icon"><i class="fas fa-hat-wizard"></i></div>
+                <div class="hub-info">
+                    <h3>Mistik Tarot</h3>
+                    <p>Kartların bilgeliğiyle geleceğinize ve iç dünyanıza rehberlik.</p>
+                </div>
+            </div>
+
+            <!-- Gezegen Saatleri -->
+            <div class="hub-card mystic-card" onclick="nav('hours')">
+                <div class="hub-icon"><i class="fas fa-clock"></i></div>
+                <div class="hub-info">
+                    <h3>Gezegen Saatleri</h3>
+                    <p>Hangi iş için hangi saatin uygun olduğunu göksel ritme göre seçin.</p>
+                </div>
+            </div>
+
+            <!-- Göksel Olaylar -->
+            <div class="hub-card mystic-card" onclick="nav('celestial')">
+                <div class="hub-icon"><i class="fas fa-moon"></i></div>
+                <div class="hub-info">
+                    <h3>Göksel Olaylar</h3>
+                    <p>Tutulmalar, retro evreleri ve önemli açılar için kozmik takvim.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mystic-card {
+        border-color: rgba(233, 69, 96, 0.2) !important;
+    }
+
+    .mystic-card:hover {
+        border-color: var(--accent) !important;
+        box-shadow: 0 15px 30px rgba(233, 69, 96, 0.2) !important;
+    }
+
+    .mystic-card .hub-icon {
+        background: linear-gradient(135deg, var(--accent), #950101);
+        color: white;
+    }
+
+    .mystic-card h3 {
+        color: var(--accent);
+    }
+</style>

@@ -1,0 +1,99 @@
+<div id="view-personal_hub" class="view" style="display:none">
+    <div class="glass-card animate-in">
+        <div style="text-align:center; margin-bottom: 40px;">
+            <h1 style="color:var(--gold); font-size: 2rem; letter-spacing: 2px;">KİŞİSEL KONSOL</h1>
+            <p style="color:var(--text-muted); font-style: italic;">"Kendi astrolojik haritanın mimarı ol..."</p>
+        </div>
+
+        <div class="hub-grid">
+            <!-- Natal Harita -->
+            <div class="hub-card" onclick="nav('chart')">
+                <div class="hub-icon"><i class="fas fa-globe-europe"></i></div>
+                <div class="hub-info">
+                    <h3>Natal Harita</h3>
+                    <p>Doğum haritanın detaylı teknik analizi ve gezegen yerleşimleri.</p>
+                </div>
+            </div>
+
+            <!-- Kariyer Yolu -->
+            <div class="hub-card" onclick="nav('career')">
+                <div class="hub-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="hub-info">
+                    <h3>Kariyer Yolu</h3>
+                    <p>İş hayatı, yetenekler ve finansal potansiyel analizi.</p>
+                </div>
+            </div>
+
+            <!-- Ruhsal Kodlar -->
+            <div class="hub-card" onclick="nav('draconic')">
+                <div class="hub-icon"><i class="fas fa-dragon"></i></div>
+                <div class="hub-info">
+                    <h3>Ruhsal Kodlar</h3>
+                    <p>Drakonik harita ile ruhunun bu enkarnasyondaki gerçek amacı.</p>
+                </div>
+            </div>
+
+            <!-- Rektifikasyon -->
+            <div class="hub-card" onclick="nav('rectification')">
+                <div class="hub-icon"><i class="fas fa-hourglass-start"></i></div>
+                <div class="hub-info">
+                    <h3>Rektifikasyon</h3>
+                    <p>Doğum saatinizi netleştirmek için olay bazlı zaman analizi.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hub-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .hub-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .hub-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--gold);
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .hub-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--gold), #B8860B);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+    }
+
+    .hub-info h3 {
+        color: var(--gold);
+        margin-bottom: 5px;
+        font-size: 1.2rem;
+    }
+
+    .hub-info p {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+</style>

@@ -136,78 +136,38 @@
                 style="width: 100%; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; border-radius: 50%; box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);">
         </div>
 
-        <!-- GROUP 1: TEMEL ANALİZLER (CORE) -->
+        <!-- MAIN NAVIGATION (HUB ORIENTED) -->
         <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('core', this)">
-                <span data-i18n="group_core">Temel Analizler</span> <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="nav-children" id="group-core">
+            <div class="nav-children show" id="group-main">
                 <div class="nav-item active" onclick="nav('home', this)">
                     <i class="fas fa-home"></i> <span data-i18n="menu_home">Özet & Akış</span>
                 </div>
+                <!-- MEGA ANALYSIS (Promoted) -->
                 <div class="nav-item" onclick="nav('mega_analysis', this)" style="color:var(--gold);">
                     <i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="menu_mega">Yıldızların Rehberliği</span>
                 </div>
-                <div class="nav-item" onclick="nav('chart', this)">
-                    <i class="fas fa-globe-europe"></i> <span data-i18n="menu_chart">Natal Harita</span>
+                <!-- HUBS -->
+                <div class="nav-item" onclick="nav('personal_hub', this)">
+                    <i class="fas fa-user-astronomer"></i> <span data-i18n="menu_personal">Kişisel Konsol</span>
                 </div>
                 <div class="nav-item" onclick="nav('harmony', this)">
                     <i class="fas fa-heartbeat"></i> <span data-i18n="menu_harmony">İlişkiler & Uyum</span>
                 </div>
-                <div class="nav-item" onclick="nav('horoscopes', this)">
-                    <i class="fas fa-calendar-day"></i> <span data-i18n="menu_daily">Günlük Yorumlar</span>
+                <div class="nav-item" onclick="nav('mystic_hub', this)">
+                    <i class="fas fa-hat-wizard"></i> <span data-i18n="menu_mystic">Mistik Oda</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- GROUP 2: KOZMİK ARAÇLAR (TOOLS) -->
-        <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('tools', this)">
-                <span data-i18n="group_tools">Kozmik Araçlar</span> <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="nav-children" id="group-tools">
-                <div class="nav-item" onclick="nav('tarot', this)">
-                    <i class="fas fa-hat-wizard"></i> <span data-i18n="menu_tarot">Mistik Tarot</span>
-                </div>
-                <div class="nav-item" onclick="nav('draconic', this)">
-                    <i class="fas fa-dragon"></i> <span data-i18n="menu_draconic">Ruhsal Kodlar (Drakonik)</span>
-                </div>
-                <div class="nav-item" onclick="nav('rectification', this)">
-                    <i class="fas fa-hourglass-start"></i> <span data-i18n="menu_rectify">Rektifikasyon</span>
-                </div>
-                <div class="nav-item" onclick="nav('hours', this)">
-                    <i class="fas fa-clock"></i> <span data-i18n="menu_hours">Gezegen Saatleri</span>
-                </div>
-                <div class="nav-item" onclick="nav('celestial', this)">
-                    <i class="fas fa-moon"></i> <span data-i18n="menu_celestial">Göksel Olaylar</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- GROUP 3: KÜTÜPHANE VE TOPLULUK (LIBRARY) -->
-        <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('library', this)">
-                <span data-i18n="group_library">Kütüphane & Topluluk</span> <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="nav-children" id="group-library">
-                <div class="nav-item" onclick="window.location.href='/interactive/wall/'">
-                    <i class="fas fa-th-large"></i> <span data-i18n="menu_wall">Kozmik Duvar</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='/library/'">
+                <div class="nav-item" onclick="nav('library_hub', this)">
                     <i class="fas fa-book-open"></i> <span data-i18n="menu_library">Astro Kütüphane</span>
                 </div>
-                <div class="nav-item" onclick="nav('blog', this)">
-                    <i class="fas fa-newspaper"></i> <span data-i18n="menu_blog">Kozmik Yazılar</span>
+                <div class="nav-item" onclick="nav('horoscopes', this)">
+                    <i class="fas fa-calendar-day"></i> <span data-i18n="menu_daily">Günlük Burçlar</span>
                 </div>
             </div>
         </div>
 
-        <!-- GROUP 4: SİSTEM -->
-        <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('system', this)">
-                <span data-i18n="group_system">Sistem</span> <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="nav-children" id="group-system">
+        <!-- SECONDARY / SYSTEM -->
+        <div class="nav-group" style="margin-top: auto; border-top: 1px solid var(--border);">
+            <div class="nav-children show" id="group-system">
                 <div class="nav-item" onclick="openSettings()">
                     <i class="fas fa-cog"></i> <span data-i18n="nav_settings">Ayarlar</span>
                 </div>
@@ -216,10 +176,7 @@
                 </div>
                 {% if user.is_staff or user.is_superuser %}
                 <div class="nav-item" onclick="nav('editor', this)" style="color:#E94560;">
-                    <i class="fas fa-pen-nib"></i> <span>Kozmik Editör</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='/custom-admin/'" style="color:#E94560;">
-                    <i class="fas fa-user-shield"></i> <span>Yönetim Paneli</span>
+                    <i class="fas fa-pen-nib"></i> <span>Editör</span>
                 </div>
                 {% endif %}
             </div>

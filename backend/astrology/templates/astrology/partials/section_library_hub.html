@@ -1,0 +1,57 @@
+<div id="view-library_hub" class="view" style="display:none">
+    <div class="glass-card animate-in">
+        <div style="text-align:center; margin-bottom: 40px;">
+            <h1 style="color:#4CA1AF; font-size: 2rem; letter-spacing: 2px;">ASTRO KÜTÜPHANE</h1>
+            <p style="color:var(--text-muted); font-style: italic;">"Bilgi en büyük yıldızdır..."</p>
+        </div>
+
+        <div class="hub-grid">
+            <!-- Kozmik Duvar -->
+            <div class="hub-card library-card" onclick="window.location.href='/interactive/wall/'">
+                <div class="hub-icon"><i class="fas fa-th-large"></i></div>
+                <div class="hub-info">
+                    <h3>Kozmik Duvar</h3>
+                    <p>Diğer keşifçilerle etkileşime geçin, deneyimlerinizi paylaşın.</p>
+                </div>
+            </div>
+
+            <!-- Kütüphane -->
+            <div class="hub-card library-card" onclick="window.location.href='/library/'">
+                <div class="hub-icon"><i class="fas fa-book-open"></i></div>
+                <div class="hub-info">
+                    <h3>Astroloji Ansiklopedisi</h3>
+                    <p>Zodiac burçları, gezegenler ve astrolojik terimler kütüphanesi.</p>
+                </div>
+            </div>
+
+            <!-- Blog -->
+            <div class="hub-card library-card" onclick="nav('blog')">
+                <div class="hub-icon"><i class="fas fa-newspaper"></i></div>
+                <div class="hub-info">
+                    <h3>Kozmik Yazılar</h3>
+                    <p>Derin analizler, makaleler ve astroloji üzerine güncel blog yazıları.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .library-card {
+        border-color: rgba(76, 161, 175, 0.2) !important;
+    }
+
+    .library-card:hover {
+        border-color: #4CA1AF !important;
+        box-shadow: 0 15px 30px rgba(76, 161, 175, 0.2) !important;
+    }
+
+    .library-card .hub-icon {
+        background: linear-gradient(135deg, #4CA1AF, #2C3E50);
+        color: white;
+    }
+
+    .library-card h3 {
+        color: #4CA1AF;
+    }
+</style>
