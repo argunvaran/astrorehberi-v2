@@ -21,10 +21,23 @@
             }
         }
 
+        // English -> Turkish Sign Map
+        const signMap = {
+            'Aries': 'Koç', 'Taurus': 'Boğa', 'Gemini': 'İkizler', 'Cancer': 'Yengeç',
+            'Leo': 'Aslan', 'Virgo': 'Başak', 'Libra': 'Terazi', 'Scorpio': 'Akrep',
+            'Sagittarius': 'Yay', 'Capricorn': 'Oğlak', 'Aquarius': 'Kova', 'Pisces': 'Balık'
+        };
+
         const planets = currentData.planets;
         const sun = planets.find(p => p.name === 'Sun' || p.name === 'Güneş');
         const moon = planets.find(p => p.name === 'Moon' || p.name === 'Ay');
         const rising = planets.find(p => p.name === 'AS' || p.name === 'Ascendant' || p.name === 'Yükselen') || { sign: currentData.meta ? currentData.meta.rising_sign : 'Koç' };
+
+        // Translate Signs
+        const sunSign = signMap[sun.sign] || sun.sign;
+        const moonSign = signMap[moon.sign] || moon.sign;
+        const risingSignName = rising.sign || (currentData.meta ? currentData.meta.rising_sign : 'Koç');
+        const risingSign = signMap[risingSignName] || risingSignName;
 
         // 2. Fetch Library Content for Sun, Moon, Rising
         const buildSoulHTML = (title, sign, intro, content) => `
@@ -38,16 +51,16 @@
         let html = "";
 
         // SUN
-        const sunContent = await getLibraryOrGenerate('Güneş', sun.sign);
-        html += buildSoulHTML("Öz Benliğin", sun.sign, `Güneşin ${sun.sign} burcunda parlıyor. Bu, senin yaşam enerjinin kaynağıdır.`, sunContent);
+        const sunContent = await getLibraryOrGenerate('Güneş', sunSign);
+        html += buildSoulHTML("Öz Benliğin", sunSign, `Güneşin ${sunSign} burcunda parlıyor. Bu, senin yaşam enerjinin kaynağıdır.`, sunContent);
 
         // MOON
-        const moonContent = await getLibraryOrGenerate('Ay', moon.sign);
-        html += buildSoulHTML("Duygusal Dünyan", moon.sign, `Ay, ${moon.sign} burcunda dinleniyor. Kalbinin en derin köşesinde hissettiklerin bunlardır:`, moonContent);
+        const moonContent = await getLibraryOrGenerate('Ay', moonSign);
+        html += buildSoulHTML("Duygusal Dünyan", moonSign, `Ay, ${moonSign} burcunda dinleniyor. Kalbinin en derin köşesinde hissettiklerin bunlardır:`, moonContent);
 
         // RISING
-        const risingContent = await getLibraryOrGenerate('Yükselen', rising.sign);
-        html += buildSoulHTML("Dünyaya Yüzün", rising.sign, `Yükselen burcun ${rising.sign}, senin hayata açılan pencerendir.`, risingContent);
+        const risingContent = await getLibraryOrGenerate('Yükselen', risingSign);
+        html += buildSoulHTML("Dünyaya Yüzün", risingSign, `Yükselen burcun ${risingSign}, senin hayata açılan pencerendir.`, risingContent);
 
         soulList.innerHTML = html;
 
