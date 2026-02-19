@@ -1,0 +1,43 @@
+<div id="view-harmony" class="view" style="display:none">
+    <div class="glass-card animate-in">
+        <div style="text-align:center; margin-bottom: 30px;">
+            <h1 style="color:var(--gold); font-size: 2rem; letter-spacing: 2px;">İlİŞKİLER & UYUM</h1>
+            <p style="color:var(--text-muted); font-style: italic;">"İki ruhun kozmik dansı..."</p>
+        </div>
+
+        <div class="row" style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <!-- AŞK UYUMU (SYNASTRY) BOX -->
+            <div style="flex: 1; min-width: 300px;">
+                <div class="analysis-card" onclick="nav('synastry')"
+                    style="cursor:pointer; height: 100%; border: 1px solid rgba(233, 69, 96, 0.3); background: linear-gradient(145deg, rgba(15,12,41,0.5), rgba(233, 69, 96, 0.05));">
+                    <h3><i class="fas fa-heart" style="color:#E94560"></i> Aşk Uyumu</h3>
+                    <p style="color:var(--text-muted); font-size: 0.9rem;">Partnerinizle olan astrolojik uyumunuzu,
+                        potansiyel zorlukları ve çekim noktalarınızı detaylıca analiz edin.</p>
+                    <div style="margin-top: 20px; text-align: right;">
+                        <span class="btn" style="padding: 8px 20px; font-size: 0.8rem;">Analize Başla</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOSYAL ANALİZ BOX -->
+            <div style="flex: 1; min-width: 300px;">
+                <div class="analysis-card" onclick="nav('social')"
+                    style="cursor:pointer; height: 100%; border: 1px solid rgba(0, 188, 212, 0.3); background: linear-gradient(145deg, rgba(15,12,41,0.5), rgba(0, 188, 212, 0.05));">
+                    <h3><i class="fas fa-users" style="color:#00BCD4"></i> Sosyal Çevre</h3>
+                    <p style="color:var(--text-muted); font-size: 0.9rem;">Arkadaşlarınız ve genel sosyal çevrenizle
+                        olan etkileşimlerinizi, grup içi rollerinizi ve popülerlik döngülerinizi keşfedin.</p>
+                    <div style="margin-top: 20px; text-align: right;">
+                        <span class="btn" style="padding: 8px 20px; font-size: 0.8rem; background:#00BCD4">İncele</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECENT ANALYSES OR TIPS -->
+        <div class="analysis-card mt-4" style="background: rgba(255,215,0,0.02);">
+            <h3 style="font-size: 1.1rem;"><i class="fas fa-lightbulb"></i> İlişki İpucu</h3>
+            <p id="harmony-tip" style="color:var(--text-muted); font-style: italic;">Venüs transiti şu an
+                ilişkilerinizde dürüstlük ve derinlik arayışını vurguluyor...</p>
+        </div>
+    </div>
+</div>

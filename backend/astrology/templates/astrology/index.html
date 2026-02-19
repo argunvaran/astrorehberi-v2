@@ -533,7 +533,7 @@
 <body>
     <script>
         // SERVER-SIDE TRUTH INJECTION (Moved to Body Top)
-        const SERVER_AUTH_STATUS = {% if user.is_authenticated %}true{% else %} false{% endif %};
+        const SERVER_AUTH_STATUS = {{ user.is_authenticated| yesno: "true,false" }};
         const SERVER_USER_NAME = "{{ user.username }}";
         console.log("SERVER AUTH STATUS:", SERVER_AUTH_STATUS);
     </script>
@@ -548,8 +548,7 @@
 
     <!-- SSR: App Visibility -->
     <!-- SSR: App Visibility -->
-    <div class="app-container" id="app-root"
-        style="display: {% if user.is_authenticated %}flex{% else %}none{% endif %};">
+    <div class="app-container" id="app-root" style="display: {{ user.is_authenticated|yesno:'flex,none' }};">
 
         <!-- SIDEBAR -->
         {% include 'astrology/partials/sidebar.html' %}
@@ -617,6 +616,9 @@
             {% include 'astrology/partials/section_horoscopes.html' %}
             {% include 'astrology/partials/section_blog.html' %}
 
+            {% include 'astrology/partials/section_mega_analysis.html' %}
+            {% include 'astrology/partials/section_harmony.html' %}
+
             {% if user.is_staff or user.is_superuser %}
             {% include 'astrology/partials/section_editor.html' %}
             {% endif %}
@@ -638,6 +640,7 @@
     {% include 'astrology/partials/script_globals.html' %}
     {% include 'astrology/partials/script_nav_core.html' %}
     {% include 'astrology/partials/script_auth_extensions.html' %}
+    {% include 'astrology/partials/script_mega_analysis.html' %}
 
 
     {% include 'astrology/partials/script_admin.html' %}

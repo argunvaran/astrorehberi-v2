@@ -1,0 +1,106 @@
+<script>
+    // MEGA ANALYSIS LOGIC (Aligned with Mobile)
+    async function loadMegaAnalysis() {
+        const soulList = document.getElementById('mega-soul-list');
+        const dailyContent = document.getElementById('mega-daily-content');
+        const universeContent = document.getElementById('mega-universe-content');
+
+        if (!soulList) return;
+
+        // Reset
+        soulList.innerHTML = '<div class="loading-skeleton">Yıldızlarla bağlantı kuruluyor...</div>';
+
+        // 1. Get Chart Data
+        if (!currentData || !currentData.planets) {
+            // Try to calculate if missing
+            if (typeof calcChart === 'function') {
+                await calcChart();
+            } else {
+                soulList.innerHTML = '<div class="analysis-card">Hesaplama verisi bulunamadı. Lütfen önce bilgilerinizi girin.</div>';
+                return;
+            }
+        }
+
+        const planets = currentData.planets;
+        const sun = planets.find(p => p.name === 'Sun' || p.name === 'Güneş');
+        const moon = planets.find(p => p.name === 'Moon' || p.name === 'Ay');
+        const rising = planets.find(p => p.name === 'AS' || p.name === 'Ascendant' || p.name === 'Yükselen') || { sign: currentData.meta ? currentData.meta.rising_sign : 'Koç' };
+
+        // 2. Fetch Library Content for Sun, Moon, Rising
+        const buildSoulHTML = (title, sign, intro, content) => `
+            <div class="analysis-card">
+                <h3><i class="fas fa-star"></i> ${title}</h3>
+                <p style="font-style: italic; color: var(--text-muted); margin-bottom: 10px;">${intro}</p>
+                <div class="soul-text">${content}</div>
+            </div>
+        `;
+
+        let html = "";
+
+        // SUN
+        const sunContent = await getLibraryOrGenerate('Güneş', sun.sign);
+        html += buildSoulHTML("Öz Benliğin", sun.sign, `Güneşin ${sun.sign} burcunda parlıyor. Bu, senin yaşam enerjinin kaynağıdır.`, sunContent);
+
+        // MOON
+        const moonContent = await getLibraryOrGenerate('Ay', moon.sign);
+        html += buildSoulHTML("Duygusal Dünyan", moon.sign, `Ay, ${moon.sign} burcunda dinleniyor. Kalbinin en derin köşesinde hissettiklerin bunlardır:`, moonContent);
+
+        // RISING
+        const risingContent = await getLibraryOrGenerate('Yükselen', rising.sign);
+        html += buildSoulHTML("Dünyaya Yüzün", rising.sign, `Yükselen burcun ${rising.sign}, senin hayata açılan pencerendir.`, risingContent);
+
+        soulList.innerHTML = html;
+
+        // 3. Daily Content
+        dailyContent.innerHTML = `<p>${getDailyAdvice()}</p>`;
+
+        // 4. Universe Content
+        universeContent.innerHTML = getCosmicVoice(rising.sign);
+    }
+
+    async function getLibraryOrGenerate(planet, sign) {
+        // Mocking Library Service look-up
+        // In full production, this would call /api/library/search/
+        const signMeanings = {
+            'Koç': "Harekete geçmekten korkmuyorsun. Liderlik vasfın ve enerjik duruşunla çevrendekilere ilham veriyorsun.",
+            'Boğa': "Sağlam adımlarla ilerlemeyi seviyorsun. Huzur, konfor ve güzellik senin için vazgeçilmez.",
+            'İkizler': "Zihnin her zaman aktif ve öğrenmeye aç. Kelimeler senin süper gücün. Çok yönlüsün.",
+            'Yengeç': "Sevdiklerin için yapamayacağın şey yok. Duygusal zekan çok yüksek ve sezgilerin çok güçlü.",
+            'Aslan': "Parlamak için doğdun. Cömertliğin ve sıcakkanlılığınla girdiğin her ortamı ısıtıyorsun.",
+            'Başak': "Detaylar senin işin. Mükemmeli arıyor ve çevreni iyileştirmek için çabalıyorsun.",
+            'Terazi': "Hayatında denge arayışı ön planda. Adalet duygun çok gelişmiş ve çatışmadan hoşlanmıyorsun.",
+            'Akrep': "Yüzeysel olan hiçbir şey seni tatmin etmez. Derinlere inmek, gizemleri çözmek senin doğanda var.",
+            'Yay': "Hayat senin için bir macera. Özgürlüğüne düşkünsün ve sınır tanımıyorsun.",
+            'Oğlak': "Hedeflerine ulaşmak için sabırla çalışırsın. Sorumluluk sahibisin ve engeller seni yıldırmaz.",
+            'Kova': "Sıradışı bir bakış açın var. Toplumu ileriye taşımak ve kalıpları yıkmak istiyorsun.",
+            'Balık': "Hayal gücü ve şefkat senin sığınağın. Empati yeteneğin muazzam."
+        };
+
+        return `<p><b>${planet} ${sign} burcunda:</b> ${signMeanings[sign] || "Bu yerleşim senin karakterinin derinliklerini yansıtıyor."}</p>
+                <p>Bu enerji, ruhunun temel yapı taşlarından biridir. Kendini ifade etme biçimin bu burcun frekansıyla şekillenir.</p>`;
+    }
+
+    function getDailyAdvice() {
+        const messages = [
+            "Bugün iç sesini dinlemek için harika bir gün. Gürültüden uzaklaş ve kalbinin ne fısıldadığını duy.",
+            "Karşına çıkan engeller aslında birer basamak. Bugün pes etmek yerine, farklı bir çözüm yolu dene.",
+            "Evren seni destekliyor. Niyetin ne kadar net olursa, sonuçlar o kadar hızlı gelir. Bugün bir dilek tut.",
+            "Geçmişi değiştiremezsin ama şu anı şekillendirebilirsin. Bugün, affetmek ve yüklerinden arınmak için mükemmel.",
+            "Küçük bir nezaket dalgası büyük bir okyanusu etkileyebilir. Bugün birine gülümse veya yardım et."
+        ];
+        return messages[new Date().getDate() % messages.length];
+    }
+
+    function getCosmicVoice(risingSign) {
+        const hMap = { "Koç": 1, "Boğa": 2, "İkizler": 3, "Yengeç": 4, "Aslan": 5, "Başak": 6, "Terazi": 7, "Akrep": 8, "Yay": 9, "Oğlak": 10, "Kova": 11, "Balık": 12 };
+        const ridx = hMap[risingSign] || 1;
+        const plutoHouse = (11 - ridx + 12) % 12 + 1;
+        const saturnHouse = (12 - ridx + 12) % 12 + 1;
+
+        return `
+            <p>Şu anda gökyüzündeki Plüton Kova transiti senin haritanda <b>${plutoHouse}. Ev</b> alanına iz düşüyor. Bu, hayatının bu alanında derin bir dönüşüm sürecini başlatır.</p>
+            <p>Satürn ise Balık burcunda ilerlerken senin <b>${saturnHouse}. Ev</b> konularında karmik sınavlar getiriyor. Zamanın efendisi senden sorumluluk ve disiplin bekliyor.</p>
+            <p>Kozmik hava durumu, stüdyoda yeni bir beste yapmak gibidir. Bugünün melodisi sabır ve içsel gözlem üzerine kurulu.</p>
+        `;
+    }
+</script>

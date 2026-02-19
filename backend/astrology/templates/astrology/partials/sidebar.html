@@ -136,107 +136,90 @@
                 style="width: 100%; height: auto; max-width: 180px; max-height: 180px; object-fit: contain; border-radius: 50%; box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);">
         </div>
 
-        <!-- GROUP 1: KOZMİK REHBER (GENERAL) -->
+        <!-- GROUP 1: TEMEL ANALİZLER (CORE) -->
         <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('general', this)">
-                <span data-i18n="group_general">Kozmik Rehber</span> <i class="fas fa-chevron-down"></i>
+            <div class="nav-header" onclick="toggleGroup('core', this)">
+                <span data-i18n="group_core">Temel Analizler</span> <i class="fas fa-chevron-down"></i>
             </div>
-            <div class="nav-children" id="group-general">
+            <div class="nav-children" id="group-core">
                 <div class="nav-item active" onclick="nav('home', this)">
-                    <i class="fas fa-home"></i> <span>Anasayfa</span>
+                    <i class="fas fa-home"></i> <span data-i18n="menu_home">Özet & Akış</span>
+                </div>
+                <div class="nav-item" onclick="nav('mega_analysis', this)" style="color:var(--gold);">
+                    <i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="menu_mega">Yıldızların Rehberliği</span>
+                </div>
+                <div class="nav-item" onclick="nav('chart', this)">
+                    <i class="fas fa-globe-europe"></i> <span data-i18n="menu_chart">Natal Harita</span>
+                </div>
+                <div class="nav-item" onclick="nav('harmony', this)">
+                    <i class="fas fa-heartbeat"></i> <span data-i18n="menu_harmony">İlişkiler & Uyum</span>
                 </div>
                 <div class="nav-item" onclick="nav('horoscopes', this)">
-                    <i class="fas fa-star"></i> <span>Günlük Yorumlar</span>
+                    <i class="fas fa-calendar-day"></i> <span data-i18n="menu_daily">Günlük Yorumlar</span>
                 </div>
-                <div class="nav-item" onclick="nav('blog', this)">
-                    <i class="fas fa-feather-alt"></i> <span>Kozmik Yazılar</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='/library/'">
-                    <i class="fas fa-book"></i> <span>Kütüphane</span>
-                </div>
+            </div>
+        </div>
+
+        <!-- GROUP 2: KOZMİK ARAÇLAR (TOOLS) -->
+        <div class="nav-group">
+            <div class="nav-header" onclick="toggleGroup('tools', this)">
+                <span data-i18n="group_tools">Kozmik Araçlar</span> <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="nav-children" id="group-tools">
                 <div class="nav-item" onclick="nav('tarot', this)">
-                    <i class="fas fa-hat-wizard"></i> <span data-i18n="menu_tarot">Tarot Odası</span>
+                    <i class="fas fa-hat-wizard"></i> <span data-i18n="menu_tarot">Mistik Tarot</span>
                 </div>
-                <div class="nav-item"
-                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('celestial', this){% else %}showUpgradeModal('Göksel Olaylar takvimi Premium üyelere özeldir.'){% endif %}">
-                    <i class="fas fa-moon"></i> <span data-i18n="menu_celestial">Göksel Olaylar</span>
-                    {% if not FREE_PREMIUM_MODE and user.profile.effective_membership != 'premium' and not user.is_superuser %}<i class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
-                    
+                <div class="nav-item" onclick="nav('draconic', this)">
+                    <i class="fas fa-dragon"></i> <span data-i18n="menu_draconic">Ruhsal Kodlar (Drakonik)</span>
+                </div>
+                <div class="nav-item" onclick="nav('rectification', this)">
+                    <i class="fas fa-hourglass-start"></i> <span data-i18n="menu_rectify">Rektifikasyon</span>
                 </div>
                 <div class="nav-item" onclick="nav('hours', this)">
-                    <i class="fas fa-hourglass-half"></i> <span data-i18n="menu_hours">Gezegen Saatleri</span>
+                    <i class="fas fa-clock"></i> <span data-i18n="menu_hours">Gezegen Saatleri</span>
                 </div>
-                <div class="nav-item" onclick="window.location.href='/appointment/'" style="color:var(--gold);">
-                    <i class="fas fa-calendar-check"></i> <span>Randevu & İletişim</span>
+                <div class="nav-item" onclick="nav('celestial', this)">
+                    <i class="fas fa-moon"></i> <span data-i18n="menu_celestial">Göksel Olaylar</span>
                 </div>
+            </div>
+        </div>
+
+        <!-- GROUP 3: KÜTÜPHANE VE TOPLULUK (LIBRARY) -->
+        <div class="nav-group">
+            <div class="nav-header" onclick="toggleGroup('library', this)">
+                <span data-i18n="group_library">Kütüphane & Topluluk</span> <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="nav-children" id="group-library">
                 <div class="nav-item" onclick="window.location.href='/interactive/wall/'">
-                    <i class="fas fa-users"></i> <span>Kozmik Duvar</span>
+                    <i class="fas fa-th-large"></i> <span data-i18n="menu_wall">Kozmik Duvar</span>
                 </div>
-                <div class="nav-item" onclick="nav('guide', this)"
-                    style="border-top:1px solid rgba(255,255,255,0.05); margin-top:5px; padding-top:15px">
-                    <i class="fas fa-info-circle" style="color:var(--accent)"></i> <span data-i18n="menu_guide">Kullanım
-                        Kılavuzu</span>
+                <div class="nav-item" onclick="window.location.href='/library/'">
+                    <i class="fas fa-book-open"></i> <span data-i18n="menu_library">Astro Kütüphane</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- GROUP 2: KİŞİSEL ANALİZ (PERSONAL) -->
-        <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('personal', this)">
-                <span data-i18n="group_personal">Kişisel Analiz</span> <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="nav-children" id="group-personal">
-                <div class="nav-item" onclick="nav('chart', this)">
-                    <i class="fas fa-globe-europe"></i> <span data-i18n="menu_chart">Doğum Haritası</span>
-                </div>
-                <div class="nav-item" onclick="nav('daily', this)">
-                    <i class="fas fa-calendar-alt"></i> <span data-i18n="menu_daily">Günlük & Haftalık</span>
-                </div>
-                <div class="nav-item" onclick="nav('social', this)">
-                    <i class="fas fa-users"></i> <span data-i18n="menu_social">Sosyal Analiz</span>
-                </div>
-                <div class="nav-item" id="nav-synastry-btn" onclick="nav('synastry', this)">
-                    <i class="fas fa-heart"></i> <span data-i18n="menu_synastry">Aşk Uyumu</span>
-                </div>
-                <div class="nav-item"
-                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('career', this){% else %}showUpgradeModal('Kariyer Yolu sadece Premium üyelere özeldir.'){% endif %}">
-                    <i class="fas fa-briefcase"></i> <span data-i18n="menu_career">Kariyer Yolu</span>
-                    {% if user.profile.effective_membership != 'premium' and not user.is_superuser %}<i
-                        class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
-                </div>
-                <div class="nav-item"
-                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('draconic', this){% else %}showUpgradeModal('Drakonik Ruh Haritası sadece Premium üyelere özeldir.'){% endif %}">
-                    <i class="fas fa-dragon"></i> <span data-i18n="menu_draconic">Drakonik Ruh</span>
-                    {% if user.profile.effective_membership != 'premium' and not user.is_superuser %}<i
-                        class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
-                </div>
-                <div class="nav-item"
-                    onclick="{% if FREE_PREMIUM_MODE or user.is_authenticated and user.profile.effective_membership == 'premium' or user.is_superuser %}nav('rectification', this){% else %}showUpgradeModal('Rektifikasyon sadece Premium üyelere özeldir.'){% endif %}">
-                    <i class="fas fa-search-location"></i> <span data-i18n="rectify_title">Rektifikasyon</span>
-                    {% if user.profile.effective_membership != 'premium' and not user.is_superuser %}<i
-                        class="fas fa-lock" style="margin-left:auto; font-size:0.8rem; color:#FFD700"></i>{% endif %}
+                <div class="nav-item" onclick="nav('blog', this)">
+                    <i class="fas fa-newspaper"></i> <span data-i18n="menu_blog">Kozmik Yazılar</span>
                 </div>
             </div>
         </div>
 
-        <!-- GROUP 3: YÖNETİM (ADMIN) -->
+        <!-- GROUP 4: SİSTEM -->
         <div class="nav-group">
-            <div class="nav-header" onclick="toggleGroup('settings', this)">
+            <div class="nav-header" onclick="toggleGroup('system', this)">
                 <span data-i18n="group_system">Sistem</span> <i class="fas fa-chevron-down"></i>
             </div>
-            <div class="nav-children" id="group-settings">
+            <div class="nav-children" id="group-system">
                 <div class="nav-item" onclick="openSettings()">
                     <i class="fas fa-cog"></i> <span data-i18n="nav_settings">Ayarlar</span>
                 </div>
-                {% if user.is_staff or user.is_superuser or request.user.is_staff or request.user.is_superuser %}
+                <div class="nav-item" onclick="window.location.href='/appointment/'">
+                    <i class="fas fa-calendar-check"></i> <span data-i18n="menu_contact">İletişim & Randevu</span>
+                </div>
+                {% if user.is_staff or user.is_superuser %}
                 <div class="nav-item" onclick="nav('editor', this)" style="color:#E94560;">
                     <i class="fas fa-pen-nib"></i> <span>Kozmik Editör</span>
                 </div>
                 <div class="nav-item" onclick="window.location.href='/custom-admin/'" style="color:#E94560;">
                     <i class="fas fa-user-shield"></i> <span>Yönetim Paneli</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='/library/admin-editor/'" style="color:#FFD700;">
-                    <i class="fas fa-edit"></i> <span>Editör Masası</span>
                 </div>
                 {% endif %}
             </div>

@@ -138,7 +138,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         'username': _regUserCtrl.text,
         'email': _regEmailCtrl.text,
         'password': _regPassCtrl.text,
-        'date': isoDate, // Changed from birth_date to date
+        'date': dateStr, // Changed from birth_date to date
         'time': timeStr, // Changed from birth_time to time
         'lat': cityInfo['lat'],
         'lon': cityInfo['lon'],

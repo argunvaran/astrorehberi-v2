@@ -88,6 +88,8 @@
         // Celestial Hook
         if (sectionId === 'celestial' && typeof loadCelestial === 'function') loadCelestial();
 
+        if (sectionId === 'mega_analysis' && typeof loadMegaAnalysis === 'function') loadMegaAnalysis();
+
         // Draconic Hook
         if (sectionId === 'draconic' && typeof window.loadDraconic === 'function') {
             window.loadDraconic();
