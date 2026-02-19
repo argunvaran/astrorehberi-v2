@@ -213,8 +213,9 @@
                             class="fas fa-search"></i></button>
                     <input type="text" name="q" value="{{ search_query }}" placeholder="Burç veya Tarot kartı ara..."
                         style="width: 100%; padding: 10px 10px 10px 40px; border-radius: 25px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
-                    {% if current_cat != 'all' %}<input type="hidden" name="category" value="{{ current_cat }}">{% endif %}
-                    
+                    {% if current_cat != 'all' %}<input type="hidden" name="category" value="{{ current_cat }}">{% endif
+                    %}
+
 
                 </form>
 
@@ -294,8 +295,10 @@
 
     <!-- DETAIL MODAL OVERLAY -->
     <div id="lib-detail-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.9); align-items:center; justify-content:center; backdrop-filter:blur(5px)">
-        style="width:90%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; padding:0"></div>
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; backdrop-filter:blur(8px)">
+        <div id="lib-detail-content" class="glass-card"
+            style="width:90%; max-width:800px; max-height:90vh; overflow-y:auto; position:relative; padding:0; border:1px solid var(--gold);">
+        </div>
     </div>
 
     <!-- GLOBAL SCRIPTS -->
